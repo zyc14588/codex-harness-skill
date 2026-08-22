@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "candidate": "0.6.5-rc.2",
+  "observedAt": "2026-08-22T14:59:55+10:00",
+  "gate": "direct_acceptance",
+  "status": "FAIL",
+  "failureKind": "split_memory_infrastructure_budget_drift",
+  "taskFamily": "required-tool-choice-violation-family",
+  "attribution": "infrastructure",
+  "infrastructureFailureKind": "tool_protocol",
+  "sampleCountBefore": 0,
+  "sampleCountAfter": 0,
+  "recommendedLeafScaleBefore": 1,
+  "recommendedLeafScaleAfter": 1,
+  "recommendedMaxInputTokensBefore": 20000,
+  "recommendedMaxInputTokensAfter": 10000,
+  "recommendedMaxOutputTokensBefore": 4000,
+  "recommendedMaxOutputTokensAfter": 2000,
+  "providerCredentialPresent": false,
+  "providerRequestMadeByFailingGate": false,
+  "rootCause": "adviseSplit consumed token recommendations from an infrastructure-only profile even though it had zero learnable samples",
+  "reproduction": "split-memory unit fixture now records an infrastructure event under smaller gates than the next proposed descriptor"
+}

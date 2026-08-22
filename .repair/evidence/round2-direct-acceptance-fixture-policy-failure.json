@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "at": "2026-08-22T14:51:00+10:00",
+  "command": "npm run direct-acceptance",
+  "result": "FAIL",
+  "failedAssertion": "monitor did not expose in-flight CNY token/cost accrual before provider completion",
+  "rootCause": "scripts/fake-dsh.mjs still emitted generic requests with tool_choice=auto and without thinking.type or reasoning_effort. The new pre-Provider immutable policy correctly rejected the request, so no in-flight usage existed.",
+  "productionGateBehavior": "PASS_FAIL_CLOSED",
+  "fix": "Make the deterministic fake Harness consume CODEX_HARNESS_ATTEMPT_MODEL and CODEX_HARNESS_REASONING_EFFORT, emit Flash disabled/no reasoning_effort, emit Pro enabled/high, and omit tool_choice unless the production minimal mutation policy adds it."
+}

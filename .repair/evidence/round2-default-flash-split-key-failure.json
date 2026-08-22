@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "at": "2026-08-22T14:55:00+10:00",
+  "command": "npm run direct-acceptance",
+  "result": "FAIL",
+  "failedGate": "adaptive split-memory continuity",
+  "observed": {
+    "expectedPriorSample": 1,
+    "actualSample": 0,
+    "actualRecommendedLeafScale": 1
+  },
+  "rootCause": "Plan normalization now freezes an omitted Harness model to deepseek-v4-flash, while controllerSplitAdvice and splitMemoryKey still represented an omitted model as the distinct tier 'default'. Equivalent default-Flash leaves therefore hashed to different memory keys.",
+  "fix": "Canonicalize every omitted Harness model to deepseek-v4-flash in both split-key generation and controller advice, with a regression proving omitted and explicit Flash keys are identical."
+}

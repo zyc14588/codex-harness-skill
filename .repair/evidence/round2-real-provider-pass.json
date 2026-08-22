@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "candidate": "0.6.5-rc.2",
+  "observedAt": "2026-08-22T15:03:41+10:00",
+  "gate": "real_deepseek_multiturn_provider_smoke",
+  "status": "PASS",
+  "provider": "DeepSeek real API via credential provider",
+  "credentialHandling": "copied without inspection to isolated mode-0600 DSH_HOME; copy removed after run",
+  "harnessCommit": "141eb6fef83422698aef7a981029e843e8161534",
+  "harnessBuildSha256": "6a294d72c51e6570852acaf73458cda98f555bd53c9c7ff0b49c568e7cf88a38",
+  "flash": {
+    "status": "PASS",
+    "attemptCount": 1,
+    "providerRequests": 9,
+    "nativeToolCalls": 8,
+    "thinkingTypeEveryRequest": "disabled",
+    "reasoningEffortPresentAnyRequest": false,
+    "changedPaths": ["real-flash-multiturn.txt"],
+    "reviewDecision": "approved",
+    "verificationPassed": true,
+    "reviewedCurrentVerifiedFingerprint": "d2cf72aaf4dc9432261456f647a7e006b3853d2622fb5ab52576cc62f05bfafc",
+    "isolatedLocalCommit": "8852273d292dd88a724a0541c20787a1e102497c",
+    "worktreeRemoved": true,
+    "branchDeleted": true
+  },
+  "pro": {
+    "status": "PASS",
+    "attemptCount": 1,
+    "providerRequests": 4,
+    "nativeToolCalls": 3,
+    "thinkingTypeEveryRequest": "enabled",
+    "reasoningEffortEveryRequest": "high",
+    "toolChoicePresentAnyRequest": false,
+    "reasoningRequirements": [
+      {
+        "responseRequestOrdinal": 1,
+        "reasoningSha256": "26802ccd62b69308c511d13fcee36f2302b44cae191fcd78189254a3e2cdc3bd",
+        "reasoningUtf8Bytes": 473,
+        "replayCount": 3
+      },
+      {
+        "responseRequestOrdinal": 2,
+        "reasoningSha256": "59b51099c753d32a946844513a55fc25993c5434dc03315e3e23c1c88dd5dad5",
+        "reasoningUtf8Bytes": 431,
+        "replayCount": 2
+      },
+      {
+        "responseRequestOrdinal": 3,
+        "reasoningSha256": "bb6fd1be6fb260ed221c3c09e8b83cf8c1f10d149d41392228011bf36daaeac0",
+        "reasoningUtf8Bytes": 873,
+        "replayCount": 1
+      }
+    ],
+    "changedPaths": ["real-pro-thinking.txt"],
+    "reviewDecision": "approved",
+    "verificationPassed": true,
+    "reviewedCurrentVerifiedFingerprint": "0e25898ce1027165771a3b4b3d30d9277ca225935554f5a76d213aa253fddffa",
+    "isolatedLocalCommit": "7c64b48e8f52c8fa2e815974c0e39b7622183e09",
+    "worktreeRemoved": true,
+    "branchDeleted": true
+  },
+  "smokeMainHeadBefore": "5a721b68ea58c900a2144dd41145d04482548e23",
+  "smokeMainHeadAfter": "5a721b68ea58c900a2144dd41145d04482548e23",
+  "smokeMainClean": true,
+  "pushed": false
+}

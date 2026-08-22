@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "candidate": "0.6.5-rc.2",
+  "observedAt": "2026-08-22T15:01:52+10:00",
+  "gate": "managed_profile_multiturn_mock_provider",
+  "status": "PASS",
+  "harnessCommit": "141eb6fef83422698aef7a981029e843e8161534",
+  "harnessBuildSha256": "6a294d72c51e6570852acaf73458cda98f555bd53c9c7ff0b49c568e7cf88a38",
+  "flash": {
+    "providerRequests": 4,
+    "thinkingTypes": ["disabled", "disabled", "disabled", "disabled"],
+    "reasoningEffortPresent": [false, false, false, false],
+    "nativeToolCalls": 3,
+    "changedPaths": ["dynamic-flash-probe.txt"]
+  },
+  "pro": {
+    "providerRequests": 3,
+    "thinkingTypes": ["enabled", "enabled", "enabled"],
+    "reasoningEfforts": ["high", "high", "high"],
+    "toolChoicePresent": [false, false, false],
+    "nativeToolCalls": 2,
+    "reasoningReplayDepths": [0, 1, 2],
+    "reasoningRequirements": [
+      {
+        "responseRequestOrdinal": 1,
+        "reasoningSha256": "1c0cb51de1b1a23b82eb8b0466f256b2789dd754b8d02ba2652ca766033c950a",
+        "reasoningUtf8Bytes": 75,
+        "replayCount": 2
+      },
+      {
+        "responseRequestOrdinal": 2,
+        "reasoningSha256": "76e317f23d4cf90ada833b6a380a066bd1ef54e6a61b5eff67edb17bbd7f8b7d",
+        "reasoningUtf8Bytes": 83,
+        "replayCount": 1
+      }
+    ],
+    "changedPaths": ["dynamic-pro-probe.txt"]
+  },
+  "failureInjection": {
+    "responseStatus": 502,
+    "failureKind": "thinking_replay_state",
+    "providerCalls": 0,
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "splitSampleCount": 0,
+    "recommendedLeafScale": 1,
+    "recommendedComplexity": "medium",
+    "recommendedMaxInputTokens": 100000,
+    "recommendedMaxOutputTokens": 10000
+  }
+}

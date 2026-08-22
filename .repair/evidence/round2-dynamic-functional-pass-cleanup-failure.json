@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "at": "2026-08-22T14:48:56+10:00",
+  "functionalGates": {
+    "minimalFlashFourRequests": "PASS",
+    "minimalFlashThreeNativeToolCalls": "PASS",
+    "minimalFlashAttemptPolicy": "PASS",
+    "proThinkingThreeRequests": "PASS",
+    "proTwoNativeToolCalls": "PASS",
+    "proReasoningFullReplay": "PASS",
+    "failureInjectionProviderCalls": 0,
+    "failureInjectionTokens": "0/0",
+    "failureInjectionSplitAdviceUnchanged": "PASS"
+  },
+  "fixtureResult": "FAILED_DURING_CLEANUP",
+  "cleanupError": "worktree has active task dynamic-missing-replay-injection",
+  "rootCause": "The manually seeded failure-injection record remained status=running after its expected proxy rejection, so cleanup correctly treated the shared temporary worktree as active.",
+  "fix": "Publish the seeded injection attempt as terminal failed after all zero-I/O and split-memory assertions, before cleaning the real fixture tasks."
+}

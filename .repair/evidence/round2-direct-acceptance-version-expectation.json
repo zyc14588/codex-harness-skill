@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "at": "2026-08-22T14:51:48+10:00",
+  "command": "npm run direct-acceptance",
+  "result": "FAIL",
+  "failedAssertion": "minimalMutationPolicyVersion exact value",
+  "expectedByStaleFixture": "minimal-flash-explicit-purpose-v3",
+  "actual": "minimal-flash-attempt-fixed-v4",
+  "runtimeTaskStatusBeforeAssertion": "completed",
+  "rootCause": "Three direct-acceptance assertions still named the withdrawn request-local v3 policy after the production and unit assertions moved to immutable v4.",
+  "fix": "Update only the stale exact-version expectations; retain all behavioral assertions."
+}

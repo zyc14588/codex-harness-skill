@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "at": "2026-08-22T14:48:11+10:00",
+  "fixture": "dynamic real managed profile with local mock Provider",
+  "flashResultBeforeFailure": {
+    "providerRequestCount": 4,
+    "allThinkingDisabled": true,
+    "reasoningEffortAlwaysOmitted": true,
+    "providerFailure": false
+  },
+  "proFailure": {
+    "providerRequestCount": 0,
+    "taskModel": "deepseek-v4-pro",
+    "frozenAttemptPolicyModel": "deepseek-v4-pro",
+    "frozenThinkingType": "enabled",
+    "actualHarnessWireModel": "deepseek-v4-flash",
+    "classification": "thinking_policy_state",
+    "message": "attempt model is immutable (deepseek-v4-pro); request selected deepseek-v4-flash",
+    "inputTokens": 0,
+    "outputTokens": 0
+  },
+  "rootCause": "The minimal headless runner reads agentDefaultModel.currentSelection(); setting DSH_MODEL on the child environment does not alter that already-resolved selection.",
+  "nextAction": "Pass the frozen attempt model explicitly to the runner and construct the agent/model-selection route from that exact model before the first request."
+}

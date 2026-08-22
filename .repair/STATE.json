@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "targetVersion": "0.6.5",
+  "targetReleaseStatus": "stable",
+  "completionStatus": "DELIVERABLE_PASS",
+  "controlledUseAllowed": true,
+  "workingSource": "repair-worktree/repaired-source",
+  "workingBranch": "repair/r6-5-rc1",
+  "workingHead": "e2581382415fc167f26d9ce49bb9a6a95a119a04",
+  "harnessRoot": "/home/zyc14588/deepseek-harness",
+  "harnessHead": "141eb6fef83422698aef7a981029e843e8161534",
+  "round": 2,
+  "phase": "complete",
+  "lastFailure": {
+    "candidate": "0.6.5-rc.2",
+    "kind": "split_memory_infrastructure_budget_drift",
+    "message": "A zero-sample infrastructure-only profile changed advice from 20000/4000 to the failed task's 10000/2000 token gates.",
+    "evidence": ".repair/evidence/round2-infrastructure-only-budget-drift.json"
+  },
+  "rootCause": {
+    "status": "confirmed",
+    "summary": "adviseSplit consumed recommended token fields from a profile even when sampleCount was zero and the profile contained only infrastructure diagnostics.",
+    "reproductionTest": "bridge/src/test/split-memory.test.ts: infrastructure failures are recorded without shrinking split advice, with mismatched event and proposed budgets",
+    "observedFailure": "Infrastructure attribution correctly kept sampleCount at zero, but initialProfile copied the failed task budget and adviseSplit treated it as learned advice.",
+    "nextProof": "none; every required stable release gate passed"
+  },
+  "gates": {
+    "narrowTests": "pass_split_memory_7_of_7",
+    "fullRegression": "pass_stable_74_of_74",
+    "directAcceptance": "pass_rc2_pre_promotion_and_package_embedded_stable",
+    "dynamicHarnessFixture": "pass_stable_flash4_pro3",
+    "realMinimalFlashSmoke": "pass_stable_real_7_requests_6_tools",
+    "realProThinkingSmoke": "pass_stable_real_7_requests_6_tools_6_reasoning_replays",
+    "failureInjectionSmoke": "pass_stable_provider0_tokens0_split_unchanged",
+    "packageAcceptance": "pass_final_source_and_unpacked_zip",
+    "skillValidation": "pass_quick_validate",
+    "finalZipUnpackedRevalidation": "pass_manifest243_package_acceptance"
+  },
+  "stableCommit": "e2581382415fc167f26d9ce49bb9a6a95a119a04",
+  "finalZip": "deliverables/CODEX_HARNESS_BRIDGE_0_6_5_STABLE.zip",
+  "finalZipSha256": "737ea4d5d148544cd1a2a605a1ec32f7de5ed2355f6c9b17b01bbf48344a7eba",
+  "mainModified": false,
+  "pushed": false,
+  "updatedAt": "2026-08-22T15:17:36+10:00"
+}
