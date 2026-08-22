@@ -1,0 +1,649 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.invalid/codex-harness-bridge/v6/task-record.schema.json",
+  "title": "Codex-Harness Task Record v6",
+  "description": "Durable task envelope including adaptive split-memory decision, minimal/standard Harness mode, dependency/parallel metadata, and token-only gates.",
+  "type": "object",
+  "$defs": {
+    "budget": {
+      "type": "object",
+      "description": "Only maxInputTokens and maxOutputTokens are execution budget gates. API-call and currency fields are reference/alert thresholds.",
+      "required": [
+        "gatePolicy",
+        "ceilingPolicy",
+        "enforcement",
+        "maxApiCalls",
+        "maxInputTokens",
+        "maxOutputTokens",
+        "maxCostCny",
+        "maxCostUsd"
+      ],
+      "properties": {
+        "gatePolicy": {
+          "const": "input_output_tokens"
+        },
+        "ceilingPolicy": {
+          "enum": [
+            "operator_bounded",
+            "unbounded"
+          ]
+        },
+        "enforcement": {
+          "const": "hard"
+        },
+        "maxApiCalls": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000,
+          "description": "Reference threshold only."
+        },
+        "maxInputTokens": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000000000,
+          "description": "Hard cumulative input-token gate."
+        },
+        "maxOutputTokens": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000000000,
+          "description": "Hard cumulative output-token gate."
+        },
+        "maxCostCny": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1000000000,
+          "description": "CNY reference threshold only."
+        },
+        "maxCostUsd": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1000000000,
+          "description": "Hidden compatibility/reference threshold only."
+        }
+      },
+      "additionalProperties": false
+    },
+    "splitDecision": {
+      "type": "object",
+      "required": [
+        "memorySchemaVersion",
+        "memoryKey",
+        "taskFamily",
+        "memoryRevision",
+        "sampleCount",
+        "ignoredLegacySampleCount",
+        "confidence",
+        "recommendedLeafScale",
+        "recommendedComplexity",
+        "recommendedMaxInputTokens",
+        "recommendedMaxOutputTokens",
+        "anomalyRate",
+        "rationale",
+        "chosenComplexity",
+        "chosenMaxInputTokens",
+        "chosenMaxOutputTokens"
+      ],
+      "properties": {
+        "memoryKey": {
+          "type": "string",
+          "minLength": 1
+        },
+        "taskFamily": {
+          "type": "string",
+          "minLength": 1
+        },
+        "memoryRevision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sampleCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "recommendedLeafScale": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "recommendedComplexity": {
+          "enum": [
+            "trivial",
+            "small",
+            "medium",
+            "large"
+          ]
+        },
+        "recommendedMaxInputTokens": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "recommendedMaxOutputTokens": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "anomalyRate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "rationale": {
+          "type": "array",
+          "maxItems": 128,
+          "items": {
+            "type": "string"
+          }
+        },
+        "chosenComplexity": {
+          "enum": [
+            "trivial",
+            "small",
+            "medium",
+            "large"
+          ]
+        },
+        "chosenMaxInputTokens": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "chosenMaxOutputTokens": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "overrideReason": {
+          "type": "string"
+        },
+        "memorySchemaVersion": {
+          "const": 3
+        },
+        "ignoredLegacySampleCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ignoredLegacySchemaVersion": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "id",
+    "planId",
+    "leafId",
+    "budgetGroupId",
+    "requestedExecutor",
+    "executor",
+    "complexity",
+    "harnessMode",
+    "dependsOn",
+    "toolCapabilities",
+    "taskFamily",
+    "splitDecision",
+    "mode",
+    "objective",
+    "repoRoot",
+    "baseRef",
+    "baseCommit",
+    "startingHeadCommit",
+    "branchName",
+    "worktreePath",
+    "harnessWritePaths",
+    "codexWritePaths",
+    "acceptanceCriteria",
+    "contextFiles",
+    "verificationCommands",
+    "budget",
+    "status",
+    "createdAt",
+    "runtimeSeconds",
+    "promptPath",
+    "stdoutPath",
+    "stderrPath",
+    "usagePath",
+    "changedPaths",
+    "outOfScopePaths"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 6
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "planId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "leafId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "parentTaskId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "budgetGroupId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "requestedExecutor": {
+      "enum": [
+        "auto",
+        "harness",
+        "llama_cpp"
+      ]
+    },
+    "executor": {
+      "enum": [
+        "harness",
+        "llama_cpp"
+      ]
+    },
+    "effectiveExecutor": {
+      "enum": [
+        "harness",
+        "llama_cpp"
+      ]
+    },
+    "routingReason": {
+      "type": "string"
+    },
+    "complexity": {
+      "enum": [
+        "trivial",
+        "small",
+        "medium",
+        "large"
+      ]
+    },
+    "harnessMode": {
+      "enum": [
+        "minimal",
+        "standard"
+      ]
+    },
+    "parallelGroup": {
+      "type": "string",
+      "minLength": 1
+    },
+    "dependsOn": {
+      "type": "array",
+      "maxItems": 32,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "toolCapabilities": {
+      "type": "array",
+      "uniqueItems": true,
+      "maxItems": 3,
+      "items": {
+        "enum": [
+          "repository_read",
+          "verification",
+          "git_inspect"
+        ]
+      }
+    },
+    "taskFamily": {
+      "type": "string",
+      "minLength": 1
+    },
+    "splitDecision": {
+      "$ref": "#/$defs/splitDecision"
+    },
+    "mode": {
+      "enum": [
+        "implementation",
+        "test",
+        "review",
+        "analysis",
+        "repair"
+      ]
+    },
+    "phase": {
+      "type": "string"
+    },
+    "objective": {
+      "type": "string",
+      "minLength": 1
+    },
+    "repoRoot": {
+      "type": "string",
+      "minLength": 1
+    },
+    "baseRef": {
+      "type": "string",
+      "minLength": 1
+    },
+    "baseCommit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "startingHeadCommit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "branchName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "worktreePath": {
+      "type": "string",
+      "minLength": 1
+    },
+    "harnessWritePaths": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 30,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "codexWritePaths": {
+      "type": "array",
+      "maxItems": 30,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "acceptanceCriteria": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "contextFiles": {
+      "type": "array",
+      "maxItems": 1000,
+      "items": {
+        "type": "string"
+      }
+    },
+    "verificationCommands": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "budget": {
+      "$ref": "#/$defs/budget"
+    },
+    "model": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "enum": [
+        "queued",
+        "running",
+        "completed",
+        "completed_no_changes",
+        "scope_violation",
+        "failed",
+        "cancelled",
+        "orphaned"
+      ]
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "startedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "cleanedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "workerPid": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "workerDeadObservedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "harnessPid": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "exitCode": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "runtimeSeconds": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "promptPath": {
+      "type": "string"
+    },
+    "stdoutPath": {
+      "type": "string"
+    },
+    "stderrPath": {
+      "type": "string"
+    },
+    "usagePath": {
+      "type": "string"
+    },
+    "proxyToken": {
+      "type": "string"
+    },
+    "dashboardUrl": {
+      "type": "string"
+    },
+    "upstreamBaseUrl": {
+      "type": "string"
+    },
+    "changedPaths": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "outOfScopePaths": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "unsafeSymlinkPaths": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "unsafeGitlinkPaths": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "stagedPaths": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "resultSummary": {
+      "type": "string"
+    },
+    "error": {
+      "type": "string"
+    },
+    "fallbackUsed": {
+      "type": "boolean"
+    },
+    "fallbackReason": {
+      "type": "string"
+    },
+    "fallbackModel": {
+      "type": "string"
+    },
+    "reviewDecision": {
+      "enum": [
+        "approved",
+        "revise",
+        "rejected"
+      ]
+    },
+    "reviewNotes": {
+      "type": "string"
+    },
+    "reviewedPaths": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "reviewedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reviewedFingerprint": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "verificationPassed": {
+      "type": "boolean"
+    },
+    "verifiedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "verifiedCommands": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "verifiedFingerprint": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "bridgeCommit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "bridgeCommittedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "worktreeRemoved": {
+      "type": "boolean"
+    },
+    "branchDeleted": {
+      "type": "boolean"
+    },
+    "splitOutcomeRecordedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "splitOutcomeRevision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "toolProtocolRecoveryCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "toolProtocolRecoveryKinds": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "dsml_content_to_tool_calls",
+          "structured_tool_call_delta_normalized",
+          "markdown_shell_fence_to_tool_calls",
+          "text_tool_call_envelope_to_tool_calls"
+        ]
+      }
+    },
+    "toolProtocolRecoveredTools": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "toolProtocolNativeCallCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "toolProtocolNativeTools": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "minimalMutationForceCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "minimalMutationForcedTools": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "minimalMutationPolicyVersion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "minimalMutationLastAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "toolProtocolFailure": {
+      "type": "string"
+    },
+    "toolProtocolFailureAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "infrastructureFailureKind": {
+      "enum": [
+        "tool_protocol",
+        "minimal_tool_plane",
+        "provider_transport",
+        "no_effect"
+      ]
+    },
+    "infrastructureFailureDetails": {
+      "type": "string"
+    },
+    "referenceAlerts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,584 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.invalid/codex-harness-bridge/v6/config.schema.json",
+  "title": "Codex-Harness Bridge Configuration v6",
+  "description": "Configuration for adaptive split memory, parallel minimal Harness execution, token-only budget gates, monitoring, and controlled llama.cpp routing.",
+  "type": "object",
+  "$defs": {
+    "budget": {
+      "type": "object",
+      "description": "Only maxInputTokens and maxOutputTokens are execution budget gates. API-call and currency fields are reference/alert thresholds.",
+      "required": [
+        "gatePolicy",
+        "ceilingPolicy",
+        "enforcement",
+        "maxApiCalls",
+        "maxInputTokens",
+        "maxOutputTokens",
+        "maxCostCny",
+        "maxCostUsd"
+      ],
+      "properties": {
+        "gatePolicy": {
+          "const": "input_output_tokens"
+        },
+        "ceilingPolicy": {
+          "enum": [
+            "operator_bounded",
+            "unbounded"
+          ]
+        },
+        "enforcement": {
+          "const": "hard"
+        },
+        "maxApiCalls": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000,
+          "description": "Reference threshold only."
+        },
+        "maxInputTokens": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000000000,
+          "description": "Hard cumulative input-token gate."
+        },
+        "maxOutputTokens": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000000000,
+          "description": "Hard cumulative output-token gate."
+        },
+        "maxCostCny": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1000000000,
+          "description": "CNY reference threshold only."
+        },
+        "maxCostUsd": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1000000000,
+          "description": "Hidden compatibility/reference threshold only."
+        }
+      },
+      "additionalProperties": false
+    },
+    "pricing": {
+      "type": "object",
+      "properties": {
+        "inputCacheHitCnyPerMillion": {
+          "type": "number",
+          "minimum": 0
+        },
+        "inputCacheMissCnyPerMillion": {
+          "type": "number",
+          "minimum": 0
+        },
+        "outputCnyPerMillion": {
+          "type": "number",
+          "minimum": 0
+        },
+        "inputCacheHitUsdPerMillion": {
+          "type": "number",
+          "minimum": 0
+        },
+        "inputCacheMissUsdPerMillion": {
+          "type": "number",
+          "minimum": 0
+        },
+        "outputUsdPerMillion": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "inputCacheHitCnyPerMillion",
+            "inputCacheMissCnyPerMillion",
+            "outputCnyPerMillion"
+          ]
+        },
+        {
+          "required": [
+            "inputCacheHitUsdPerMillion",
+            "inputCacheMissUsdPerMillion",
+            "outputUsdPerMillion"
+          ]
+        }
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "harnessRoot",
+    "harnessProfile",
+    "harnessMinimalProfile",
+    "stateRoot",
+    "allowedRepoRoots",
+    "passEnvironment",
+    "defaultRuntimeSeconds",
+    "maxRuntimeSeconds",
+    "logTailChars",
+    "enforceHarnessPin",
+    "enforceHarnessBuildHash",
+    "requireCleanRepoAtStart",
+    "allowDirtyHarnessCheckout",
+    "controller",
+    "monitor",
+    "llamaCpp"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 6
+    },
+    "harnessRoot": {
+      "type": "string",
+      "minLength": 1
+    },
+    "harnessCli": {
+      "type": "string",
+      "minLength": 1
+    },
+    "harnessBuildRoot": {
+      "type": "string",
+      "minLength": 1
+    },
+    "harnessProfile": {
+      "type": "string",
+      "minLength": 1
+    },
+    "harnessMinimalProfile": {
+      "type": "string",
+      "minLength": 1
+    },
+    "dshHome": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stateRoot": {
+      "type": "string",
+      "minLength": 1
+    },
+    "allowedRepoRoots": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 256,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "passEnvironment": {
+      "type": "array",
+      "maxItems": 256,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "defaultRuntimeSeconds": {
+      "type": "integer",
+      "minimum": 60,
+      "maximum": 86400
+    },
+    "maxRuntimeSeconds": {
+      "type": "integer",
+      "minimum": 60,
+      "maximum": 86400
+    },
+    "logTailChars": {
+      "type": "integer",
+      "minimum": 1000,
+      "maximum": 1000000
+    },
+    "pinnedHarnessCommit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "pinnedHarnessBuildSha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "enforceHarnessPin": {
+      "type": "boolean"
+    },
+    "enforceHarnessBuildHash": {
+      "type": "boolean"
+    },
+    "requireCleanRepoAtStart": {
+      "type": "boolean"
+    },
+    "allowDirtyHarnessCheckout": {
+      "type": "boolean"
+    },
+    "controller": {
+      "type": "object",
+      "required": [
+        "requirePlan",
+        "maxLeavesPerPlan",
+        "maxHarnessWriteLeases",
+        "maxHarnessContextFiles",
+        "maxHarnessAcceptanceCriteria",
+        "maxHarnessObjectiveChars",
+        "maxConcurrentHarnessGlobal",
+        "maxConcurrentHarnessPerRepo",
+        "preferMinimalHarness",
+        "defaultHarnessBudget",
+        "maximumHarnessBudget",
+        "defaultProComplexBudget",
+        "splitMemory"
+      ],
+      "properties": {
+        "requirePlan": {
+          "const": true
+        },
+        "maxLeavesPerPlan": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 256
+        },
+        "maxHarnessWriteLeases": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "maxHarnessContextFiles": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "maxHarnessAcceptanceCriteria": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "maxHarnessObjectiveChars": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        },
+        "maxConcurrentHarnessGlobal": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64
+        },
+        "maxConcurrentHarnessPerRepo": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 32
+        },
+        "preferMinimalHarness": {
+          "type": "boolean"
+        },
+        "defaultHarnessBudget": {
+          "$ref": "#/$defs/budget"
+        },
+        "maximumHarnessBudget": {
+          "$ref": "#/$defs/budget"
+        },
+        "defaultProComplexBudget": {
+          "$ref": "#/$defs/budget"
+        },
+        "splitMemory": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "minSamplesForEnforcement",
+            "maxEventsPerProfile",
+            "minimumLeafScale",
+            "maximumLeafScale",
+            "anomalyPenalty",
+            "successGrowth",
+            "tokenSafetyFactor"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "minSamplesForEnforcement": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "maxEventsPerProfile": {
+              "type": "integer",
+              "minimum": 4,
+              "maximum": 10000
+            },
+            "minimumLeafScale": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "maximumLeafScale": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "anomalyPenalty": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "successGrowth": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "tokenSafetyFactor": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "monitor": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "host",
+        "port",
+        "autoStart",
+        "charsPerEstimatedToken",
+        "pricingAsOf",
+        "pricing",
+        "currency"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "host": {
+          "enum": [
+            "127.0.0.1",
+            "localhost",
+            "::1"
+          ]
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        },
+        "autoStart": {
+          "type": "boolean"
+        },
+        "charsPerEstimatedToken": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 32
+        },
+        "pricingAsOf": {
+          "type": "string",
+          "minLength": 1
+        },
+        "pricing": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/pricing"
+          }
+        },
+        "currency": {
+          "type": "object",
+          "required": [
+            "primary",
+            "showUsd",
+            "usdToCnyRate",
+            "fxAsOf",
+            "fxSource"
+          ],
+          "properties": {
+            "primary": {
+              "const": "CNY"
+            },
+            "showUsd": {
+              "type": "boolean"
+            },
+            "usdToCnyRate": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "exclusiveMinimum": 0
+            },
+            "fxAsOf": {
+              "type": "string",
+              "minLength": 1
+            },
+            "fxSource": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "llamaCpp": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "autoRouteSimpleLeaves",
+        "mode",
+        "baseUrl",
+        "apiKeyEnv",
+        "model",
+        "serverBinary",
+        "serverArgs",
+        "serverAutoStart",
+        "serverStartupTimeoutSeconds",
+        "cliBinary",
+        "cliArgs",
+        "requestTimeoutSeconds",
+        "maxFilesPerTask",
+        "maxContextFiles",
+        "maxContextBytes",
+        "maxFileBytes",
+        "maxOutputTokens",
+        "fallbackEnabled",
+        "fallbackModel"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "autoRouteSimpleLeaves": {
+          "type": "boolean"
+        },
+        "mode": {
+          "enum": [
+            "external_server",
+            "managed_server",
+            "cli"
+          ]
+        },
+        "baseUrl": {
+          "type": "string",
+          "pattern": "^https?://(127\\.0\\.0\\.1|localhost|\\[?::1\\]?)(:[0-9]+)?/"
+        },
+        "apiKeyEnv": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "workingDirectory": {
+          "type": "string",
+          "minLength": 1
+        },
+        "serverBinary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "serverArgs": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "type": "string"
+          }
+        },
+        "serverAutoStart": {
+          "type": "boolean"
+        },
+        "serverStartupTimeoutSeconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3600
+        },
+        "cliBinary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cliArgs": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "type": "string"
+          }
+        },
+        "requestTimeoutSeconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 14400
+        },
+        "maxFilesPerTask": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "maxContextFiles": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "maxContextBytes": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 100000000
+        },
+        "maxFileBytes": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 100000000
+        },
+        "maxOutputTokens": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000000
+        },
+        "fallbackEnabled": {
+          "type": "boolean"
+        },
+        "fallbackModel": {
+          "const": "deepseek-v4-flash"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "enforceHarnessPin": {
+            "const": true
+          }
+        },
+        "required": [
+          "enforceHarnessPin"
+        ]
+      },
+      "then": {
+        "required": [
+          "pinnedHarnessCommit"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "enforceHarnessBuildHash": {
+            "const": true
+          }
+        },
+        "required": [
+          "enforceHarnessBuildHash"
+        ]
+      },
+      "then": {
+        "required": [
+          "pinnedHarnessBuildSha256"
+        ]
+      }
+    }
+  ],
+  "additionalProperties": false
+}

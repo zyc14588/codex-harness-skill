@@ -1,0 +1,9 @@
+{
+  "codex_harness": {
+    "command": "node",
+    "args": [
+      "dist/index.js"
+    ],
+    "cwd": "./bridge"
+  }
+}

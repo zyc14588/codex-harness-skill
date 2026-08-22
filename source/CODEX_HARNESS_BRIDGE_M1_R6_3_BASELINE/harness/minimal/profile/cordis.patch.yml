@@ -1,0 +1,67 @@
+# Managed by Codex-Harness Bridge. Do not edit in place.
+# This profile keeps the headless host while moving model-facing capabilities
+# behind the bridge-owned minimal preset.
+
+# Remove the base bundle's process-global agent tool plane. The mounted preset
+# below supplies only the intentionally disclosed tools for this one agent.
+- id: tool-bash
+  disabled: true
+- id: tool-pwsh
+  disabled: true
+- id: tool-jobs
+  disabled: true
+- id: tool-fs
+  disabled: true
+- id: tool-fs-search
+  disabled: true
+- id: tool-str-replace-editor
+  disabled: true
+- id: skill-filesystem
+  disabled: true
+- id: tool-skill
+  disabled: true
+- id: tool-goal
+  disabled: true
+- id: plan-mode
+  disabled: true
+- id: compaction-basic
+  disabled: true
+- id: command-compact
+  disabled: true
+- id: tool-result-pruner
+  disabled: true
+- id: tool-subagent-control
+  disabled: true
+- id: tool-subagent-list-agents
+  disabled: true
+- id: tool-subagent
+  disabled: true
+- id: tool-subagent-fork
+  disabled: true
+- id: workflow-worker-thread
+  disabled: true
+- id: tool-workflow
+  disabled: true
+- id: tool-ralph
+  disabled: true
+- id: agent-instructions
+  disabled: true
+- id: tool-todo
+  disabled: true
+- id: tool-web
+  disabled: true
+
+- insert:
+    - id: agent-presets
+      name: '@deepseek-ai/dsh-agent-presets'
+      config:
+        default: codex-bridge-minimal
+
+# Replace the stock one-shot runner with the bridge-owned runner that mounts
+# the preset transactionally before the new Agent is published.
+- id: headless-runner
+  name: ./bridge-headless-runner.mjs
+  inject: [headlessStartup, agentPresets]
+  config:
+    task: !!js ctx.headlessStartup.task
+    presetId: codex-bridge-minimal

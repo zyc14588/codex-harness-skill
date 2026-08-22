@@ -1,0 +1,20 @@
+{
+  "name": "local-codex-harness",
+  "interface": {
+    "displayName": "Local Codex-Harness Bridge"
+  },
+  "plugins": [
+    {
+      "name": "codex-harness-bridge",
+      "source": {
+        "source": "local",
+        "path": "../../"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL",
+        "products": ["CODEX"]
+      }
+    }
+  ]
+}

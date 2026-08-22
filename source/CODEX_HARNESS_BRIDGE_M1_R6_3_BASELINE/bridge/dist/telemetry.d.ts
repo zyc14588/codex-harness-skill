@@ -1,0 +1,21 @@
+import type { BridgeConfig, BudgetMarker, PricingEntry, ProviderUsage, TaskBudget, TaskRecord, UsageEvent, UsageTotals } from "./types.js";
+export declare function usageEventId(): string;
+export declare function estimateTokens(value: unknown, charsPerToken: number): number;
+export declare function parseProviderUsage(value: unknown): ProviderUsage | undefined;
+export declare function pricingForModel(config: BridgeConfig, model?: string): PricingEntry | undefined;
+export declare function calculateCostCny(pricing: PricingEntry | undefined, usage: ProviderUsage): number | undefined;
+export declare function calculateCostUsd(pricing: PricingEntry | undefined, usage: ProviderUsage): number | undefined;
+export declare function emptyUsageTotals(): UsageTotals;
+export declare function aggregateUsageEvents(events: UsageEvent[]): UsageTotals;
+export declare function appendUsageEvent(task: TaskRecord, event: UsageEvent): Promise<void>;
+export declare function usageForBudgetGroup(config: BridgeConfig, budgetGroupId: string): Promise<UsageTotals>;
+export declare function budgetAdvisoryExceededReason(totals: UsageTotals, budget: TaskBudget): string | undefined;
+/** R6 reference-only thresholds: visible and learnable, but never execution gates. */
+export declare function budgetReferenceAlerts(totals: UsageTotals, budget: TaskBudget): string[];
+export declare function budgetExceededReason(totals: UsageTotals, budget: TaskBudget): string | undefined;
+export declare function projectedBudgetExceededReason(totals: UsageTotals, budget: TaskBudget, additionalInputTokens: number, additionalCostUsd: number, additionalOutputTokens: number, additionalCostCny?: number): string | undefined;
+export declare function budgetMarkerPath(config: BridgeConfig, budgetGroupId: string): string;
+export declare function markBudgetExceeded(config: BridgeConfig, task: TaskRecord, reason: string, totals: UsageTotals): Promise<BudgetMarker>;
+export declare function clearBudgetMarker(config: BridgeConfig, budgetGroupId: string): Promise<void>;
+export declare function readBudgetMarker(config: BridgeConfig, budgetGroupId: string): Promise<BudgetMarker | undefined>;
+export declare function writeUsageSnapshot(config: BridgeConfig, task: TaskRecord): Promise<UsageTotals>;

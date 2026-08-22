@@ -1,0 +1,8 @@
+capturedAt=2026-08-22T03:06:24Z
+runtime=/home/zyc14588/.local/share/codex-harness-bridge/0.6.4
+config=/home/zyc14588/.config/codex-harness-bridge/config.json
+dshHome=/home/zyc14588/.dsh
+profile=/home/zyc14588/.dsh/profiles/codex-minimal-headless
+preset=/home/zyc14588/.dsh/.agent-presets/codex-bridge-minimal
+taskId=plan-1787365388387-r6-4-minimal-aux-isolation-smoke
+runtimeVersion=0.6.4

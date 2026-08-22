@@ -1,0 +1,21 @@
+{
+  "generatedAt": "2026-08-22T02:23:37.554Z",
+  "taskId": "plan-1787365388387-r6-4-minimal-aux-isolation-smoke",
+  "budgetGroupId": "plan-1787365388387-r6-4-minimal-aux-isolation-smoke",
+  "costSemantics": "configured_pricing_estimate_cny_primary",
+  "billingAuthoritative": false,
+  "totals": {
+    "apiCalls": 0,
+    "completedCalls": 0,
+    "failedCalls": 0,
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "estimatedInputTokens": 0,
+    "estimatedOutputTokens": 0,
+    "cacheHitInputTokens": 0,
+    "cacheMissInputTokens": 0,
+    "costCny": 0,
+    "costUsd": 0,
+    "unpricedCalls": 0
+  }
+}

@@ -1,0 +1,161 @@
+{
+  "schemaVersion": 6,
+  "harnessRoot": "/home/zyc14588/deepseek-harness",
+  "harnessCli": "/home/zyc14588/deepseek-harness/apps/cli/lib/bin.js",
+  "harnessBuildRoot": "/home/zyc14588/deepseek-harness/apps/cli/lib",
+  "harnessProfile": "headless",
+  "allowedRepoRoots": [
+    "/home/zyc14588"
+  ],
+  "pinnedHarnessCommit": "141eb6fef83422698aef7a981029e843e8161534",
+  "pinnedHarnessBuildSha256": "6a294d72c51e6570852acaf73458cda98f555bd53c9c7ff0b49c568e7cf88a38",
+  "enforceHarnessPin": true,
+  "enforceHarnessBuildHash": true,
+  "requireCleanRepoAtStart": true,
+  "allowDirtyHarnessCheckout": false,
+  "stateRoot": "/home/zyc14588/aipt-worktrees/harness-AIPT-M0-B003",
+  "defaultRuntimeSeconds": 3600,
+  "maxRuntimeSeconds": 14400,
+  "logTailChars": 20000,
+  "passEnvironment": [
+    "PATH",
+    "HOME",
+    "USER",
+    "LOGNAME",
+    "SHELL",
+    "LANG",
+    "LC_ALL",
+    "TERM",
+    "COLORTERM",
+    "XDG_CONFIG_HOME",
+    "XDG_DATA_HOME",
+    "XDG_STATE_HOME",
+    "DEEPSEEK_API_KEY",
+    "DEEPSEEK_BASE_URL",
+    "DEEPSEEK_SEARCH_BASE_URL",
+    "DSH_MODEL",
+    "LLAMA_CPP_API_KEY",
+    "HTTP_PROXY",
+    "HTTPS_PROXY",
+    "ALL_PROXY",
+    "NO_PROXY",
+    "NODE_USE_ENV_PROXY",
+    "NODE_EXTRA_CA_CERTS",
+    "SSL_CERT_FILE"
+  ],
+  "controller": {
+    "requirePlan": true,
+    "maxLeavesPerPlan": 32,
+    "maxHarnessWriteLeases": 30,
+    "maxHarnessContextFiles": 40,
+    "maxHarnessAcceptanceCriteria": 20,
+    "maxHarnessObjectiveChars": 6000,
+    "defaultHarnessBudget": {
+      "maxApiCalls": 20,
+      "maxInputTokens": "<REDACTED>",
+      "maxOutputTokens": "<REDACTED>",
+      "maxCostUsd": 1.0,
+      "maxCostCny": 7.2,
+      "enforcement": "hard",
+      "gatePolicy": "input_output_tokens",
+      "ceilingPolicy": "operator_bounded"
+    },
+    "maximumHarnessBudget": {
+      "maxApiCalls": 40,
+      "maxInputTokens": "<REDACTED>",
+      "maxOutputTokens": "<REDACTED>",
+      "maxCostUsd": 5.0,
+      "maxCostCny": 36.0,
+      "enforcement": "hard",
+      "gatePolicy": "input_output_tokens",
+      "ceilingPolicy": "operator_bounded"
+    },
+    "defaultProComplexBudget": {
+      "maxApiCalls": 120,
+      "maxInputTokens": "<REDACTED>",
+      "maxOutputTokens": "<REDACTED>",
+      "maxCostUsd": 50.0,
+      "maxCostCny": 360.0,
+      "enforcement": "hard",
+      "gatePolicy": "input_output_tokens",
+      "ceilingPolicy": "unbounded"
+    },
+    "maxConcurrentHarnessGlobal": 4,
+    "maxConcurrentHarnessPerRepo": 3,
+    "preferMinimalHarness": true,
+    "splitMemory": {
+      "enabled": true,
+      "minSamplesForEnforcement": 2,
+      "maxEventsPerProfile": 64,
+      "minimumLeafScale": 0.25,
+      "maximumLeafScale": 1.5,
+      "anomalyPenalty": 0.35,
+      "successGrowth": 0.12,
+      "tokenSafetyFactor": "<REDACTED>"
+    }
+  },
+  "monitor": {
+    "enabled": true,
+    "host": "127.0.0.1",
+    "port": 43127,
+    "autoStart": true,
+    "charsPerEstimatedToken": "<REDACTED>",
+    "pricingAsOf": "2026-08-19 DeepSeek official Models & Pricing (CNY primary); local estimate only",
+    "pricing": {
+      "deepseek-v4-flash": {
+        "inputCacheHitCnyPerMillion": 0.02,
+        "inputCacheMissCnyPerMillion": 1.0,
+        "outputCnyPerMillion": 2.0,
+        "inputCacheHitUsdPerMillion": 0.0028,
+        "inputCacheMissUsdPerMillion": 0.14,
+        "outputUsdPerMillion": 0.28
+      },
+      "deepseek-v4-pro": {
+        "inputCacheHitCnyPerMillion": 0.025,
+        "inputCacheMissCnyPerMillion": 3.0,
+        "outputCnyPerMillion": 6.0,
+        "inputCacheHitUsdPerMillion": 0.003625,
+        "inputCacheMissUsdPerMillion": 0.435,
+        "outputUsdPerMillion": 0.87
+      }
+    },
+    "currency": {
+      "usdToCnyRate": null,
+      "fxAsOf": "not-configured",
+      "fxSource": "manual (set in dashboard or config)",
+      "primary": "CNY",
+      "showUsd": false
+    }
+  },
+  "llamaCpp": {
+    "enabled": false,
+    "baseUrl": "http://127.0.0.1:8080/v1",
+    "apiKeyEnv": "<REDACTED>",
+    "model": "local-model",
+    "requestTimeoutSeconds": 600,
+    "maxFilesPerTask": 3,
+    "maxContextFiles": 8,
+    "maxContextBytes": 512000,
+    "maxFileBytes": 256000,
+    "maxOutputTokens": "<REDACTED>",
+    "autoRouteSimpleLeaves": true,
+    "mode": "external_server",
+    "serverBinary": "llama-server",
+    "serverArgs": [],
+    "serverAutoStart": false,
+    "serverStartupTimeoutSeconds": 90,
+    "cliBinary": "llama-cli",
+    "cliArgs": [
+      "-p",
+      "{{PROMPT}}",
+      "-n",
+      "{{MAX_TOKENS}}",
+      "--temp",
+      "0"
+    ],
+    "fallbackEnabled": true,
+    "fallbackModel": "deepseek-v4-flash"
+  },
+  "harnessMinimalProfile": "codex-minimal-headless",
+  "dshHome": "/home/zyc14588/.dsh"
+}

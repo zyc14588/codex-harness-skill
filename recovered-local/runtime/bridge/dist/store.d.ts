@@ -1,0 +1,18 @@
+import type { BridgeConfig, ControllerPlan, TaskRecord } from "./types.js";
+export declare function taskDirectory(config: BridgeConfig, taskId: string): string;
+export declare function taskFile(config: BridgeConfig, taskId: string): string;
+export declare function planDirectory(config: BridgeConfig, planId: string): string;
+export declare function planFile(config: BridgeConfig, planId: string): string;
+export declare function createTask(config: BridgeConfig, task: TaskRecord): Promise<void>;
+export declare function loadTask(config: BridgeConfig, taskId: string): Promise<TaskRecord>;
+export declare function saveTask(config: BridgeConfig, task: TaskRecord): Promise<void>;
+export declare function createPlan(config: BridgeConfig, plan: ControllerPlan): Promise<void>;
+export declare function loadPlan(config: BridgeConfig, planId: string): Promise<ControllerPlan>;
+export declare function savePlan(config: BridgeConfig, plan: ControllerPlan): Promise<void>;
+export declare function withNamedLock<T>(config: BridgeConfig, lockName: string, timeoutMs: number, fn: () => Promise<T>): Promise<T>;
+export declare function updateTask(config: BridgeConfig, taskId: string, mutate: (task: TaskRecord) => TaskRecord | void): Promise<TaskRecord>;
+export declare function updatePlan(config: BridgeConfig, planId: string, mutate: (plan: ControllerPlan) => ControllerPlan | void): Promise<ControllerPlan>;
+export declare function listTasks(config: BridgeConfig): Promise<TaskRecord[]>;
+export declare function listPlans(config: BridgeConfig): Promise<ControllerPlan[]>;
+export declare function withMutationLock<T>(config: BridgeConfig, fn: () => Promise<T>): Promise<T>;
+export declare function withWorktreeLock<T>(config: BridgeConfig, worktreePath: string, fn: () => Promise<T>): Promise<T>;
