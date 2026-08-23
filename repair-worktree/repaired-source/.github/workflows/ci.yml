@@ -1,0 +1,61 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-test-security:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+          cache: npm
+          cache-dependency-path: bridge/package-lock.json
+      - name: Install Bubblewrap
+        run: sudo apt-get update && sudo apt-get install -y bubblewrap
+      - name: Validate JSON and release gate behavior
+        run: |
+          jq -e . release-status.json SOURCE_PROVENANCE.json schemas/*.json config/*.json >/dev/null
+          node scripts/release-gate.test.mjs
+          status="$(jq -r .releaseStatus release-status.json)"
+          if [[ "$status" == candidate ]]; then
+            node scripts/verify-release-gate.mjs --root . --audit-candidate
+          else
+            node scripts/verify-release-gate.mjs --root .
+          fi
+      - name: Reject tracked credentials and environment files
+        run: |
+          if git ls-files | grep -E '(^|/)\.env($|\.)' | grep -Ev '\.(example|sample|template|dist)$'; then
+            echo 'Tracked environment file is forbidden' >&2
+            exit 1
+          fi
+          if git grep -nE '(sk-[A-Za-z0-9_-]{20,}|DEEPSEEK_API_KEY[[:space:]]*=[[:space:]]*[^$])' -- . ':!scripts/fake-dsh.mjs'; then
+            echo 'Possible tracked credential material detected' >&2
+            exit 1
+          fi
+      - name: Reproducible dependency install
+        working-directory: bridge
+        run: npm ci
+      - name: Strict build and full component regression
+        working-directory: bridge
+        run: npm run build && npm test
+      - name: Bubblewrap process and protocol fixture
+        working-directory: bridge
+        run: node dist/direct-acceptance.js
+      - name: Security acceptance
+        run: scripts/security-acceptance.sh
+      - name: Skill validation
+        run: node scripts/validate-skill.mjs skills/codex-harness
+      - name: Transactional package acceptance
+        env:
+          CODEX_HARNESS_PACKAGE_SKIP_PROCESS_E2E: "1"
+        run: scripts/package-acceptance.sh
+      - name: Generated artifact drift
+        run: git diff --exit-code -- bridge/dist

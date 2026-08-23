@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 1,
+  "version": "0.6.5",
+  "releaseStatusAtObservation": "stable",
+  "evidenceScope": "historical_2026-08-22_pre_security-audit-repair",
+  "acceptedAsCurrentRepairGate": false,
+  "supersededForReleaseGateReason": "Predates mandatory Provider broker, Bubblewrap isolation, process identity, and release-governance repairs.",
+  "gate": "real_deepseek_multiturn_provider_smoke",
+  "result": "PASS",
+  "startedAt": "2026-08-22T05:06:42.385Z",
+  "completedAt": "2026-08-22T05:07:52.880Z",
+  "provider": "DeepSeek real API via credential provider",
+  "credentialHandling": "credential bytes copied without inspection to isolated mode-0600 DSH_HOME; copy removed after run",
+  "credentialValuePersisted": false,
+  "reasoningContentPersistedInEvidence": false,
+  "harness": {
+    "root": "/home/zyc14588/deepseek-harness",
+    "commit": "141eb6fef83422698aef7a981029e843e8161534",
+    "buildSha256": "6a294d72c51e6570852acaf73458cda98f555bd53c9c7ff0b49c568e7cf88a38",
+    "cleanBeforeAndAfter": true
+  },
+  "minimalFlash": {
+    "result": "PASS",
+    "taskId": "stable-real-flash-multiturn-task",
+    "attemptId": "a5b4361f-d972-4786-b609-ddbcae739a15",
+    "attemptCount": 1,
+    "model": "deepseek-v4-flash",
+    "frozenPolicy": {
+      "policyVersion": "attempt-thinking-policy-v1",
+      "thinkingType": "disabled",
+      "reasoningEffort": "off"
+    },
+    "providerRequests": [
+      { "ordinal": 1, "thinkingType": "disabled", "reasoningEffortPresent": false, "toolChoicePresent": true },
+      { "ordinal": 2, "thinkingType": "disabled", "reasoningEffortPresent": false, "toolChoicePresent": true },
+      { "ordinal": 3, "thinkingType": "disabled", "reasoningEffortPresent": false, "toolChoicePresent": false },
+      { "ordinal": 4, "thinkingType": "disabled", "reasoningEffortPresent": false, "toolChoicePresent": false },
+      { "ordinal": 5, "thinkingType": "disabled", "reasoningEffortPresent": false, "toolChoicePresent": false },
+      { "ordinal": 6, "thinkingType": "disabled", "reasoningEffortPresent": false, "toolChoicePresent": false },
+      { "ordinal": 7, "thinkingType": "disabled", "reasoningEffortPresent": false, "toolChoicePresent": false }
+    ],
+    "providerRequestCount": 7,
+    "minimumRequiredProviderRequests": 4,
+    "minimalMutationForceCount": 2,
+    "nativeToolCallCount": 6,
+    "nativeTools": ["bash"],
+    "changedPaths": ["real-flash-multiturn.txt"],
+    "changedPathsMatchLease": true,
+    "reviewDecision": "approved",
+    "reviewedPaths": ["real-flash-multiturn.txt"],
+    "verificationPassed": true,
+    "reviewedFingerprint": "c1d5f76ec498680d93163174388aaedaaca4c5c089809ca3f59a50a819ddea26",
+    "currentFingerprint": "c1d5f76ec498680d93163174388aaedaaca4c5c089809ca3f59a50a819ddea26",
+    "verifiedFingerprint": "c1d5f76ec498680d93163174388aaedaaca4c5c089809ca3f59a50a819ddea26",
+    "isolatedLocalCommit": "258d4424b83ed3b7969ac3d82aaae1fea8d006db",
+    "worktreeRemoved": true,
+    "branchDeleted": true
+  },
+  "proThinking": {
+    "result": "PASS",
+    "taskId": "stable-real-pro-thinking-task",
+    "attemptId": "f0c3f0c2-588e-43f0-8aed-f178302f54ac",
+    "attemptCount": 1,
+    "model": "deepseek-v4-pro",
+    "frozenPolicy": {
+      "policyVersion": "attempt-thinking-policy-v1",
+      "thinkingType": "enabled",
+      "reasoningEffort": "high"
+    },
+    "providerRequests": [
+      { "ordinal": 1, "thinkingType": "enabled", "reasoningEffort": "high", "toolChoicePresent": false, "replayedRequirementOrdinals": [] },
+      { "ordinal": 2, "thinkingType": "enabled", "reasoningEffort": "high", "toolChoicePresent": false, "replayedRequirementOrdinals": [1] },
+      { "ordinal": 3, "thinkingType": "enabled", "reasoningEffort": "high", "toolChoicePresent": false, "replayedRequirementOrdinals": [1, 2] },
+      { "ordinal": 4, "thinkingType": "enabled", "reasoningEffort": "high", "toolChoicePresent": false, "replayedRequirementOrdinals": [1, 2, 3] },
+      { "ordinal": 5, "thinkingType": "enabled", "reasoningEffort": "high", "toolChoicePresent": false, "replayedRequirementOrdinals": [1, 2, 3, 4] },
+      { "ordinal": 6, "thinkingType": "enabled", "reasoningEffort": "high", "toolChoicePresent": false, "replayedRequirementOrdinals": [1, 2, 3, 4, 5] },
+      { "ordinal": 7, "thinkingType": "enabled", "reasoningEffort": "high", "toolChoicePresent": false, "replayedRequirementOrdinals": [1, 2, 3, 4, 5, 6] }
+    ],
+    "providerRequestCount": 7,
+    "reasoningReplayRequirements": [
+      { "responseRequestOrdinal": 1, "reasoningSha256": "57a0d499629642e82d47e1875ea0c739549e5965598368b48681de8c3809fd8a", "reasoningUtf8Bytes": 369, "toolCallIds": ["call_00_SUZbD6yylIadH4AMFBtQ0574"], "replayCount": 6 },
+      { "responseRequestOrdinal": 2, "reasoningSha256": "6ef70d50fd66c7f79df5b94c6d0a26f82d03ec5b945a5c327534d5f3dea4fbc1", "reasoningUtf8Bytes": 545, "toolCallIds": ["call_00_d6kCAVnWK1sUkQ4F21477585"], "replayCount": 5 },
+      { "responseRequestOrdinal": 3, "reasoningSha256": "a0de55b7aefe5b4ae57e42b29c387db7898e67e19e83c7c7cae98fcd771773b7", "reasoningUtf8Bytes": 427, "toolCallIds": ["call_00_dLIP29UN5xVKFrfRoKyZ5189"], "replayCount": 4 },
+      { "responseRequestOrdinal": 4, "reasoningSha256": "a00ccbee1697fcc277588d8f1206a1c319008b57b34cd8a3a42fc9591715e06b", "reasoningUtf8Bytes": 1716, "toolCallIds": ["call_00_HkZcPKkmNxm62kE1PAR59691"], "replayCount": 3 },
+      { "responseRequestOrdinal": 5, "reasoningSha256": "18439c3066aae2e576ba5e0be121ec9b79ed1cffeae20da53dd4b01213bbb3af", "reasoningUtf8Bytes": 218, "toolCallIds": ["call_00_isg5vKGFzsPBuluciyj28672"], "replayCount": 2 },
+      { "responseRequestOrdinal": 6, "reasoningSha256": "06503088bd292d7c9505b544968faec0b3f39efc8e458801f8424df591c5beed", "reasoningUtf8Bytes": 1725, "toolCallIds": ["call_00_1uuvFTIMwH4e0O79KMjm9854"], "replayCount": 1 }
+    ],
+    "providerReturnedNonEmptyReasoning": true,
+    "assistantToolMessagesPersistedExactReasoning": true,
+    "invalidRequestObserved": false,
+    "nativeToolCallCount": 6,
+    "nativeTools": ["bash"],
+    "changedPaths": ["real-pro-thinking.txt"],
+    "changedPathsMatchLease": true,
+    "reviewDecision": "approved",
+    "reviewedPaths": ["real-pro-thinking.txt"],
+    "verificationPassed": true,
+    "reviewedFingerprint": "fdf1c035df1ca1196513c9f5c2d99f904c479ad7a3a6b0367251657c50df4ea4",
+    "currentFingerprint": "fdf1c035df1ca1196513c9f5c2d99f904c479ad7a3a6b0367251657c50df4ea4",
+    "verifiedFingerprint": "fdf1c035df1ca1196513c9f5c2d99f904c479ad7a3a6b0367251657c50df4ea4",
+    "isolatedLocalCommit": "735b67089fefae793d56cf6f4edc4c2b7616f214",
+    "worktreeRemoved": true,
+    "branchDeleted": true
+  },
+  "smokeMain": {
+    "headBefore": "721d0e4fcf6ba290c1b1a1d5e2122aa39c17a2db",
+    "headAfter": "721d0e4fcf6ba290c1b1a1d5e2122aa39c17a2db",
+    "clean": true
+  },
+  "pushed": false
+}

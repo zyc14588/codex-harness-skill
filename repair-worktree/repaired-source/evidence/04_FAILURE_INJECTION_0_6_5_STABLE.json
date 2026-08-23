@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "version": "0.6.5",
+  "gate": "missing_reasoning_replay_pre_provider_failure_injection",
+  "result": "PASS",
+  "observedAt": "2026-08-23",
+  "fixture": "real managed Harness profile inside mandatory Bubblewrap with a local instrumented Provider broker",
+  "injectedState": "a persisted Pro reasoning requirement whose matching assistant tool-call message is absent from request history",
+  "responseStatus": 502,
+  "infrastructureFailureKind": "thinking_replay_state",
+  "providerRequestsBefore": 0,
+  "providerRequestsAfter": 0,
+  "inputTokensBefore": 0,
+  "inputTokensAfter": 0,
+  "outputTokensBefore": 0,
+  "outputTokensAfter": 0,
+  "splitAdviceBefore": {
+    "sampleCount": 0,
+    "recommendedLeafScale": 1,
+    "recommendedComplexity": "medium",
+    "recommendedMaxInputTokens": 100000,
+    "recommendedMaxOutputTokens": 10000
+  },
+  "splitAdviceAfter": {
+    "sampleCount": 0,
+    "recommendedLeafScale": 1,
+    "recommendedComplexity": "medium",
+    "recommendedMaxInputTokens": 100000,
+    "recommendedMaxOutputTokens": 10000
+  },
+  "providerIoPrevented": true,
+  "usageAccountingUnchanged": true,
+  "taskShapeLearningUnchanged": true
+}

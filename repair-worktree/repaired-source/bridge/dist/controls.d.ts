@@ -1,0 +1,12 @@
+import type { BridgeConfig, BudgetControlEvent, BudgetOverrideRecord, LlamaCppConfig, OperatorControls, TaskBudget } from "./types.js";
+export declare function readOperatorControls(config: BridgeConfig): Promise<OperatorControls>;
+export declare function setBudgetPolicy(config: BridgeConfig, defaultBudgetValue: unknown, maximumBudgetValue: unknown, defaultProComplexBudgetValue: unknown, reason: string, actor: string): Promise<OperatorControls>;
+export declare function effectiveBudgetPolicy(config: BridgeConfig): Promise<OperatorControls["budgetPolicy"]>;
+export declare function readBudgetOverride(config: BridgeConfig, budgetGroupId: string): Promise<BudgetOverrideRecord | undefined>;
+export declare function listBudgetOverrides(config: BridgeConfig): Promise<BudgetOverrideRecord[]>;
+export declare function setBudgetOverride(config: BridgeConfig, budgetGroupId: string, budgetValue: unknown, reason: string, actor: string): Promise<BudgetOverrideRecord>;
+export declare function clearBudgetOverride(config: BridgeConfig, budgetGroupId: string, reason: string, actor: string): Promise<void>;
+export declare function effectiveBudget(config: BridgeConfig, frozen: TaskBudget, budgetGroupId: string): Promise<TaskBudget>;
+export declare function listBudgetControlEvents(config: BridgeConfig, limit?: number): Promise<BudgetControlEvent[]>;
+export declare function effectiveLlamaConfig(config: BridgeConfig): Promise<LlamaCppConfig>;
+export declare function setLlamaRuntimeConfig(config: BridgeConfig, value: unknown, actor: string): Promise<LlamaCppConfig>;

@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 2,
+  "version": "0.6.5",
+  "result": "PASS",
+  "executedAt": "2026-08-23",
+  "fixture": "real-managed-profile-multiturn-thinking-policy-mock-provider",
+  "harnessCommit": "141eb6fef83422698aef7a981029e843e8161534",
+  "harnessBuildSha256": "6a294d72c51e6570852acaf73458cda98f555bd53c9c7ff0b49c568e7cf88a38",
+  "composition": {
+    "stockRunnerDisabled": true,
+    "bridgeRunnerMounted": true,
+    "sessionTitleDisabled": true,
+    "minimalPresetSelected": true,
+    "patchWarningFree": true
+  },
+  "isolation": {
+    "bubblewrapMandatory": true,
+    "hostNetworkUnavailable": true,
+    "realProviderCredentialMounted": false,
+    "perTaskBrokerTokenOnly": true,
+    "nestedUserNamespacesDisabled": true
+  },
+  "flash": {
+    "status": "completed",
+    "requestCount": 4,
+    "thinkingTypeEveryRequest": "disabled",
+    "reasoningEffortPresent": false,
+    "toolChoicePresentByOrdinal": [true, true, false, false],
+    "minimalMutationForceCount": 2,
+    "nativeToolCallCount": 3
+  },
+  "pro": {
+    "status": "completed",
+    "requestCount": 3,
+    "thinkingTypeEveryRequest": "enabled",
+    "reasoningEffortEveryRequest": "high",
+    "toolChoicePresent": false,
+    "replayedReasoningCountByOrdinal": [0, 1, 2],
+    "reasoningReplayRequirementCount": 2,
+    "reasoningReplayCounts": [2, 1],
+    "nativeToolCallCount": 2
+  },
+  "failureInjection": {
+    "responseStatus": 502,
+    "failureKind": "thinking_replay_state",
+    "providerCalls": 0,
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "splitSampleCount": 0
+  },
+  "redaction": {
+    "apiKeys": false,
+    "authorizationHeaders": false,
+    "messageBodies": false,
+    "toolArguments": false,
+    "reasoningContent": false
+  }
+}

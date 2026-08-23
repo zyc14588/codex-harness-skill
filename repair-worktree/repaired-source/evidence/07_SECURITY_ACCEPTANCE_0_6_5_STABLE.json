@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "version": "0.6.5",
+  "result": "PASS",
+  "executedAt": "2026-08-23",
+  "command": "scripts/security-acceptance.sh",
+  "checks": {
+    "operatorApiAuthentication": "PASS",
+    "providerCredentialBroker": "PASS",
+    "bubblewrapFileNetworkPidIsolation": "PASS",
+    "trackedEnvRejection": "PASS",
+    "minimalEnvironmentAllowlist": "PASS",
+    "llamaBinaryAndRuntimeControlPinning": "PASS",
+    "promptFileOnlyTransport": "PASS",
+    "strongProcessIdentityAndGroupCleanup": "PASS",
+    "candidateStableWithdrawnReleaseGates": "PASS"
+  },
+  "externalNetworkUsed": false,
+  "credentialsPersistedInEvidence": false
+}

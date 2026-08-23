@@ -1,0 +1,151 @@
+{
+  "schemaVersion": 1,
+  "candidateVersion": "0.6.5-rc.1",
+  "disposition": "FAILED_WITHDRAWN",
+  "controlledUseAllowed": false,
+  "sourceCommit": "b481c798c64e7566ee359f97480b3f8d794e0954",
+  "harness": {
+    "commit": "141eb6fef83422698aef7a981029e843e8161534",
+    "buildSha256": "6a294d72c51e6570852acaf73458cda98f555bd53c9c7ff0b49c568e7cf88a38",
+    "checkoutCleanAfterSmoke": true
+  },
+  "provider": {
+    "name": "DeepSeek",
+    "model": "deepseek-v4-flash",
+    "realProvider": true,
+    "externalTransmissionExplicitlyAuthorized": true,
+    "credentialResolvedByDsh": true,
+    "credentialValueObservedOrPersistedByCodex": false
+  },
+  "controller": {
+    "planId": "rc1-real-deepseek-smoke-plan",
+    "taskId": "rc1-real-deepseek-smoke-task",
+    "baseCommit": "05773fb6bee92b6f58f0aae6556b014103eebd24",
+    "model": "deepseek-v4-flash",
+    "harnessMode": "minimal",
+    "lease": [
+      "rc1-real-deepseek-smoke.txt"
+    ],
+    "status": "failed",
+    "exitCode": 1,
+    "errorType": "INVALID_REQUEST",
+    "errorMessage": "The reasoning_content in the thinking mode must be passed back to the API."
+  },
+  "toolPlane": {
+    "requestCount": 3,
+    "allFiveLayersEqual": true,
+    "runnerVisibleTools": [
+      "bash",
+      "mcp__bridge__capability_catalog",
+      "mcp__bridge__capability_enable",
+      "str_replace_editor"
+    ],
+    "assembledTools": [
+      "bash",
+      "mcp__bridge__capability_catalog",
+      "mcp__bridge__capability_enable",
+      "str_replace_editor"
+    ],
+    "adapterWireProxyToolsOnEveryRequest": [
+      "bash",
+      "mcp__bridge__capability_catalog",
+      "mcp__bridge__capability_enable",
+      "str_replace_editor"
+    ],
+    "minimalMutationForceCount": 2,
+    "minimalMutationForcedTools": [
+      "bash",
+      "str_replace_editor"
+    ],
+    "minimalMutationPolicyVersion": "minimal-flash-explicit-purpose-v3",
+    "nativeCallCount": 2,
+    "nativeTools": [
+      "bash"
+    ],
+    "recoveryCount": 0
+  },
+  "requestSequence": [
+    {
+      "ordinal": 1,
+      "purpose": "primary_mutation",
+      "inputThinkingType": "enabled",
+      "policyApplied": true,
+      "providerThinkingTypeAfterPolicy": "disabled",
+      "diffAlreadyPresent": false
+    },
+    {
+      "ordinal": 2,
+      "purpose": "mutation_followup",
+      "inputThinkingType": "enabled",
+      "policyApplied": true,
+      "providerThinkingTypeAfterPolicy": "disabled",
+      "diffAlreadyPresent": false
+    },
+    {
+      "ordinal": 3,
+      "purpose": "mutation_followup",
+      "inputThinkingType": "enabled",
+      "policyApplied": false,
+      "providerThinkingTypeAfterPolicy": "enabled",
+      "diffAlreadyPresent": true,
+      "providerRejectedMissingHistoricalReasoningContent": true
+    }
+  ],
+  "changeEvidence": {
+    "changedPaths": [
+      "rc1-real-deepseek-smoke.txt"
+    ],
+    "outOfScopePaths": [],
+    "fileSha256": "054cdc453c778ae31f7117dddc3deaca0cc784e823283e57775ab401efb5466d",
+    "fileContent": "CODEX_HARNESS_BRIDGE 0.6.5-rc.1 REAL_DEEPSEEK_SMOKE PASS\n",
+    "codexReadFileForFailureEvidence": true,
+    "controllerReviewDecision": null,
+    "verificationPassed": false,
+    "reviewedFingerprint": null,
+    "currentFingerprint": null,
+    "verifiedFingerprint": null,
+    "localSmokeCommit": null
+  },
+  "usage": {
+    "apiCalls": 3,
+    "completedCalls": 2,
+    "failedCalls": 1,
+    "inputTokens": 3551,
+    "outputTokens": 239,
+    "estimatedCostCny": 0.00308984
+  },
+  "splitMemory": {
+    "revision": 1,
+    "sampleCount": 1,
+    "successCount": 0,
+    "anomalyCount": 1,
+    "infrastructureFailureCount": 0,
+    "recordedAttribution": "task_shape",
+    "recordedAnomalies": [
+      "execution_failed"
+    ],
+    "recommendedLeafScaleBefore": 1,
+    "recommendedLeafScaleAfter": 0.65,
+    "validSuccessSampleRecorded": false,
+    "classificationDefect": "Provider thinking-session transition failure was not isolated as infrastructure and changed split advice."
+  },
+  "cleanup": {
+    "worktreeRemoved": true,
+    "branchDeleted": true,
+    "mainHeadBefore": "05773fb6bee92b6f58f0aae6556b014103eebd24",
+    "mainHeadAfter": "05773fb6bee92b6f58f0aae6556b014103eebd24",
+    "mainWorkingTreeCleanAfter": true,
+    "candidateMcpRemoved": true,
+    "candidateSkillRemoved": true,
+    "managedProfileRemoved": true,
+    "managedPresetRemoved": true,
+    "monitorStopped": true,
+    "versionedRuntimeRetained": true,
+    "durableLogsRetained": true
+  },
+  "finalGate": {
+    "realDeepSeekHarnessSmokePass": false,
+    "candidatePromotable": false,
+    "stableReleaseAuthorized": false
+  }
+}

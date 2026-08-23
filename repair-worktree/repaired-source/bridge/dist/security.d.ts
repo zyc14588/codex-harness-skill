@@ -1,0 +1,10 @@
+import type { BridgeConfig } from "./types.js";
+export declare function bearerToken(requestAuthorization: string | string[] | undefined): string | undefined;
+export declare function authorizeBearer(requestAuthorization: string | string[] | undefined, expected: string): boolean;
+export declare function authorizeExactSecret(candidate: string | undefined, expected: string): boolean;
+export declare function operatorTokenPath(config: BridgeConfig): string;
+export declare function monitorSocketDirectory(config: BridgeConfig): string;
+export declare function monitorSocketPath(config: BridgeConfig): string;
+export declare function readPrivateSecret(target: string, label: string): Promise<string>;
+export declare function ensureOperatorToken(config: BridgeConfig): Promise<string>;
+export declare function readProviderApiKey(config: BridgeConfig): Promise<string>;

@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 2,
+  "version": "0.6.5",
+  "gate": "codex_skill_validation",
+  "result": "PASS",
+  "observedAt": "2026-08-23",
+  "skill": "skills/codex-harness/SKILL.md",
+  "validator": "/home/zyc14588/.codex/skills/.system/skill-creator/scripts/quick_validate.py",
+  "validatorOutput": "Skill is valid!",
+  "frontmatterValid": true,
+  "releaseAuthorityDocumented": true,
+  "mandatoryBubblewrapBoundaryDocumented": true,
+  "operatorAuthenticationDocumented": true,
+  "attemptThinkingPolicyDocumented": true,
+  "providerProtocolAttemptAbortDocumented": true,
+  "reasoningReplayProhibitionsDocumented": true,
+  "splitMemorySchema4IsolationDocumented": true
+}

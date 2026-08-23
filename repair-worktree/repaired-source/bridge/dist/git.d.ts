@@ -1,0 +1,27 @@
+import type { TaskRecord } from "./types.js";
+export declare function gitTopLevel(repoRoot: string): Promise<string>;
+export declare function workingTreePaths(repoRoot: string): Promise<string[]>;
+export declare function unsafeChangedSymlinkPaths(worktreePath: string, paths: string[]): Promise<string[]>;
+export declare function symlinkPathsAtCommit(repoRoot: string, commit: string): Promise<string[]>;
+export declare function gitlinkPathsAtCommit(repoRoot: string, commit: string): Promise<string[]>;
+export declare function environmentFilesAtCommit(repoRoot: string, commit: string): Promise<string[]>;
+export declare function gitlinkPathsInIndex(worktreePath: string): Promise<string[]>;
+export declare function unsafeChangedGitlinkPaths(worktreePath: string, paths: string[]): Promise<string[]>;
+export declare function textFileAtCommit(repoRoot: string, commit: string, filePath: string): Promise<string | undefined>;
+export declare function findLeaseSymlinkIntersections(symlinks: string[], leases: string[]): string[];
+export declare function resolveCommit(repoRoot: string, ref: string): Promise<string>;
+export declare function createWorktree(repoRoot: string, worktreePath: string, branchName: string, baseCommit: string): Promise<void>;
+export declare function removeWorktree(repoRoot: string, worktreePath: string, force: boolean): Promise<void>;
+export declare function deleteBranch(repoRoot: string, branchName: string, force: boolean): Promise<void>;
+export declare function changedPaths(worktreePath: string, baseCommit: string): Promise<string[]>;
+export declare function findOutOfScope(paths: string[], leases: string[]): string[];
+export declare function diffStat(worktreePath: string, baseCommit: string): Promise<string>;
+export declare function stagedPaths(worktreePath: string): Promise<string[]>;
+export declare function binaryPatch(worktreePath: string, baseCommit: string): Promise<string>;
+export declare function commitLog(worktreePath: string, baseCommit: string): Promise<string>;
+export declare function readRepoFile(worktreePath: string, filePath: string): Promise<string>;
+export declare function createCommit(worktreePath: string, message: string): Promise<{
+    commit: string;
+    created: boolean;
+}>;
+export declare function assertTaskWorktreeIdentity(task: TaskRecord): Promise<void>;

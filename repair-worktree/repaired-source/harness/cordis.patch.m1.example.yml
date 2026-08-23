@@ -1,0 +1,18 @@
+# Historical M2 research draft. Not installed or enabled by CODEX_HARNESS_BRIDGE_M1_R6_4.
+# Research only. Do not apply to the active M1 stdio-worker architecture.
+# Merge this plugin entry into a dedicated Harness profile's Cordis patch.
+- id: mcp-codex-harness
+  name: '@deepseek-ai/dsh-mcp-client'
+  config:
+    serverName: codex_harness
+    transport: streamable-http
+    url: http://127.0.0.1:8765/mcp
+    headers:
+      Authorization: !!js '`Bearer ${process.env.CODEX_HARNESS_MCP_TOKEN}`'
+    toolCallTimeoutMs: 120000
+    failOnStartupError: true
+    reconnect:
+      enabled: true
+      initialDelayMs: 500
+      maxDelayMs: 30000
+      maxAttempts: 10

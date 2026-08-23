@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 2,
+  "version": "0.6.5",
+  "sourceRecovery": {
+    "authoritativeRecoveryCommit": "da1cfd2e74980ee325b5f4bfedf361d24c3d0d2c",
+    "authoritativeRecoveryTree": "f828d31ccdec395e4caa9a96198996e424907ec7",
+    "authoritativeInstalledInput": "/home/zyc14588/.local/share/codex-harness-bridge/0.6.4",
+    "recoveredRuntimeTreeSha256": "555edb6c760d2c30e7e943755b6519c86d6a160c9e04d0aea504ceb7d95c849f",
+    "typescriptSourcePresent": true,
+    "compiledArtifactsAndSourceMapsPresent": true
+  },
+  "historicalRepairChain": {
+    "managedMinimalToolPlaneRepairCommit": "b481c798c64e7566ee359f97480b3f8d794e0954",
+    "managedMinimalToolPlaneRepairTree": "98508e80c5a8fad3947ce548cb82e83ae5e84cee",
+    "withdrawnProviderFailureEvidenceCommit": "d30d9ac678f143e7bb14ea11a55e8b7cdd7152c8",
+    "withdrawnProviderFailureEvidenceTree": "98270b306374d1e8deced749bf73db4dc3e1f2ba",
+    "withdrawnEvidenceModified": false
+  },
+  "repairBaseline": {
+    "commit": "ea81ec6f91a0c13b0a6167581baf34e28be66d05",
+    "tree": "fe981d7646108ebe9a36f6e37773287338d1cf6d",
+    "branch": "repair/r6-5-rc1",
+    "candidateImplementationCommit": "f1d4864be8eb1ad3982fef81d6856e71f2b18385",
+    "candidateImplementationTree": "c3a17b397d03ad68497007c513bde8ff2a83f97e",
+    "candidateMetadataCommit": "e27d729a7b2205667cddf3cf3aa4f8006950c449",
+    "candidateMetadataTree": "348d101512ca925af37e4f7d3f4103f9b2ad9294",
+    "workingTreeSealed": false,
+    "finalRepairCommit": null,
+    "finalRepairTree": null,
+    "ordinaryOuterTrackedFiles": true,
+    "status": "ordinary source authority restored; final stable seal remains pending current real-provider gates"
+  },
+  "realHarness": {
+    "root": "/home/zyc14588/deepseek-harness",
+    "commit": "141eb6fef83422698aef7a981029e843e8161534",
+    "buildTreeSha256": "6a294d72c51e6570852acaf73458cda98f555bd53c9c7ff0b49c568e7cf88a38",
+    "cleanAtLastLocalFixture": true
+  },
+  "build": {
+    "node": "24.18.0",
+    "typescript": "5.8.3",
+    "typesNode": "22.15.0",
+    "fullStrictBuild": true,
+    "nodeModulesIncluded": false,
+    "packageLockIncluded": true
+  },
+  "publication": {
+    "automaticMerge": false,
+    "pushed": false,
+    "tagged": false,
+    "githubReleaseCreated": false
+  }
+}
