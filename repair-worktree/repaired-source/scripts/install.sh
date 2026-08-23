@@ -564,7 +564,7 @@ python3 "$INSTALL_ROOT/scripts/render-minimal-harness.py" install \
 if ((SKIP_SELF_TESTS)); then
   echo "[5/14] Deterministic package self-tests skipped by explicit request"
 else
-  echo "[5/14] Running 67 prebuilt unit tests"
+  echo "[5/14] Running prebuilt unit/component tests"
   node --test "$INSTALL_ROOT"/bridge/dist/test/*.test.js
   echo "[6/14] Running deterministic controller/monitor/Harness/llama.cpp acceptance"
   node "$INSTALL_ROOT/bridge/dist/direct-acceptance.js"
