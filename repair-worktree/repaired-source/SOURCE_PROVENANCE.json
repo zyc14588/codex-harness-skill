@@ -48,6 +48,28 @@
     "status": "ordinary source authority restored; current local/dynamic/real-provider gates and deterministic pre-seal unpacked package acceptance passed; stable metadata is protected by manifest and artifact bindings",
     "sealSemantics": "preSealValidationCommit identifies the complete implementation qualification baseline; finalPackagingBaselineCommit identifies the last ordinary-source commit after the log-only correction. Later provenance/release-status/manifest seal metadata cannot self-reference and is bound by SHA-256 plus MANIFEST_SHA256.txt."
   },
+  "hotfixR3": {
+    "branch": "release/0.6.5-hotfix-r3",
+    "implementationCommit": "221d7a0c83919b3d86e6efa0607117df83c271dd",
+    "implementationOuterTree": "55501d97d953e6510a2b6d52f91bbfd3c9fe9f7a",
+    "implementationSourceTree": "21e79c45b350be74b3eb0f8ac8b33a11bc308e63",
+    "scope": "Dashboard inline operator authentication, unauthenticated budget affordance, authenticated budget empty states, and atomic operator credential rotation",
+    "componentTests": 89,
+    "browserQualification": {
+      "engine": "system Google Chrome via Playwright",
+      "desktopViewport": "1440x1000",
+      "mobileViewport": "390x844",
+      "result": "PASS"
+    },
+    "transactionalPackageAcceptance": "PASS",
+    "providerExecutionPathChanged": false,
+    "r3RealProviderCalls": 0,
+    "inheritedRealProviderEvidence": "evidence/09_RUNTIME_HOTFIX_REAL_DEEPSEEK_REDACTED.json",
+    "inheritedEvidenceSemantics": "R2 bounded real-provider evidence is retained only as regression evidence for an unchanged Provider/Harness/Broker path and is not represented as an R3 rerun.",
+    "ordinaryOuterTrackedFiles": true,
+    "workingTreeSealed": true,
+    "sealSemantics": "implementationCommit identifies the qualified behavioral baseline. Release metadata cannot self-reference; provenance, evidence, package lock, and the final ordinary tree are bound by release-status SHA-256 fields, MANIFEST_SHA256.txt, and the archive sidecars."
+  },
   "realHarness": {
     "root": "/home/zyc14588/deepseek-harness",
     "commit": "141eb6fef83422698aef7a981029e843e8161534",

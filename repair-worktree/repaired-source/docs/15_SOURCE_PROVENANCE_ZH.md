@@ -42,6 +42,18 @@ source tree: e0f30105928291e1d076a3cd1fb1c58ff0a65f74
 
 ordinary-source authority 已恢复；候选态两次确定性 ZIP 与全新目录解包验收通过后，`workingTreeSealed` 已提升为 true。最终 stable ZIP 仍由外部 `.sha256` 与 `.validation.json` sidecar 绑定，避免归档自引用。
 
+## Runtime hotfix R3 资格链
+
+R3 从 R2 stable 建立本地分支 `release/0.6.5-hotfix-r3`。Dashboard 认证、预算状态和 operator password rotation 的实现资格基线为：
+
+```text
+commit:      221d7a0c83919b3d86e6efa0607117df83c271dd
+outer tree:  55501d97d953e6510a2b6d52f91bbfd3c9fe9f7a
+source tree: 21e79c45b350be74b3eb0f8ac8b33a11bc308e63
+```
+
+该基线通过 89 项组件测试、strict/direct/security/skill、隔离 transactional package acceptance 和真实 Chrome desktop/mobile 验证。R3 没有修改 Provider/Harness/Broker 请求路径；evidence/09 的 R2 有界真实 Provider 结果仅作为继承回归证据，不冒充 R3 重跑。R3 seal metadata、evidence/08、package lock 和 provenance 由 release status 的 SHA-256 bindings 与 manifest 保护；最终 ZIP 另由 sidecar 绑定。
+
 ## 固定 Harness
 
 ```text
@@ -61,4 +73,4 @@ apps/cli/lib SHA-256: 6a294d72c51e6570852acaf73458cda98f555bd53c9c7ff0b49c568e7c
 - `MANIFEST_SHA256.txt` 覆盖除自身外的所有普通文件；
 - 不自动 merge、push、tag 或创建 GitHub Release。
 
-最终 hotfix R2 stable seal 已绑定上述 pre-seal commit/tree、当前 `evidence/08`/`evidence/09`、package lock 与 provenance；ordinary-source authority、真实 Provider 与最终归档门禁均未被跳过。
+最终 hotfix R3 stable seal 已绑定 R3 implementation commit/tree、当前 `evidence/08`、继承的未修改路径 `evidence/09`、package lock 与 provenance；ordinary-source authority、本地/浏览器/安全资格与最终归档门禁均未被跳过。

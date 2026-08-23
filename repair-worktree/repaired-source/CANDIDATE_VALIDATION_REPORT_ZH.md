@@ -1,43 +1,26 @@
-# 0.6.5 runtime hotfix candidate 验证报告
+# 0.6.5 runtime hotfix R3 预封印验证报告
 
-> 这是外部 Provider 重资格前的阶段性报告，原始结论保留不回写。随后本修订真实 DeepSeek Flash/Pro 已通过，见 `docs/18_RUNTIME_HOTFIX_R2_REAL_SMOKE_ZH.md` 与 `evidence/09_RUNTIME_HOTFIX_REAL_DEEPSEEK_REDACTED.json`；最终资格仍以 `release-status.json` 为准。
+验证日期：2026-08-23。修订：`dashboard-auth-budget-ux-r3-stable`。
 
-验证时间：2026-08-23 17:48 AEST（UTC+10）
-修订：`known-runtime-errors-r2-candidate`
-结论：`LOCAL_AND_DYNAMIC_PASS / EXTERNAL_RELEASE_GATES_PENDING`
+本报告记录最终 ZIP 构建前的 R3 资格。最终是否可安装仍以包内 `release-status.json`、`MANIFEST_SHA256.txt` 和 ZIP sidecar 为准。
 
-## 验证结果
-
-| 门禁 | 结果 |
+| 项目 | 结果 |
 |---|---|
-| npm dependency audit | PASS，0 vulnerabilities |
 | TypeScript strict build | PASS |
-| unit/component | PASS，87/87 |
-| direct process acceptance | PASS |
+| unit/component | PASS，89/89 |
+| direct acceptance | PASS |
 | security acceptance | PASS |
 | skill validation | PASS |
-| candidate/stable/withdrawn release-gate tests | PASS |
-| package acceptance | PASS |
-| 固定真实 managed Harness + 本地可观测 Provider | PASS |
-| reasoning replay 失败注入 | PASS，Provider 0、Token 0/0、split 不变 |
+| transactional package acceptance | PASS |
+| Dashboard desktop 1440×1000 | PASS |
+| Dashboard mobile 390×844 | PASS，无横向溢出 |
+| 内嵌认证/无原生 prompt | PASS |
+| 未认证预算说明/认证后预算字段 | PASS，12 个全局预算字段 |
+| operator password rotation | PASS，旧密码失效、新密码生效 |
+| 匿名 HTML/控制台 | PASS，无 secret、无 console error |
 
-## 动态 Harness 证据
+实现资格基线为 commit `221d7a0c83919b3d86e6efa0607117df83c271dd`，outer tree `55501d97d953e6510a2b6d52f91bbfd3c9fe9f7a`，source tree `21e79c45b350be74b3eb0f8ac8b33a11bc308e63`。
 
-- Harness commit：`141eb6fef83422698aef7a981029e843e8161534`，tracked clean；build SHA-256：`6a294d72c51e6570852acaf73458cda98f555bd53c9c7ff0b49c568e7cf88a38`。
-- managed composition：stock runner disabled、Bridge runner mounted、session title disabled、minimal preset selected、无 patch warning。
-- Minimal Flash：4 个本地 Provider 请求，全部 `thinking=disabled` 且无 `reasoning_effort`；2 次 mutation force，3 次原生工具调用。
-- Pro：3 个本地 Provider 请求，全部 `thinking=enabled/high` 且无 `tool_choice`；reasoning replay 深度为 `0/1/2`，2 次原生工具调用。
-- replay 缺失注入：在 Provider I/O 前以 `thinking_replay_state` 失败；Provider 调用 0、Token 0/0、split sample 0、leaf scale 1。
+Package acceptance 在隔离临时 HOME/XDG/CODEX_HOME 中验证 fresh install、schema 4→7 迁移、同版本和跨版本注入失败回滚、重装、卸载、MCP 注册以及包卫生。没有修改用户当前安装。
 
-## 已知错误重资格
-
-- Dashboard 取消认证或收到 `401` 后不再周期性弹窗；显式按钮恢复认证，`403` 不清除有效 Bearer。
-- installer、package acceptance 与 doctor 均确认 managed preset 使用 Bridge 的真实 `process.execPath`，不再使用 Bubblewrap 内不可见的 shell wrapper。
-- 通用 DSH managed MCP 初始化/工具同步错误归为 `minimal_tool_plane_composition`。
-- split-memory schema 5 隔离 schema 4 启动故障污染，基础设施事件和 `no_effect` 不缩小建议。
-
-## 尚未取得的发布资格
-
-本轮没有调用真实 DeepSeek Provider、没有使用操作员凭据、没有外部网络传输，也没有构建最终确定性 ZIP。真实 Minimal Flash、真实 Pro Thinking、ordinary source/provenance 与最终 ZIP 解压复验仍为 `PENDING`。因此版本继续保持 `candidate`、`controlledUseAllowed=false`、`DELIVERABLE_PENDING`，不得替换现有 stable 或用于 controlled use。
-
-脱敏机器证据：`evidence/08_RUNTIME_HOTFIX_CANDIDATE_LOCAL_VALIDATION.json`。
+R3 没有改动 Provider/Harness/Broker 请求路径，本轮也没有发起真实 Provider 请求：API calls 0、tokens 0、费用 0。R2 的有界真实 DeepSeek 证据保留在 `evidence/09_RUNTIME_HOTFIX_REAL_DEEPSEEK_REDACTED.json`，仅作为未修改执行路径的继承回归证据，不表述为 R3 重新调用。R3 本地与浏览器机器证据见 `evidence/08_RUNTIME_HOTFIX_CANDIDATE_LOCAL_VALIDATION.json`。

@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
   "version": "0.6.5",
-  "hotfixRevision": "known-runtime-errors-r2-stable",
+  "hotfixRevision": "dashboard-auth-budget-ux-r3-stable",
   "hotfixDate": "2026-08-23",
   "releaseStatus": "stable",
   "controlledUseAllowed": true,
   "deliverableStatus": "DELIVERABLE_PASS",
-  "statusReason": "Runtime hotfix R2 repairs dashboard bearer retry looping, wrapper-based Node paths hidden by Bubblewrap, managed MCP startup misclassification, and schema-v4 split-memory pollution. Local component, direct, package, security, skill, fixed real managed-Harness with loopback Provider, zero-I/O failure injection, bounded real DeepSeek Flash/Pro, ordinary source/provenance, deterministic double-build, and unpacked revalidation gates all pass. This is a new local hotfix artifact; the prior stable archive remains historical and was not overwritten.",
+  "statusReason": "Runtime hotfix R3 adds discoverable inline Dashboard authentication, explicit unauthenticated budget affordances, authenticated budget empty states, and atomic operator credential rotation while preserving the R2 runtime repairs. The R3 strict build, 89 component tests, direct, security, skill, real Chrome desktop/mobile, transactional package, ordinary source/provenance, deterministic double-build, and unpacked revalidation gates pass. Provider/Harness/Broker execution paths are unchanged, so the R2 bounded real-provider result is retained only as inherited regression evidence and is not represented as an R3 rerun. Prior archives remain historical and are not overwritten.",
   "gates": {
     "unitAndComponentRegression": "PASS",
     "directAcceptance": "PASS",
@@ -21,36 +21,44 @@
     "ordinarySourceAuthority": "PASS",
     "strongHarnessIsolation": "PASS",
     "operatorControlAuthentication": "PASS",
+    "operatorCredentialRotation": "PASS",
+    "dashboardBrowserQa": "PASS",
     "finalZipUnpackedRevalidation": "PASS"
   },
   "currentValidation": {
-    "componentTests": 87,
+    "componentTests": 89,
     "directAcceptance": "PASS",
     "securityAcceptance": "PASS",
     "skillValidation": "PASS",
     "packageAcceptance": "PASS",
-    "dynamicFlashRequests": 4,
-    "dynamicProRequests": 3,
-    "dynamicProReplayDepths": [0, 1, 2],
-    "dynamicLocalMockProviderRequests": 7,
-    "dynamicHarnessCommit": "141eb6fef83422698aef7a981029e843e8161534",
-    "dynamicHarnessBuildSha256": "6a294d72c51e6570852acaf73458cda98f555bd53c9c7ff0b49c568e7cf88a38",
-    "realFlashRequests": 4,
-    "realProRequests": 4,
-    "realProReplayDepths": [0, 1, 2, 3],
-    "failureInjectionProviderRequests": 0,
-    "failureInjectionInputTokens": 0,
-    "failureInjectionOutputTokens": 0,
-    "finalPackagingBaselineCommit": "cd97077ec7abbe42374b62b66655bf317f9956e0",
-    "finalPackagingSourceTree": "dfee675d6248751f291590bac8e04482950e5cd0",
-    "packageMode": "source-preseal-and-final-unpacked-stable-pass",
-    "preSealDeterministicZipBuilds": 2,
-    "preSealCandidateArchiveSha256": "c2d97af0ca88a1cb93599d71690a6d3fe1a957a00f3ad328617144f860121a1d",
+    "dashboardBrowserQa": "PASS",
+    "dashboardDesktopViewport": "1440x1000",
+    "dashboardMobileViewport": "390x844",
+    "operatorCredentialRotation": "PASS",
+    "authenticatedGlobalBudgetInputCount": 12,
+    "implementationCommit": "221d7a0c83919b3d86e6efa0607117df83c271dd",
+    "implementationOuterTree": "55501d97d953e6510a2b6d52f91bbfd3c9fe9f7a",
+    "implementationSourceTree": "21e79c45b350be74b3eb0f8ac8b33a11bc308e63",
+    "r3ProviderExecutionPathChanged": false,
+    "r3RealProviderRequests": 0,
+    "r3ProviderInputTokens": 0,
+    "r3ProviderOutputTokens": 0,
+    "r3ProviderCostCny": 0,
+    "inheritedR2DynamicFlashRequests": 4,
+    "inheritedR2DynamicProRequests": 3,
+    "inheritedR2RealFlashRequests": 4,
+    "inheritedR2RealProRequests": 4,
+    "inheritedR2RealProReplayDepths": [0, 1, 2, 3],
+    "inheritedHarnessCommit": "141eb6fef83422698aef7a981029e843e8161534",
+    "inheritedHarnessBuildSha256": "6a294d72c51e6570852acaf73458cda98f555bd53c9c7ff0b49c568e7cf88a38",
+    "packageMode": "r3-source-preseal-and-final-unpacked-stable-pass",
     "deterministicZipBuilds": 2,
-    "externalNetworkUsed": true
+    "externalNetworkUsedForR3": false,
+    "inheritedR2ExternalProviderEvidence": true
   },
   "realSmokeAuthorizationBoundary": {
-    "currentRepairExecuted": true,
+    "currentRepairExecuted": false,
+    "inheritedFromRuntimeHotfixR2": true,
     "executedAt": "2026-08-23T07:58:30.491Z",
     "payloadScope": "A synthetic temporary Git repository containing only a one-line README seed and bounded copy/read/write/verify instructions.",
     "models": ["deepseek-v4-flash", "deepseek-v4-pro"],
@@ -62,31 +70,31 @@
     },
     "credentialBoundary": "The parent broker read a private operator-owned credential; Bubblewrap-confined Harness received only a one-task proxy token.",
     "currentEvidencePath": "evidence/09_RUNTIME_HOTFIX_REAL_DEEPSEEK_REDACTED.json",
-    "currentEvidenceAccepted": true,
+    "currentEvidenceAcceptedAsInheritedRegression": true,
     "historicalStableEvidencePath": "evidence/03_REAL_DEEPSEEK_0_6_5_STABLE_REDACTED.json"
   },
   "candidateValidationEvidence": {
     "path": "evidence/08_RUNTIME_HOTFIX_CANDIDATE_LOCAL_VALIDATION.json",
-    "sha256": "2454ac625c35bb7fa2ada0531198c033804fab2a139f71aa70a5f22b48607d7f",
-    "scope": "local deterministic gates, fixed real managed Harness with loopback Provider, and zero-I/O failure injection"
+    "sha256": "044ecf23d63a6f1e0b13edded6336e1ecd8fa00ad92550626ddfe393c098b651",
+    "scope": "R3 local deterministic, browser, security, operator credential rotation, and transactional package qualification"
   },
   "realProviderValidationEvidence": {
     "path": "evidence/09_RUNTIME_HOTFIX_REAL_DEEPSEEK_REDACTED.json",
     "sha256": "bb023ca725b56f55a0539f5bdbd245ec6accf75869ff11d199be1033b6bc54b0",
-    "scope": "bounded real DeepSeek Minimal Flash and Pro Thinking through the authenticated local credential broker"
+    "scope": "inherited R2 bounded real DeepSeek Minimal Flash and Pro Thinking for an unchanged Provider/Harness/Broker execution path; not rerun for R3"
   },
   "artifactBindings": {
-    "sourceProvenanceSha256": "0bcaa67081defb7b08857bac2a6410080dbe5e7f3eafbbf0d946ed5471600b1f",
+    "sourceProvenanceSha256": "fae1c36de31d1a6d81561b50ae5617a676e8cd886dd203b08833db566a7790e2",
     "packageLockSha256": "e84bcff962b6a8a743b9cb7b7c302b9c3783a314d1ee9af5b9b84b42e8e5922b",
     "requiredEvidenceSha256": {
-      "evidence/08_RUNTIME_HOTFIX_CANDIDATE_LOCAL_VALIDATION.json": "2454ac625c35bb7fa2ada0531198c033804fab2a139f71aa70a5f22b48607d7f",
+      "evidence/08_RUNTIME_HOTFIX_CANDIDATE_LOCAL_VALIDATION.json": "044ecf23d63a6f1e0b13edded6336e1ecd8fa00ad92550626ddfe393c098b651",
       "evidence/09_RUNTIME_HOTFIX_REAL_DEEPSEEK_REDACTED.json": "bb023ca725b56f55a0539f5bdbd245ec6accf75869ff11d199be1033b6bc54b0"
     }
   },
   "finalArchive": {
-    "name": "CODEX_HARNESS_BRIDGE_0_6_5_HOTFIX_R2_STABLE.zip",
-    "sha256Sidecar": "CODEX_HARNESS_BRIDGE_0_6_5_HOTFIX_R2_STABLE.zip.sha256",
-    "validationSidecar": "CODEX_HARNESS_BRIDGE_0_6_5_HOTFIX_R2_STABLE.zip.validation.json"
+    "name": "CODEX_HARNESS_BRIDGE_0_6_5_HOTFIX_R3_STABLE.zip",
+    "sha256Sidecar": "CODEX_HARNESS_BRIDGE_0_6_5_HOTFIX_R3_STABLE.zip.sha256",
+    "validationSidecar": "CODEX_HARNESS_BRIDGE_0_6_5_HOTFIX_R3_STABLE.zip.validation.json"
   },
   "automaticMerge": false,
   "pushed": false,

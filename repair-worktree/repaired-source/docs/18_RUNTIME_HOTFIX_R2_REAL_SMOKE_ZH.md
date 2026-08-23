@@ -1,5 +1,7 @@
 # 0.6.5 runtime hotfix R2 真实 DeepSeek smoke
 
+> 历史且仍受哈希保护的 R2 证据。R3 未修改 Provider/Harness/Broker 执行路径，故将本结果作为继承回归证据保留；R3 没有重新调用真实 Provider，也不把本报告表述为 R3 当日 smoke。
+
 执行日期：2026-08-23。结果：`PASS`。脱敏机器证据：`evidence/09_RUNTIME_HOTFIX_REAL_DEEPSEEK_REDACTED.json`。
 
 ## 授权、数据与凭据边界

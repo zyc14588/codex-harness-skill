@@ -36,14 +36,14 @@ INVALID_REQUEST: The reasoning_content in the thinking mode must be passed back 
 
 每项失败都先保留 `.repair/evidence`，再增加稳定复现、实施最小修复并从窄测试跑回完整门禁。
 
-## 当前 hotfix R2 因果证明
+## 当前 hotfix R3 因果证明
 
-- 回归 87 项、direct acceptance、package acceptance、安全验收与 skill 校验全部通过；
+- 回归 89 项、direct acceptance、package acceptance、安全验收、skill 校验与 desktop/mobile 浏览器验证全部通过；
 - managed MCP 通用同步错误在 Provider I/O 前归为 `minimal_tool_plane_composition`，不会学习成叶子过大；
 - preset Node wrapper 与 Bridge `process.execPath` 不一致时，doctor 与 Bubblewrap 启动前均 fail-closed；
-- Dashboard 在取消认证或收到 `401` 后停止自动重弹，`403` 不再删除有效 Bearer；
+- Dashboard 使用内嵌认证，未登录时解释预算字段条件；设置页支持原子轮换 operator password，旧密码立即失效；
 - 旧 `evidence/03` 仍只属于此前 stable；本修订没有复用它取得资格；
-- 本修订独立完成动态 Harness、0-I/O 失败注入和有界真实双模式 smoke：Flash 4 轮，Pro 4 轮并完整回放深度 0/1/2/3，见 `evidence/08` 与 `evidence/09`；
+- R3 没有修改 Provider/Harness 路径，本轮 Provider API calls/tokens/cost 为 0；R2 的有界真实双模式 smoke 作为继承回归证据保留在 `evidence/09`；
 - 普通源码/provenance、候选预封印和最终确定性归档已独立通过。
 
 因此本次 Q1 失败不是 Token 不足或任务过大，而是 Bubblewrap 与 managed MCP 的 Node 运行时组合错误；修复后的门禁已证明错误能在 Provider 边界前被正确拒绝和归因。当前 stable seal 的所有机器 gate 均为 `PASS`。

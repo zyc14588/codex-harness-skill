@@ -1,16 +1,21 @@
 {
   "schemaVersion": 1,
   "version": "0.6.5",
-  "hotfixRevision": "known-runtime-errors-r2-candidate",
-  "validatedAt": "2026-08-23T17:48:51+10:00",
-  "result": "PASS_WITH_EXTERNAL_GATES_PENDING",
-  "scope": "working-tree candidate local and dynamic qualification",
+  "hotfixRevision": "dashboard-auth-budget-ux-r3-stable",
+  "validatedAt": "2026-08-23T21:17:05+10:00",
+  "result": "PASS",
+  "scope": "R3 Dashboard authentication, budget affordance, operator credential rotation, local security, browser, and package qualification",
+  "implementation": {
+    "branch": "release/0.6.5-hotfix-r3",
+    "commit": "221d7a0c83919b3d86e6efa0607117df83c271dd",
+    "outerTree": "55501d97d953e6510a2b6d52f91bbfd3c9fe9f7a",
+    "sourceTree": "21e79c45b350be74b3eb0f8ac8b33a11bc308e63"
+  },
   "deterministicValidation": {
-    "dependencyAuditVulnerabilities": 0,
     "typescriptBuild": "PASS",
     "unitAndComponentTests": {
       "result": "PASS",
-      "passed": 87,
+      "passed": 89,
       "failed": 0
     },
     "directAcceptance": "PASS",
@@ -20,61 +25,62 @@
     "packageAcceptance": "PASS",
     "manifestValidation": "PASS"
   },
-  "dynamicManagedHarness": {
+  "dashboardBrowserValidation": {
     "result": "PASS",
-    "provider": "loopback observable mock",
-    "externalProviderCalls": 0,
-    "localMockProviderRequests": 7,
-    "harnessCommit": "141eb6fef83422698aef7a981029e843e8161534",
-    "harnessBuildSha256": "6a294d72c51e6570852acaf73458cda98f555bd53c9c7ff0b49c568e7cf88a38",
-    "composition": {
-      "stockRunnerDisabled": true,
-      "bridgeRunnerMounted": true,
-      "sessionTitleDisabled": true,
-      "minimalPresetSelected": true,
-      "patchWarningFree": true
-    },
-    "minimalFlash": {
-      "result": "PASS",
-      "requests": 4,
-      "thinkingTypes": ["disabled", "disabled", "disabled", "disabled"],
-      "reasoningEffortPresent": false,
-      "minimalMutationForceCount": 2,
-      "nativeToolCalls": 3
-    },
-    "proThinking": {
-      "result": "PASS",
-      "requests": 3,
-      "thinkingTypes": ["enabled", "enabled", "enabled"],
-      "reasoningEffort": "high",
-      "toolChoicePresent": false,
-      "replayDepths": [0, 1, 2],
-      "reasoningRequirements": 2,
-      "nativeToolCalls": 2
-    }
-  },
-  "failureInjection": {
-    "result": "PASS",
-    "failureKind": "thinking_replay_state",
-    "responseStatus": 502,
-    "providerCalls": 0,
-    "inputTokens": 0,
-    "outputTokens": 0,
-    "splitSampleCount": 0,
-    "recommendedLeafScale": 1
+    "engine": "system Google Chrome via Playwright",
+    "isolatedTemporaryState": true,
+    "desktopViewport": "1440x1000",
+    "mobileViewport": "390x844",
+    "nativeDialogCount": 0,
+    "consoleErrors": 0,
+    "mobileHorizontalOverflow": false,
+    "unauthenticatedInlineLoginVisible": true,
+    "unauthenticatedBudgetExplanationVisible": true,
+    "authenticatedGlobalBudgetInputCount": 12,
+    "emptyTaskBudgetStateVisible": true,
+    "settingsTabVisible": true,
+    "operatorPasswordRotation": "PASS",
+    "oldPasswordRejected": true,
+    "newPasswordAccepted": true,
+    "anonymousHtmlSecretFree": true
   },
   "knownDefectQualification": {
+    "nativePromptRemoved": "PASS",
+    "unauthenticatedBudgetAffordance": "PASS",
+    "authenticatedBudgetControls": "PASS",
+    "operatorCredentialRotation": "PASS",
+    "credentialRotationConcurrencyFailClosed": "PASS",
+    "credentialFileAtomicPrivatePersistence": "PASS",
     "dashboardBearerRetryLoop": "PASS",
     "canonicalNodeRuntimeInManagedPreset": "PASS",
     "managedMcpStartupInfrastructureClassification": "PASS",
     "schema5LegacyPollutionQuarantine": "PASS"
   },
+  "packageQualification": {
+    "freshInstall": "PASS",
+    "schema4To7Migration": "PASS",
+    "sameVersionRollback": "PASS",
+    "crossVersionRollback": "PASS",
+    "reinstall": "PASS",
+    "uninstall": "PASS",
+    "sourcePackageHygiene": "PASS"
+  },
+  "providerPathBoundary": {
+    "r3ProviderCodeChanged": false,
+    "r3RealProviderSmokeExecuted": false,
+    "r3ExternalProviderCalls": 0,
+    "r3ProviderTokens": 0,
+    "r3ProviderCostCny": 0,
+    "inheritedEvidencePath": "evidence/09_RUNTIME_HOTFIX_REAL_DEEPSEEK_REDACTED.json",
+    "inheritedEvidenceRevision": "runtime hotfix R2",
+    "inheritedEvidenceReason": "R3 changes only Dashboard, operator credential rotation, tests, and release documentation; Provider/Harness/Broker request paths are unchanged.",
+    "inheritedEvidenceNotRepresentedAsR3Rerun": true
+  },
   "boundaries": {
-    "realProviderSmokeExecuted": false,
-    "externalNetworkUsed": false,
-    "operatorCredentialUsed": false,
+    "operatorCredentialValuePersistedInEvidence": false,
+    "providerCredentialUsedForR3": false,
     "reasoningContentPersisted": false,
-    "currentRuntimeInstalled": false,
-    "deterministicZipBuilt": false
+    "currentRuntimeInstalledAtEvidenceCapture": false,
+    "deterministicFinalZipBuiltAtEvidenceCapture": false
   }
 }

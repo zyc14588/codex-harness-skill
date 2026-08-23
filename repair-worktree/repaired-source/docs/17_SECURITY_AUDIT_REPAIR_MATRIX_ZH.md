@@ -1,6 +1,6 @@
 # 2026-08-23 安全审计修复矩阵
 
-> F-001–F-015 的原始封印证据保留为历史；runtime hotfix R2 已独立重跑本地/动态、失败注入、真实 Provider、来源与最终归档门禁，权威结果以 `release-status.json` 为准。
+> F-001–F-015 的原始封印证据保留为历史；runtime hotfix R3 已重跑本地、浏览器、安全、包装、来源与最终归档门禁。Provider 路径未修改，R2 的有界真实结果仅作继承回归证据；权威结果以 `release-status.json` 为准。
 
 本矩阵对应外部审计 F-001–F-015。状态表示实现与本地确定性验证；真实 Provider 与最终 stable seal 已按 `release-status.json` 的独立门禁通过。
 
@@ -12,7 +12,7 @@
 | F-004 | 恢复并固定 `b481c79`/`d30d9ac` commit/tree；已把无 URL gitlink 转成外层普通 tracked files，内层历史经完整 bundle 验证 | `SOURCE_PROVENANCE.json`、outer index mode audit |
 | F-005 | bounded/redacted Provider HTTP normalizer；typed `provider_protocol`/credential/transport | `provider-policy.test.ts` |
 | F-006 | infrastructure failure union/单一分类器；任何 infrastructure 不计 task-shape；schema 1–4 隔离 | split-memory tests |
-| F-007 | 严格 Flash/Pro/replay Mock、动态 Harness、多轮 direct E2E、provider fail-fast | 87 项 component + direct + dynamic |
+| F-007 | 严格 Flash/Pro/replay Mock、多轮 direct E2E、provider fail-fast、Dashboard 认证/密码轮换 | 89 项 component + direct + browser |
 | F-008 | 对 canonical 完整请求作保守输入估算，含 tools/schema/framing | provider-policy tests |
 | F-009 | V4 registry 固定 1M context/384K output；单请求 clamp | provider-policy tests |
 | F-010 | withdrawn 拒绝；candidate 显式 audit；stable 全 PASS + SHA bindings；stable 禁 skip | release-gate tests、package acceptance |
@@ -40,4 +40,4 @@ Provider enabled-thinking tool call
 
 ## 当前重资格状态
 
-本地修复矩阵没有用 fixture 冒充真实 Provider。操作员授权后，本修订真实 Minimal/Pro smoke 已独立通过并写入 `evidence/09`；旧 `evidence/03` 不参与当前 stable 绑定。普通源码/provenance、两次确定性 ZIP 字节比较及解压复验也已 PASS。
+本地修复矩阵没有用 fixture 冒充真实 Provider。R3 没有修改 Provider 路径，也没有重新产生真实 API 调用、Token 或费用；`evidence/09` 明确保留为 R2 继承回归证据。R3 的 89 项测试、真实浏览器、密码轮换、普通源码/provenance、两次确定性 ZIP 字节比较及解压复验均为 PASS。

@@ -389,6 +389,7 @@ for rel in [
   'docs/12_SPLIT_MEMORY_SCHEMA4_MIGRATION_ZH.md','docs/13_STRICT_ACCEPTANCE_PROMPT_ZH.md',
   'docs/14_FINAL_READ_ONLY_AUDIT_PROMPT_ZH.md','docs/15_SOURCE_PROVENANCE_ZH.md',
   'docs/18_RUNTIME_HOTFIX_R2_REAL_SMOKE_ZH.md',
+  'docs/19_DASHBOARD_AUTH_BUDGET_UX_HOTFIX_ZH.md',
   'CANDIDATE_VALIDATION_REPORT_ZH.md',
 ]:
     assert os.path.isfile(os.path.join(root,rel)), rel
