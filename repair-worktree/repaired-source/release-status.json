@@ -3,10 +3,10 @@
   "version": "0.6.5",
   "hotfixRevision": "operator-password-minimum-6-r4-stable",
   "hotfixDate": "2026-08-23",
-  "releaseStatus": "stable",
-  "controlledUseAllowed": true,
-  "deliverableStatus": "DELIVERABLE_PASS",
-  "statusReason": "Runtime hotfix R4 changes the operator password minimum to six Unicode characters while preserving the no-whitespace rule, 16384-byte cap, atomic mode-0600 persistence, concurrency controls, and the Provider API key minimum of 24 bytes. The R4 strict build, 90 component tests, direct, security, skill, real Chrome desktop/mobile, transactional package, ordinary source/provenance, deterministic double-build, and unpacked revalidation gates pass. Provider/Harness/Broker request execution paths are unchanged, so the R2 bounded real-provider result is retained only as inherited regression evidence and is not represented as an R4 rerun. Prior archives remain historical and are not overwritten.",
+  "releaseStatus": "candidate",
+  "controlledUseAllowed": false,
+  "deliverableStatus": "AUDIT_REPAIR_IN_PROGRESS",
+  "statusReason": "The 2026-08-24 independent audit found release-integrity and task-scoped Provider-capability blockers. R4 is withdrawn from stable/controlled use while the 0.6.6 repair is in progress. Inherited R2 Provider evidence is not accepted for this repair.",
   "gates": {
     "unitAndComponentRegression": "PASS",
     "directAcceptance": "PASS",
@@ -99,11 +99,6 @@
       "evidence/08_RUNTIME_HOTFIX_CANDIDATE_LOCAL_VALIDATION.json": "db97795162ab5174d18895c2cae047e9dda3e72239ada790fe1a2f3c8cf3da21",
       "evidence/09_RUNTIME_HOTFIX_REAL_DEEPSEEK_REDACTED.json": "bb023ca725b56f55a0539f5bdbd245ec6accf75869ff11d199be1033b6bc54b0"
     }
-  },
-  "finalArchive": {
-    "name": "CODEX_HARNESS_BRIDGE_0_6_5_HOTFIX_R4_STABLE.zip",
-    "sha256Sidecar": "CODEX_HARNESS_BRIDGE_0_6_5_HOTFIX_R4_STABLE.zip.sha256",
-    "validationSidecar": "CODEX_HARNESS_BRIDGE_0_6_5_HOTFIX_R4_STABLE.zip.validation.json"
   },
   "automaticMerge": false,
   "pushed": false,

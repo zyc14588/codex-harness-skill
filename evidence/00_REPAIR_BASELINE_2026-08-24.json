@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-08-24",
+  "repairBranch": "repair/0.6.6-provider-capability-and-release-integrity",
+  "baseline": {
+    "branch": "release/0.6.5-hotfix-r4",
+    "head": "10a70fc0e59ad93fce387c6a1660596d9f01ad7f",
+    "tree": "3468eb8ce22bec2a00df4f126619bdf7ee739ba3",
+    "declaredImplementationCommit": "e9d6a1cb13409223acedf5632000dbca8e703b51",
+    "nestedGitlink": {
+      "path": "repair-worktree/rc1-real-smoke-repo",
+      "commit": "05773fb6bee92b6f58f0aae6556b014103eebd24",
+      "tree": "778a29bc88888be98cb757191b218fbeaea03a08",
+      "clean": true,
+      "gitmodulesMappingPresent": false
+    }
+  },
+  "r4ReleaseStatusBeforeWithdrawal": {
+    "path": "repair-worktree/repaired-source/release-status.json",
+    "version": "0.6.5",
+    "hotfixRevision": "operator-password-minimum-6-r4-stable",
+    "releaseStatus": "stable",
+    "controlledUseAllowed": true,
+    "deliverableStatus": "DELIVERABLE_PASS",
+    "implementationCommit": "e9d6a1cb13409223acedf5632000dbca8e703b51",
+    "realProviderRequestsForR4": 0,
+    "inheritedProviderEvidence": true
+  },
+  "manifests": [
+    {
+      "path": "MANIFEST_SHA256.txt",
+      "sha256": "15694f8cb4870ed347a4b01ea2f1638ec14ed78dffd113856c5f8a6780fca31a"
+    },
+    {
+      "path": "repair-worktree/repaired-source/MANIFEST_SHA256.txt",
+      "sha256": "693af0f8e5ad1e345e744fea66448df53421917e4284aabc2911c1ea40390abd"
+    }
+  ],
+  "deliverables": [
+    {"path":"deliverables/CODEX_HARNESS_BRIDGE_0_6_5_RC1_WITHDRAWN_FAILURE_HANDOFF.zip","sha256":"38755420fd385eddc1a42a514f8b3adac0608fd056341031a2a5c82d553fd792","tracked":true},
+    {"path":"deliverables/CODEX_HARNESS_BRIDGE_0_6_5_RC1_WITHDRAWN_FAILURE_HANDOFF.zip.sha256","sha256":"ce62706503822424fc1a870a05bbdc5b68d41a01e3a13bc8a2f5e30317834066","tracked":true},
+    {"path":"deliverables/CODEX_HARNESS_BRIDGE_0_6_5_STABLE.zip","sha256":"0dc60c0d9ada0045cffec95a3ec7d74cfb9e292af197603943e8a2d9a2f7b640","tracked":true},
+    {"path":"deliverables/CODEX_HARNESS_BRIDGE_0_6_5_STABLE.zip.sha256","sha256":"807e9c426696578c9805132765c134c8231cb7ab1407e49f9ad8a69e720a3b5e","tracked":true},
+    {"path":"deliverables/CODEX_HARNESS_BRIDGE_0_6_5_STABLE.zip.validation.json","sha256":"b0719d789923d07846a0c81f3beb216d9200e561b6d0543ef2116063bdbaa9cc","tracked":true},
+    {"path":"repair-worktree/deliverables/CODEX_HARNESS_BRIDGE_0_6_5_HOTFIX_R2_STABLE.zip","sha256":"f7545626ea5ffd939d538d5653e4d2ad8dac0b151dd177df2e8bfda1e1577244","tracked":false},
+    {"path":"repair-worktree/deliverables/CODEX_HARNESS_BRIDGE_0_6_5_HOTFIX_R2_STABLE.zip.sha256","sha256":"2a928470fdd16ef19cf9e1d831f22f825b575f51c324ac0e7eef73b764dfbe8e","tracked":false},
+    {"path":"repair-worktree/deliverables/CODEX_HARNESS_BRIDGE_0_6_5_HOTFIX_R2_STABLE.zip.validation.json","sha256":"a8cf2cc7b317b750261bf5106fca98b3da53f81088f284cc667847b805dbbcb9","tracked":false},
+    {"path":"repair-worktree/deliverables/CODEX_HARNESS_BRIDGE_0_6_5_HOTFIX_R3_STABLE.zip","sha256":"1f9cc1c752bb2adc0344aa2ac4726830d78858f3338dc5fea63c4deea2e07362","tracked":false},
+    {"path":"repair-worktree/deliverables/CODEX_HARNESS_BRIDGE_0_6_5_HOTFIX_R3_STABLE.zip.sha256","sha256":"38a7c5e7846bcb29fcec73256c4052af92516d6d811f6df8d6ff9ce948b405d7","tracked":false},
+    {"path":"repair-worktree/deliverables/CODEX_HARNESS_BRIDGE_0_6_5_HOTFIX_R3_STABLE.zip.validation.json","sha256":"0c8dfa0549980923caeab742f2882084af9cb9f8c83b393375da0e8dc0571b95","tracked":false},
+    {"path":"repair-worktree/deliverables/CODEX_HARNESS_BRIDGE_0_6_5_HOTFIX_R4_STABLE.zip","sha256":"4ce4ec57b9eb977246a9be1e1b24422c8eb739fe10b56c90149188c02957dd2e","tracked":false},
+    {"path":"repair-worktree/deliverables/CODEX_HARNESS_BRIDGE_0_6_5_HOTFIX_R4_STABLE.zip.sha256","sha256":"400fe77f861ae7269a706e75b076c84b123dc6575e7f2f9f50ac5244e793385f","tracked":false},
+    {"path":"repair-worktree/deliverables/CODEX_HARNESS_BRIDGE_0_6_5_HOTFIX_R4_STABLE.zip.validation.json","sha256":"fcc59a5c05ef12787ff74282246eb36f0af9d561e7bfe52db1fe5124d303dec5","tracked":false}
+  ],
+  "originalWorktree": {
+    "clean": false,
+    "reason": "R2/R3/R4 archives, sidecars, and screenshots existed as untracked historical evidence under repair-worktree/deliverables; they are preserved for archival rather than discarded."
+  }
+}
