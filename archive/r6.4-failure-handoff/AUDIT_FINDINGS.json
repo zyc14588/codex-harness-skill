@@ -1,0 +1,67 @@
+{
+  "verdict": "FAIL_RELEASE_BLOCKER",
+  "failedVersion": "0.6.4",
+  "findings": [
+    {
+      "id": "F-001",
+      "severity": "P0",
+      "title": "Minimal mutation policy fails before application",
+      "evidence": [
+        "minimalMutationForceCount=0",
+        "input/output tokens=0/0",
+        "infrastructureFailureKind=minimal_tool_plane"
+      ],
+      "impact": "No Provider call, no tool execution, no repository diff."
+    },
+    {
+      "id": "F-002",
+      "severity": "P0",
+      "title": "Real request tool plane is unproven",
+      "evidence": [
+        "minimal mutating leaf has no disclosed core mutation tool",
+        "minimal profile doctor passed"
+      ],
+      "impact": "Static doctor can pass while the actual model request contains no core mutation tools."
+    },
+    {
+      "id": "F-003",
+      "severity": "P1",
+      "title": "Exact 0.6.4 source/runtime provenance is not present in this handoff environment",
+      "evidence": [
+        "Only complete 0.6.3 source baseline is available"
+      ],
+      "impact": "Repair must recover installed runtime and managed profile/preset before editing."
+    },
+    {
+      "id": "F-004",
+      "severity": "P1",
+      "title": "R6.4 claimed auxiliary isolation did not produce telemetry",
+      "evidence": [
+        "auxiliary bypass count=0",
+        "minimalMutationForceCount=0"
+      ],
+      "impact": "Classifier may be absent, stale, ordered after failure, or operating on a different request path."
+    },
+    {
+      "id": "F-005",
+      "severity": "P1",
+      "title": "Doctor coverage is insufficient for request-path semantics",
+      "evidence": [
+        "bridge_doctor PASS while live mutation request fails before Provider"
+      ],
+      "impact": "Installation can be reported healthy without an end-to-end minimal request tool-plane proof."
+    },
+    {
+      "id": "F-006",
+      "severity": "P2",
+      "title": "Failure isolation and split-memory accounting are correct",
+      "evidence": [
+        "sampleCount=0",
+        "successCount=0",
+        "infrastructureFailureCount=1",
+        "recommendations unchanged"
+      ],
+      "impact": "This behavior must be preserved during repair."
+    }
+  ]
+}

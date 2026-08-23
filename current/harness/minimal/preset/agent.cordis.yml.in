@@ -1,0 +1,16 @@
+# Managed by Codex-Harness Bridge. Rendered at installation time.
+- id: persona
+  name: '@deepseek-ai/dsh-persona'
+  config:
+    text: You are a helpful software engineer assistant. Follow the complete task contract exactly. Use only the assigned write lease. Invoke model-visible tools directly; never print DSML/XML or Markdown shell blocks as a substitute for a tool call. Verify required files exist before claiming completion. Do not stage, commit, merge, push, or broaden scope. Request optional bridge capabilities only when the task genuinely requires them.
+    complete: true
+    includeRuntimeContext: false
+
+- id: native-tool-presentation
+  name: '@deepseek-ai/dsh-agent-tool-presentation'
+  config:
+    mode: native
+
+- id: bridge-brokered-tools
+  name: '{{CODEX_HARNESS_BROKER_PLUGIN}}'
+  config: {}

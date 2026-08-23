@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 3,
+  "version": "0.6.6",
+  "repository": "git@github.com:zyc14588/codex-harness-skill.git",
+  "canonicalSource": "current/",
+  "generatedAt": "2026-08-24T03:43:12+10:00",
+  "auditedBaseline": {
+    "branch": "release/0.6.5-hotfix-r4",
+    "head": "10a70fc0e59ad93fce387c6a1660596d9f01ad7f",
+    "tree": "3468eb8ce22bec2a00df4f126619bdf7ee739ba3",
+    "claimedImplementationCommit": "e9d6a1cb13409223acedf5632000dbca8e703b51",
+    "auditVerdict": "FAIL_RELEASE_BLOCKER",
+    "withdrawn": true
+  },
+  "repairLine": {
+    "branch": "repair/0.6.6-provider-capability-and-release-integrity",
+    "withdrawalCommit": "1c7dd48e2e39c642f8b8bf63d384166208004a5a",
+    "implementationCommit": null,
+    "implementationTree": null,
+    "status": "FINAL_VERSION_QUALIFICATION_PENDING_IMPLEMENTATION_COMMIT"
+  },
+  "sourceRecovery": {
+    "selectedSource": "the audited repaired-source tree promoted to current/",
+    "historicalHandoff": "archive/r6.4-failure-handoff/",
+    "withdrawnReleaseArchives": "archive/releases/",
+    "fixtureArchive": "archive/fixtures/",
+    "nestedGitMetadataRetainedInCanonicalSource": false
+  },
+  "harnessPin": {
+    "commit": "141eb6fef83422698aef7a981029e843e8161534",
+    "buildTreeSha256": "6a294d72c51e6570852acaf73458cda98f555bd53c9c7ff0b49c568e7cf88a38",
+    "enforcedByRuntime": true
+  },
+  "evidencePolicy": {
+    "inherited0_6_5ProviderEvidenceEligibleForRelease": false,
+    "currentRevisionProviderSmokeRequired": true,
+    "criticalPathChangeInvalidatesEarlierSmoke": true,
+    "stablePromotionAllowedBeforeActualCiAndBranchProtectionPass": false
+  },
+  "automaticMerge": false,
+  "pushed": false,
+  "tagged": false
+}

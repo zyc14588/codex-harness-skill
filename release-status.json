@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 2,
+  "version": "0.6.6",
+  "releaseStatus": "candidate",
+  "qualificationStage": "FINAL_VERSION_CURRENT_REVISION_QUALIFICATION",
+  "controlledUseAllowed": false,
+  "deliverableStatus": "FINAL_VERSION_QUALIFICATION_IN_PROGRESS",
+  "canonicalSource": "current/",
+  "authoritativeRuntimeStatus": "current/release-status.json",
+  "realProviderSmoke": "pending",
+  "externalReleaseGates": "pending",
+  "finalArchive": null,
+  "pushed": false,
+  "tagged": false
+}

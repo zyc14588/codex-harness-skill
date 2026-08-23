@@ -1,21 +1,17 @@
 {
-  "bundle": "CODEX_HARNESS_BRIDGE_R6_4_FAILURE_HANDOFF_R1",
-  "createdAt": "2026-08-22",
-  "purpose": "Codex repair handoff after R6.4 real-machine acceptance failure",
-  "targetFailedVersion": "0.6.4",
-  "exactTargetSourceIncluded": false,
-  "includedSourceBaseline": {
-    "version": "0.6.3",
-    "path": "source/CODEX_HARNESS_BRIDGE_M1_R6_3_BASELINE",
-    "unitTestsObserved": "58/58 PASS before packaging"
-  },
-  "authoritativeLocalRecoveryInputs": [
-    "/home/zyc14588/.local/share/codex-harness-bridge/0.6.4",
-    "/home/zyc14588/.config/codex-harness-bridge/config.json",
-    "$DSH_HOME/profiles/codex-minimal-headless",
-    "$DSH_HOME/.agent-presets/codex-bridge-minimal",
-    "task plan-1787365388387-r6-4-minimal-aux-isolation-smoke evidence directory"
-  ],
-  "pinnedHarnessCommitFromPriorInstallation": "47f943859bef60e4160492346772ded9b24f765a",
-  "status": "AUDIT_HANDOFF_READY_NOT_A_RELEASE"
+  "schemaVersion": 1,
+  "version": "0.6.6",
+  "canonicalSource": "current/",
+  "canonicalProvenance": "current/SOURCE_PROVENANCE.json",
+  "repository": "git@github.com:zyc14588/codex-harness-skill.git",
+  "repairBranch": "repair/0.6.6-provider-capability-and-release-integrity",
+  "auditedBaselineHead": "10a70fc0e59ad93fce387c6a1660596d9f01ad7f",
+  "auditedBaselineTree": "3468eb8ce22bec2a00df4f126619bdf7ee739ba3",
+  "withdrawalCommit": "1c7dd48e2e39c642f8b8bf63d384166208004a5a",
+  "implementationCommit": null,
+  "implementationTree": null,
+  "historicalArchive": "archive/",
+  "generatedAt": "2026-08-24T03:43:12+10:00",
+  "pushed": false,
+  "tagged": false
 }

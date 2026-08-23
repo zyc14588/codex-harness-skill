@@ -1,0 +1,183 @@
+import http from "node:http";
+import { spawn } from "node:child_process";
+import { lstat, readFile, realpath } from "node:fs/promises";
+import path from "node:path";
+const MAX_RELAY_BODY_BYTES = 16_000_000;
+function fail(response, status, message) {
+    const body = Buffer.from(`${JSON.stringify({ error: message })}\n`);
+    response.writeHead(status, { "content-type": "application/json", "content-length": body.length, "cache-control": "no-store" });
+    response.end(body);
+}
+function jsonContentType(request) {
+    const raw = request.headers["content-type"];
+    if (Array.isArray(raw) || typeof raw !== "string")
+        return false;
+    return raw.split(";", 1)[0].trim().toLowerCase() === "application/json";
+}
+function allowedRelayPath(rawUrl, capability) {
+    let url;
+    try {
+        url = new URL(rawUrl, "http://127.0.0.1");
+    }
+    catch {
+        return false;
+    }
+    if (url.search || url.hash)
+        return false;
+    const task = encodeURIComponent(capability.taskId);
+    const attempt = encodeURIComponent(capability.attemptId);
+    if (url.pathname === `/provider/${task}/${attempt}/chat/completions`)
+        return true;
+    if (url.pathname === `/tool-exec/${task}/${attempt}`)
+        return true;
+    return ["publish-runner-snapshot", "arm-primary-mutation", "record-adapter-request"]
+        .some((operation) => url.pathname === `/adapter-state/${task}/${attempt}/${operation}`);
+}
+function relay(socketPath, capability, request, response) {
+    if (request.method !== "POST")
+        return fail(response, 405, "isolated relay permits POST only");
+    if (!jsonContentType(request))
+        return fail(response, 415, "isolated relay requires application/json");
+    if (!allowedRelayPath(request.url ?? "", capability))
+        return fail(response, 404, "isolated relay path is not allowed");
+    const declared = Number(request.headers["content-length"] ?? 0);
+    if (Number.isFinite(declared) && declared > MAX_RELAY_BODY_BYTES)
+        return fail(response, 413, "isolated relay body is too large");
+    const upstream = http.request({
+        socketPath,
+        path: request.url,
+        method: request.method,
+        headers: { ...request.headers, host: "codex-harness-internal" },
+    }, (incoming) => {
+        response.writeHead(incoming.statusCode ?? 502, incoming.headers);
+        incoming.pipe(response);
+    });
+    let observed = 0;
+    request.on("data", (chunk) => {
+        observed += chunk.length;
+        if (observed > MAX_RELAY_BODY_BYTES) {
+            request.destroy(new Error("isolated relay body is too large"));
+            upstream.destroy();
+        }
+    });
+    request.once("aborted", () => upstream.destroy());
+    upstream.once("error", (error) => {
+        if (!response.headersSent)
+            fail(response, 502, `internal monitor relay failed: ${error.message}`);
+        else
+            response.destroy(error);
+    });
+    request.pipe(upstream);
+}
+async function readCapabilityInput() {
+    const chunks = [];
+    let length = 0;
+    for await (const raw of process.stdin) {
+        const chunk = Buffer.isBuffer(raw) ? raw : Buffer.from(raw);
+        length += chunk.length;
+        if (length > 2_048)
+            throw new Error("capability input exceeds 2048 bytes");
+        chunks.push(chunk);
+    }
+    process.stdin.destroy();
+    let parsed;
+    try {
+        parsed = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+    }
+    catch {
+        throw new Error("capability input is not valid JSON");
+    }
+    if (parsed.schemaVersion !== 1
+        || typeof parsed.taskId !== "string" || !/^[A-Za-z0-9._-]{1,160}$/u.test(parsed.taskId)
+        || typeof parsed.attemptId !== "string" || !/^[A-Za-z0-9._-]{1,160}$/u.test(parsed.attemptId)
+        || typeof parsed.providerToken !== "string" || !/^[a-f0-9]{48}$/u.test(parsed.providerToken)
+        || typeof parsed.adapterToken !== "string" || !/^[a-f0-9]{64}$/u.test(parsed.adapterToken)
+        || typeof parsed.toolToken !== "string" || !/^[a-f0-9]{64}$/u.test(parsed.toolToken)
+        || new Set([parsed.providerToken, parsed.adapterToken, parsed.toolToken]).size !== 3) {
+        throw new Error("capability input is invalid");
+    }
+    return parsed;
+}
+async function launchSpec(target, sandboxRoot) {
+    const canonicalRoot = await realpath(sandboxRoot);
+    const canonical = await realpath(target);
+    const relative = path.relative(canonicalRoot, canonical);
+    if (relative.startsWith("..") || path.isAbsolute(relative))
+        throw new Error("launch spec resolves outside sandbox root");
+    const info = await lstat(canonical);
+    if (!info.isFile() || info.isSymbolicLink() || (info.mode & 0o777) !== 0o600 || info.size > 128_000) {
+        throw new Error("launch spec must be a 0600 regular file no larger than 128000 bytes");
+    }
+    const parsed = JSON.parse(await readFile(canonical, "utf8"));
+    if (parsed.schemaVersion !== 1 || typeof parsed.command !== "string" || !path.isAbsolute(parsed.command)
+        || typeof parsed.cwd !== "string" || !path.isAbsolute(parsed.cwd)
+        || !Array.isArray(parsed.args) || parsed.args.length > 128
+        || !parsed.args.every((item) => typeof item === "string" && !item.includes("\0") && item.length <= 16_000)) {
+        throw new Error("launch spec is invalid");
+    }
+    return parsed;
+}
+async function main() {
+    const socketPath = process.env.CODEX_HARNESS_MONITOR_SOCKET;
+    const sandboxRoot = process.env.CODEX_HARNESS_SANDBOX_ROOT;
+    const launchPath = process.env.CODEX_HARNESS_LAUNCH_SPEC;
+    const relayPort = Number(process.env.CODEX_HARNESS_RELAY_PORT);
+    if (!socketPath || !sandboxRoot || !launchPath || !Number.isInteger(relayPort) || relayPort < 1_024 || relayPort > 65_535) {
+        throw new Error("isolated Harness entry configuration is incomplete");
+    }
+    const spec = await launchSpec(launchPath, sandboxRoot);
+    const capability = await readCapabilityInput();
+    if (process.env.CODEX_HARNESS_TASK_ID !== capability.taskId
+        || process.env.CODEX_HARNESS_ATTEMPT_ID !== capability.attemptId) {
+        throw new Error("capability route identity does not match the frozen Harness attempt");
+    }
+    const server = http.createServer((request, response) => relay(socketPath, capability, request, response));
+    await new Promise((resolve, reject) => {
+        server.once("error", reject);
+        server.listen(relayPort, "127.0.0.1", resolve);
+    });
+    let child;
+    const stop = (signal) => {
+        try {
+            child?.kill(signal);
+        }
+        catch { /* namespace teardown remains authoritative */ }
+    };
+    process.on("SIGTERM", () => stop("SIGTERM"));
+    process.on("SIGINT", () => stop("SIGINT"));
+    try {
+        const childEnv = {
+            ...process.env,
+            DEEPSEEK_API_KEY: capability.providerToken,
+            DEEPSEEK_BASE_URL: `http://127.0.0.1:${relayPort}/provider/${encodeURIComponent(capability.taskId)}/${encodeURIComponent(capability.attemptId)}`,
+            CODEX_HARNESS_ADAPTER_STATE_URL: `http://127.0.0.1:${relayPort}/adapter-state/${encodeURIComponent(capability.taskId)}/${encodeURIComponent(capability.attemptId)}`,
+            CODEX_HARNESS_ADAPTER_TOKEN: capability.adapterToken,
+            CODEX_HARNESS_TOOL_URL: `http://127.0.0.1:${relayPort}/tool-exec/${encodeURIComponent(capability.taskId)}/${encodeURIComponent(capability.attemptId)}`,
+            CODEX_HARNESS_TOOL_TOKEN: capability.toolToken,
+        };
+        delete childEnv.CODEX_HARNESS_MONITOR_SOCKET;
+        delete childEnv.CODEX_HARNESS_RELAY_PORT;
+        delete childEnv.CODEX_HARNESS_LAUNCH_SPEC;
+        delete childEnv.DEEPSEEK_SEARCH_BASE_URL;
+        child = spawn(spec.command, spec.args, {
+            cwd: spec.cwd,
+            env: childEnv,
+            stdio: ["ignore", "inherit", "inherit"],
+        });
+        const result = await new Promise((resolve, reject) => {
+            child.once("error", reject);
+            child.once("close", (code, signal) => resolve({ code, signal }));
+        });
+        if (result.signal)
+            process.kill(process.pid, result.signal);
+        process.exitCode = result.code ?? 1;
+    }
+    finally {
+        await new Promise((resolve) => server.close(() => resolve()));
+    }
+}
+main().catch((error) => {
+    process.stderr.write(`harness-sandbox-entry: ${error instanceof Error ? error.stack ?? error.message : String(error)}\n`);
+    process.exitCode = 1;
+});
+//# sourceMappingURL=harness-sandbox-entry.js.map

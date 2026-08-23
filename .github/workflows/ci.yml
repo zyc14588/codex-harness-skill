@@ -1,0 +1,158 @@
+name: strict-ci
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      real_provider_smoke:
+        description: Run the protected current-revision DeepSeek smoke on the qualified self-hosted runner
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: strict-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  strict-local-gates:
+    name: strict-local-gates
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: current
+    steps:
+      - name: Checkout audited commit
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Set up pinned Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22.19.0
+          cache: npm
+          cache-dependency-path: current/bridge/package-lock.json
+      - name: Install Bubblewrap
+        working-directory: .
+        run: sudo apt-get update && sudo apt-get install -y bubblewrap
+      - name: Validate root governance and candidate gate
+        run: |
+          test "$(jq -r .canonicalSource ../release-status.json)" = current/
+          test "$(jq -r .version ../release-status.json)" = "$(jq -r .version release-status.json)"
+          jq -e . ../AUDIT_FINDINGS.json ../SOURCE_PROVENANCE.json release-status.json SOURCE_PROVENANCE.json schemas/*.json config/*.json >/dev/null
+          node scripts/release-gate.test.mjs
+          case "$(jq -r .releaseStatus release-status.json)" in
+            candidate) node scripts/verify-release-gate.mjs --root . --audit-candidate ;;
+            stable) node scripts/verify-release-gate.mjs --root . ;;
+            *) exit 1 ;;
+          esac
+      - name: Reject credentials, environment files, and nested workflows
+        run: |
+          test ! -e .github/workflows/ci.yml
+          if git ls-files | grep -E '(^|/)\.env($|\.)' | grep -Ev '\.(example|sample|template|dist)$'; then exit 1; fi
+          if git grep -nE '(sk-[A-Za-z0-9_-]{20,}|-----BEGIN ([A-Z0-9 ]+ )?PRIVATE KEY-----)' -- . ':!scripts/fake-dsh.mjs'; then exit 1; fi
+      - name: Reproducible dependency install
+        working-directory: current/bridge
+        run: npm ci
+      - name: Strict TypeScript build
+        working-directory: current/bridge
+        run: npm run build
+      - name: Prepare exact pinned Harness for managed-profile fixture
+        working-directory: .
+        run: |
+          HARNESS_ROOT="$RUNNER_TEMP/deepseek-harness"
+          PROFILE_MODULES="$RUNNER_TEMP/profile-modules"
+          HARNESS_COMMIT="$(jq -r .pinnedHarnessCommit current/config/config.example.json)"
+          git init -q "$HARNESS_ROOT"
+          git -C "$HARNESS_ROOT" remote add origin https://github.com/deepseek-ai/deepseek-harness.git
+          git -C "$HARNESS_ROOT" fetch --depth=1 origin "$HARNESS_COMMIT"
+          git -C "$HARNESS_ROOT" checkout -q --detach FETCH_HEAD
+          corepack enable
+          corepack prepare pnpm@11.7.0 --activate
+          pnpm --dir "$HARNESS_ROOT" install --frozen-lockfile
+          pnpm --dir "$HARNESS_ROOT" run build
+          test "$(node current/scripts/hash-tree.mjs "$HARNESS_ROOT/apps/cli/lib")" = "$(jq -r .pinnedHarnessBuildSha256 current/config/config.example.json)"
+          mkdir -p "$PROFILE_MODULES/@deepseek-ai"
+          ln -s "$HARNESS_ROOT/apps/cli/node_modules/@deepseek-ai/cordis-plugin-hmr/node_modules/@deepseek-ai/schemastery" "$PROFILE_MODULES/@deepseek-ai/schemastery"
+          ln -s "$HARNESS_ROOT/apps/cli/node_modules/@deepseek-ai/dsh-agent-tool-presentation/node_modules/@deepseek-ai/dsh-tools" "$PROFILE_MODULES/@deepseek-ai/dsh-tools"
+          printf 'CODEX_HARNESS_FIXTURE_HARNESS_ROOT=%s\nCODEX_HARNESS_FIXTURE_PROFILE_MODULES=%s\n' "$HARNESS_ROOT" "$PROFILE_MODULES" >> "$GITHUB_ENV"
+      - name: Provider capability and ignored-poisoning negatives
+        working-directory: current/bridge
+        run: node --test dist/test/harness-isolation.test.js dist/test/provider-protocol-fail-fast.test.js dist/test/verification-isolation.test.js dist/test/security.test.js
+      - name: Full unit and component regression
+        working-directory: current/bridge
+        run: npm test
+      - name: Process E2E
+        working-directory: current/bridge
+        run: node dist/direct-acceptance.js
+      - name: Real managed-profile dynamic fixture with mock Provider
+        working-directory: current/bridge
+        run: node dist/dynamic-profile-fixture.js
+      - name: stdio MCP acceptance
+        working-directory: current/bridge
+        run: node dist/acceptance-client.js
+      - name: Security acceptance
+        run: scripts/security-acceptance.sh
+      - name: Skill validation
+        run: node scripts/validate-skill.mjs skills/codex-harness
+      - name: Transactional install, rollback, reinstall, and uninstall
+        env:
+          CODEX_HARNESS_PACKAGE_SKIP_PROCESS_E2E: "1"
+        run: scripts/package-acceptance.sh
+      - name: Generated dist and manifest drift
+        run: |
+          node scripts/update-manifest.mjs .
+          git diff --exit-code -- bridge/dist MANIFEST_SHA256.txt
+
+  protected-real-provider-smoke:
+    name: protected-real-provider-smoke
+    if: github.event_name == 'workflow_dispatch' && inputs.real_provider_smoke
+    needs: strict-local-gates
+    runs-on: [self-hosted, linux, codex-harness-provider]
+    timeout-minutes: 45
+    environment: deepseek-provider-smoke
+    defaults:
+      run:
+        working-directory: current
+    steps:
+      - name: Checkout exact qualified commit
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Set up pinned Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22.19.0
+          cache: npm
+          cache-dependency-path: current/bridge/package-lock.json
+      - name: Build exact revision
+        working-directory: current/bridge
+        run: npm ci && npm run build
+      - name: Prepare protected credential file
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          test -n "$DEEPSEEK_API_KEY"
+          umask 077
+          printf 'DEEPSEEK_API_KEY: %s\n' "$DEEPSEEK_API_KEY" > "$RUNNER_TEMP/codex-harness-deepseek-credentials.yaml"
+      - name: Current-revision Flash and Pro smoke
+        env:
+          CODEX_REAL_SMOKE_CREDENTIALS: ${{ runner.temp }}/codex-harness-deepseek-credentials.yaml
+          CODEX_REAL_SMOKE_HARNESS_ROOT: ${{ vars.HARNESS_ROOT }}
+          CODEX_REAL_SMOKE_PROFILE_MODULES: ${{ vars.DSH_PROFILE_MODULES }}
+          CODEX_REAL_SMOKE_EVIDENCE_PATH: ${{ github.workspace }}/current/evidence/02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json
+        run: |
+          test -n "$CODEX_REAL_SMOKE_HARNESS_ROOT"
+          test -n "$CODEX_REAL_SMOKE_PROFILE_MODULES"
+          test "$(jq -r .version bridge/package.json)" = 0.6.6
+          node bridge/dist/real-provider-smoke.js
+          jq -e '.result == "PASS" and .version == "0.6.6" and .currentRevision == true' evidence/02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json >/dev/null
+      - name: Remove protected credential material
+        if: always()
+        working-directory: .
+        run: rm -f "$RUNNER_TEMP/codex-harness-deepseek-credentials.yaml"

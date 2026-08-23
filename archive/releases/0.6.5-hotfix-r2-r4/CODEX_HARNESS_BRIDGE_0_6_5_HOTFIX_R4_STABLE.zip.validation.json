@@ -1,0 +1,13 @@
+{
+  "archive": "CODEX_HARNESS_BRIDGE_0_6_5_HOTFIX_R4_STABLE.zip",
+  "archiveSha256": "4ce4ec57b9eb977246a9be1e1b24422c8eb739fe10b56c90149188c02957dd2e",
+  "checks": {
+    "deterministicDoubleBuild": "PASS",
+    "symlinkAndNodeModulesHygiene": "PASS",
+    "unpackedManifest": "PASS",
+    "unpackedPackageAcceptance": "PASS",
+    "unpackedReleaseGate": "PASS"
+  },
+  "result": "PASS",
+  "schemaVersion": 1
+}

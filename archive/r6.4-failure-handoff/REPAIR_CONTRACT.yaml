@@ -1,0 +1,29 @@
+contract: codex-harness-r6-4-failure-repair
+status: mandatory
+failed_version: 0.6.4
+source_baseline: 0.6.3
+release_policy:
+  withdrawn_versions: [0.6.0, 0.6.1, 0.6.2, 0.6.3, 0.6.4]
+  next_version: "0.6.5-rc.1 or later"
+  stable_release_requires_real_machine_pass: true
+hard_goals:
+  - recover and compare the exact installed 0.6.4 runtime, profile, and preset
+  - identify the first request that produces minimal_tool_plane
+  - record request purpose and redacted tool names before policy application
+  - prove the real mutation request contains a usable mutation tool
+  - make minimalMutationForceCount increment only for the real mutation request
+  - produce an actual leased-file Git diff through real Harness tool execution
+  - preserve token-only hard gates and split-memory infrastructure isolation
+hard_non_goals:
+  - do not add broad text-execution heuristics as the primary fix
+  - do not weaken scope, Git, review, verification, fingerprint, or cleanup gates
+  - do not auto-merge, push, tag, publish, or modify the user's main branch
+  - do not label deterministic fixture results as real-machine acceptance
+required_evidence:
+  - captured exact installed runtime and managed profile/preset hashes
+  - redacted per-request purpose and tool catalog evidence
+  - actual changedPaths matching an exact write lease
+  - native or safely recovered structured tool-call evidence
+  - approved Codex review
+  - reviewed/current/verified fingerprint equality
+  - real-machine smoke-test result
