@@ -526,8 +526,11 @@ try {
   assert.match(dashboardText, /id="authenticate"/, "dashboard must expose an explicit re-authentication control");
   assert.match(dashboardText, /id="operatorCredential" type="password"/, "dashboard must expose an inline operator login field");
   assert.match(dashboardText, /id="newOperatorCredential" type="password"/, "dashboard must expose authenticated operator-password rotation");
+  assert.match(dashboardText, /minlength="6"/, "dashboard must expose the six-character operator-password minimum");
+  assert.match(dashboardText, /至少 6 个字符/u, "dashboard must explain the six-character operator-password minimum");
   assert.doesNotMatch(dashboardText, /window\.prompt/, "dashboard must not hide authentication behind a native prompt");
   assert.ok(dashboardText.includes("/\\s/u.test(next)"), "dashboard password validation lost its whitespace-regex escape during HTML generation");
+  assert.ok(dashboardText.includes("characters<6"), "dashboard password validation lost its six-character boundary");
   assert.match(dashboardText, /if\(r\.status===401\)\{sessionStorage\.removeItem/, "401 must clear a rejected bearer");
   assert.doesNotMatch(dashboardText, /r\.status===401\|\|r\.status===403/, "CSRF/origin 403 must not discard a valid bearer");
   assert.doesNotMatch(dashboardText, /USD|美元/, "default dashboard must not display USD prices");
@@ -559,14 +562,14 @@ try {
       "x-codex-harness-csrf": csrf,
       origin: dashboardBase,
     },
-    body: JSON.stringify({ newToken: "too-short" }),
+    body: JSON.stringify({ newToken: "12345" }),
   });
   assert.equal(invalidCredentialRotation.status, 400, "operator password accepted an unsafe short value");
   assert.equal((await fetch(`${dashboardBase}/api/snapshot`, {
     headers: { authorization: `Bearer ${operatorToken}` },
   })).status, 200, "invalid password rotation changed the active credential");
   const previousOperatorToken = operatorToken;
-  const nextOperatorToken = "r3-operator-password-rotation-acceptance-0001";
+  const nextOperatorToken = "123456";
   const credentialRotation = await fetch(`${dashboardBase}/api/operator-credential`, {
     method: "POST",
     headers: {

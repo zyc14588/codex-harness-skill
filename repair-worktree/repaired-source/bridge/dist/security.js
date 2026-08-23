@@ -1,7 +1,8 @@
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import { chmod, lstat, mkdir, open, readFile, realpath, rename, rm } from "node:fs/promises";
 import path from "node:path";
-const SECRET_MIN_BYTES = 24;
+const PRIVATE_SECRET_MIN_BYTES = 24;
+const OPERATOR_PASSWORD_MIN_CHARACTERS = 6;
 const SECRET_MAX_BYTES = 16_384;
 function equalSecret(left, right) {
     const a = Buffer.from(left, "utf8");
@@ -36,7 +37,7 @@ export function monitorSocketDirectory(config) {
 export function monitorSocketPath(config) {
     return path.join(monitorSocketDirectory(config), "monitor.sock");
 }
-async function assertPrivateRegularFile(target, label) {
+async function assertPrivateRegularFile(target, label, minimumBytes) {
     const info = await lstat(target);
     if (!info.isFile() || info.isSymbolicLink())
         throw new Error(`${label} must be a regular non-symlink file: ${target}`);
@@ -45,20 +46,24 @@ async function assertPrivateRegularFile(target, label) {
     }
     if ((info.mode & 0o777) !== 0o600)
         throw new Error(`${label} must have mode 0600: ${target}`);
-    if (info.size < SECRET_MIN_BYTES || info.size > SECRET_MAX_BYTES) {
-        throw new Error(`${label} must contain ${SECRET_MIN_BYTES}-${SECRET_MAX_BYTES} bytes: ${target}`);
+    if (info.size < minimumBytes || info.size > SECRET_MAX_BYTES + 1) {
+        throw new Error(`${label} must contain ${minimumBytes}-${SECRET_MAX_BYTES} bytes: ${target}`);
     }
     const canonical = await realpath(target);
     if (canonical !== path.resolve(target))
         throw new Error(`${label} path must not traverse symlinks: ${target}`);
 }
-export async function readPrivateSecret(target, label) {
-    await assertPrivateRegularFile(target, label);
+export async function readPrivateSecret(target, label, minimumBytes = PRIVATE_SECRET_MIN_BYTES) {
+    await assertPrivateRegularFile(target, label, minimumBytes);
     const value = (await readFile(target, "utf8")).trim();
-    if (Buffer.byteLength(value, "utf8") < SECRET_MIN_BYTES || value.includes("\0") || /[\r\n]/.test(value)) {
-        throw new Error(`${label} must be a single non-empty secret line of at least ${SECRET_MIN_BYTES} bytes`);
+    const bytes = Buffer.byteLength(value, "utf8");
+    if (bytes < minimumBytes || bytes > SECRET_MAX_BYTES || value.includes("\0") || /[\r\n]/.test(value)) {
+        throw new Error(`${label} must be a single secret line of ${minimumBytes}-${SECRET_MAX_BYTES} bytes`);
     }
     return value;
+}
+async function readOperatorToken(target, label) {
+    return validateOperatorToken(await readPrivateSecret(target, label, 1), label);
 }
 export async function ensureOperatorToken(config) {
     const target = operatorTokenPath(config);
@@ -77,15 +82,16 @@ export async function ensureOperatorToken(config) {
         if (error.code !== "EEXIST")
             throw error;
     }
-    return await readPrivateSecret(target, "monitor operator token");
+    return await readOperatorToken(target, "monitor operator token");
 }
-export function validateOperatorToken(value) {
+export function validateOperatorToken(value, label = "new operator password") {
     if (typeof value !== "string" || value !== value.trim() || /\s/u.test(value)) {
-        throw new Error("new operator password must be a single line without whitespace");
+        throw new Error(`${label} must be a single line without whitespace`);
     }
     const bytes = Buffer.byteLength(value, "utf8");
-    if (bytes < SECRET_MIN_BYTES || bytes > SECRET_MAX_BYTES || value.includes("\0")) {
-        throw new Error(`new operator password must contain ${SECRET_MIN_BYTES}-${SECRET_MAX_BYTES} UTF-8 bytes`);
+    const characters = Array.from(value).length;
+    if (characters < OPERATOR_PASSWORD_MIN_CHARACTERS || bytes > SECRET_MAX_BYTES || value.includes("\0")) {
+        throw new Error(`${label} must contain at least ${OPERATOR_PASSWORD_MIN_CHARACTERS} characters and at most ${SECRET_MAX_BYTES} UTF-8 bytes`);
     }
     return value;
 }
@@ -109,7 +115,7 @@ export async function replaceOperatorToken(config, value) {
         }
         await rename(temporary, target);
         await chmod(target, 0o600);
-        return await readPrivateSecret(target, "monitor operator token");
+        return await readOperatorToken(target, "monitor operator token");
     }
     catch (error) {
         await rm(temporary, { force: true });

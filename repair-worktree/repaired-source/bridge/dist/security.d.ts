@@ -5,8 +5,8 @@ export declare function authorizeExactSecret(candidate: string | undefined, expe
 export declare function operatorTokenPath(config: BridgeConfig): string;
 export declare function monitorSocketDirectory(config: BridgeConfig): string;
 export declare function monitorSocketPath(config: BridgeConfig): string;
-export declare function readPrivateSecret(target: string, label: string): Promise<string>;
+export declare function readPrivateSecret(target: string, label: string, minimumBytes?: number): Promise<string>;
 export declare function ensureOperatorToken(config: BridgeConfig): Promise<string>;
-export declare function validateOperatorToken(value: unknown): string;
+export declare function validateOperatorToken(value: unknown, label?: string): string;
 export declare function replaceOperatorToken(config: BridgeConfig, value: unknown): Promise<string>;
 export declare function readProviderApiKey(config: BridgeConfig): Promise<string>;
