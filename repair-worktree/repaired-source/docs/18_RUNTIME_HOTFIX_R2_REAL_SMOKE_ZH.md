@@ -21,4 +21,4 @@ Bubblewrap SHA-256: 0abea81db798ebf6b4742ac0664802d97521547a353c2a0dbdc21d76cbbf
 - 两任务 changed path 精确，review approved，reviewed/current/verified fingerprint 一致，并各自在隔离分支形成 local commit。
 - 两个 worktree 与分支均已清理；临时 smoke 主仓库 HEAD 不变且 clean；没有 merge、push、tag 或创建 release。
 
-该 PASS 只关闭真实 Provider 门禁。普通源码/provenance 与最终确定性 ZIP/解包复验仍必须独立通过，不能由本证据替代。
+该 PASS 只关闭真实 Provider 门禁，不能替代其他门禁；普通源码/provenance 与最终确定性 ZIP/解包复验随后已独立通过。

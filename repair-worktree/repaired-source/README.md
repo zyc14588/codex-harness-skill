@@ -2,15 +2,15 @@
 
 ```text
 Version: 0.6.5
-Release status: candidate
-Install mode: audit-only
-Controlled use allowed: false
-Deliverable status: DELIVERABLE_PENDING
+Release status: stable
+Install mode: controlled
+Controlled use allowed: true
+Deliverable status: DELIVERABLE_PASS
 ```
 
 这是一个由 Codex 总控的本地 MCP Bridge。Codex 冻结计划、依赖、写租约、Token 门禁、审查与验证；DeepSeek Harness 或受控 llama.cpp 只执行有界叶子。Bridge 不自动 merge、push、tag 或创建 GitHub Release。
 
-此前封印的 0.6.5 stable 归档完成了 2026-08-23 审计与真实 Provider 门禁；本工作树在封印后修复了 Dashboard 令牌循环、Bubblewrap 内 Node 包装器不可见、managed MCP 启动错误归因和 schema-v4 split-memory 污染。当前 candidate 已通过 87 项本地回归、direct/package/security/skill、固定真实 managed-Harness + 本地 Provider、0-I/O 失败注入，以及本修订真实 DeepSeek Flash/Pro 门禁。普通源码/provenance 与最终归档尚未封印，因此仍不得替换已安装 stable 或用于 controlled use。
+Runtime hotfix R2 在原 0.6.5 stable 之后修复了 Dashboard 令牌循环、Bubblewrap 内 Node 包装器不可见、managed MCP 启动错误归因和 schema-v4 split-memory 污染。本修订已独立通过 87 项回归、direct/package/security/skill、固定真实 managed-Harness + 本地 Provider、0-I/O 失败注入、本修订真实 DeepSeek Flash/Pro、普通源码/provenance、确定性双构建与全新目录解包验收。原 stable 归档保留为历史，新的热修复制品使用独立名称，不覆盖旧文件。
 
 ## 本次修复
 
@@ -40,13 +40,13 @@ Deliverable status: DELIVERABLE_PENDING
 | skill validation | PASS |
 | 当前修订真实 Minimal Flash | PASS，4 轮、3 次原生工具调用 |
 | 当前修订真实 Pro Thinking | PASS，4 轮、replay 0/1/2/3 |
-| candidate 确定性 ZIP 与解压复验 | PENDING |
+| stable 确定性 ZIP 与解压复验 | PASS，双构建字节一致 |
 
-机器可读状态以 `release-status.json` 为准。只要其中不是 `stable`、`controlledUseAllowed=true`、`deliverableStatus=DELIVERABLE_PASS` 且所有 gate 精确为 `PASS`，就不得用于 controlled use。
+机器可读状态以 `release-status.json` 为准；当前所有 gate 精确为 `PASS`。任何后续修改都会使 manifest、artifact bindings 与外部 sidecar 失效，必须重新封印。
 
-## 历史 Stable 安装说明
+## Stable 安装说明
 
-以下命令属于此前封印归档；当前工作树是 audit-only candidate，未经重新封印不得按 stable 路径安装。
+只从 `CODEX_HARNESS_BRIDGE_0_6_5_HOTFIX_R2_STABLE.zip` 解包目录安装，并先校验同目录 SHA-256 sidecar 与包内 manifest。
 
 要求 Linux、Node `>=22.12.0`、Git、Python 3、Bubblewrap、Codex CLI，以及固定且干净的 DeepSeek Harness checkout：
 
@@ -81,7 +81,7 @@ controller_split_advice
 ## 证据入口
 
 - `release-status.json`：当前机器状态；
-- `CANDIDATE_VALIDATION_REPORT_ZH.md` 与 `evidence/08_RUNTIME_HOTFIX_CANDIDATE_LOCAL_VALIDATION.json`：当前 runtime hotfix candidate 的本地、动态 Harness 与失败注入验证；
+- `CANDIDATE_VALIDATION_REPORT_ZH.md` 与 `evidence/08_RUNTIME_HOTFIX_CANDIDATE_LOCAL_VALIDATION.json`：runtime hotfix R2 在 stable seal 前的本地、动态 Harness 与失败注入阶段证据；
 - `docs/18_RUNTIME_HOTFIX_R2_REAL_SMOKE_ZH.md` 与 `evidence/09_RUNTIME_HOTFIX_REAL_DEEPSEEK_REDACTED.json`：本修订有界真实 DeepSeek Flash/Pro 重资格证据；
 - `SOURCE_PROVENANCE.json`：恢复提交、历史修复链与最终 seal 状态；
 - `VALIDATION_REPORT_ZH.md`：当前验收报告；

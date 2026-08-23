@@ -1,6 +1,6 @@
 # 0.6.5 原 stable 修订真实 DeepSeek smoke
 
-> 历史封印报告：这里的“当前修订”指此前封印的 0.6.5 stable。封印后 runtime hotfix candidate 尚未重跑真实 Provider，不能复用本报告取得资格。
+> 历史封印报告：这里的“当前修订”只指此前封印的 0.6.5 stable，不能复用本报告给后续源码续期。Runtime hotfix R2 已另行通过并记录在 `docs/18_RUNTIME_HOTFIX_R2_REAL_SMOKE_ZH.md` 与 evidence/09。
 
 当前状态：`PASS`。执行日期：2026-08-23。脱敏机器证据为 `evidence/03_REAL_DEEPSEEK_0_6_5_STABLE_REDACTED.json`。
 

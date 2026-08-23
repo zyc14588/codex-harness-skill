@@ -1,6 +1,6 @@
-# 0.6.5 候选版严格验收清单
+# 0.6.5 stable 严格验收清单
 
-当前工作树是封印后热修 candidate。本清单同时列出发布所需门禁；勾选状态必须以 `release-status.json` 为准，历史 stable 的 evidence 与 ZIP sidecar 不自动给当前 candidate 续期。
+Runtime hotfix R2 已完成 stable 封印。本清单是给独立审计者逐项重跑的空白清单，不以勾选框代替证据；权威机器状态取自 `release-status.json`，本修订证据为 evidence/08 与 evidence/09，历史 evidence/03–07 不自动续期。
 
 ## 构建
 
@@ -8,7 +8,7 @@
 - [ ] `bridge/dist` 从空目录重建；
 - [ ] JSON、JSON Schema、Shell 和内联 JavaScript 检查；
 - [ ] runtime 不含 npm dependencies / `node_modules`；
-- [x] 当前 87 项单元/组件测试全部通过。
+- [ ] 当前 87 项单元/组件测试全部通过。
 
 ## Token 门禁
 

@@ -38,8 +38,10 @@
     "preSealOuterTree": "750daed76f271e4aeea2991af1c9f5da750cd0c8",
     "preSealSourceTree": "e0f30105928291e1d076a3cd1fb1c58ff0a65f74",
     "ordinaryOuterTrackedFiles": true,
-    "workingTreeSealed": false,
-    "status": "ordinary source authority restored and current local/dynamic/real-provider gates passed; final deterministic archive and unpacked revalidation pending",
+    "workingTreeSealed": true,
+    "preSealCandidateArchiveBuilds": 2,
+    "preSealCandidateArchiveSha256": "c2d97af0ca88a1cb93599d71690a6d3fe1a957a00f3ad328617144f860121a1d",
+    "status": "ordinary source authority restored; current local/dynamic/real-provider gates and deterministic pre-seal unpacked package acceptance passed; stable metadata is protected by manifest and artifact bindings",
     "sealSemantics": "preSealValidationCommit and its two trees identify the complete tested ordinary-source baseline. Later provenance/release-status/manifest seal metadata cannot self-reference and is bound by SHA-256 plus MANIFEST_SHA256.txt."
   },
   "realHarness": {

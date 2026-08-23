@@ -1,6 +1,6 @@
 # Provider protocol attempt fail-fast 热修订
 
-> 历史修订报告：此文档记录此前 stable 封印前的 fail-fast 修复。封印后的 runtime hotfix candidate 状态以 `release-status.json` 为准。
+> 历史修订报告：此文档记录此前 stable 封印前的 fail-fast 修复。后续 runtime hotfix R2 的独立重资格状态以 `release-status.json` 为准。
 
 修订：`provider-protocol-fail-fast-r1`
 基线：Bridge `0.6.5`
@@ -27,4 +27,4 @@ Pro enabled-thinking 响应包含原生工具调用时，Provider 必须同时�
 - direct acceptance：PASS，worker 在 8 秒内终止故意驻留的 fake Harness，任务与 attempt 均失败且 diff 为空；
 - stable package acceptance 与安装态 fault injection：PASS。
 
-2026-08-22 的真实 Provider smoke 只留在历史中，未被该热修订冒充为当时证据。操作员授权后，2026-08-23 当时封印修订的真实 Flash/Pro smoke、最终 ZIP 与解压复验均 PASS；这些结论不覆盖后续 runtime hotfix candidate。
+2026-08-22 的真实 Provider smoke 只留在历史中，未被该热修订冒充为当时证据。操作员授权后，2026-08-23 当时封印修订的真实 Flash/Pro smoke、最终 ZIP 与解压复验均 PASS；这些结论不覆盖后续源码。Runtime hotfix R2 已用 evidence/08、09 与独立最终归档重新取得资格。

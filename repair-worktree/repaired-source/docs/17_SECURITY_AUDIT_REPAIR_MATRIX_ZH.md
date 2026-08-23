@@ -1,6 +1,6 @@
 # 2026-08-23 安全审计修复矩阵
 
-> F-001–F-015 的原始封印证据保留为历史；runtime hotfix R2 已独立重跑本地/动态、失败注入和真实 Provider 门禁，来源与最终归档门禁以 `release-status.json` 为准。
+> F-001–F-015 的原始封印证据保留为历史；runtime hotfix R2 已独立重跑本地/动态、失败注入、真实 Provider、来源与最终归档门禁，权威结果以 `release-status.json` 为准。
 
 本矩阵对应外部审计 F-001–F-015。状态表示实现与本地确定性验证；真实 Provider 与最终 stable seal 已按 `release-status.json` 的独立门禁通过。
 
@@ -40,4 +40,4 @@ Provider enabled-thinking tool call
 
 ## 当前重资格状态
 
-本地修复矩阵没有用 fixture 冒充真实 Provider。操作员授权后，本修订真实 Minimal/Pro smoke 已独立通过并写入 `evidence/09`；旧 `evidence/03` 不参与当前 stable 绑定。普通源码/provenance、两次确定性 ZIP 字节比较及解压复验完成前，状态继续保持 candidate。
+本地修复矩阵没有用 fixture 冒充真实 Provider。操作员授权后，本修订真实 Minimal/Pro smoke 已独立通过并写入 `evidence/09`；旧 `evidence/03` 不参与当前 stable 绑定。普通源码/provenance、两次确定性 ZIP 字节比较及解压复验也已 PASS。

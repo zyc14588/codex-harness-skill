@@ -44,6 +44,6 @@ INVALID_REQUEST: The reasoning_content in the thinking mode must be passed back 
 - Dashboard 在取消认证或收到 `401` 后停止自动重弹，`403` 不再删除有效 Bearer；
 - 旧 `evidence/03` 仍只属于此前 stable；本修订没有复用它取得资格；
 - 本修订独立完成动态 Harness、0-I/O 失败注入和有界真实双模式 smoke：Flash 4 轮，Pro 4 轮并完整回放深度 0/1/2/3，见 `evidence/08` 与 `evidence/09`；
-- 普通源码/provenance 与最终确定性归档仍须独立封印。
+- 普通源码/provenance、候选预封印和最终确定性归档已独立通过。
 
-因此本次 Q1 失败不是 Token 不足或任务过大，而是 Bubblewrap 与 managed MCP 的 Node 运行时组合错误；修复后的门禁已证明错误能在 Provider 边界前被正确拒绝和归因。当前状态保持 `candidate / controlledUseAllowed=false`，直到来源与归档门禁完成。
+因此本次 Q1 失败不是 Token 不足或任务过大，而是 Bubblewrap 与 managed MCP 的 Node 运行时组合错误；修复后的门禁已证明错误能在 Provider 边界前被正确拒绝和归因。当前 stable seal 的所有机器 gate 均为 `PASS`。

@@ -38,7 +38,7 @@ source tree: e0f30105928291e1d076a3cd1fb1c58ff0a65f74
 
 该 source tree 有 317 个普通 blob（303 个 mode 100644、14 个 mode 100755），symlink/gitlink 为 0。本修订真实 Provider 证据为 `evidence/09_RUNTIME_HOTFIX_REAL_DEEPSEEK_REDACTED.json`，SHA-256 为 `bb023ca725b56f55a0539f5bdbd245ec6accf75869ff11d199be1033b6bc54b0`。provenance、release status 与 manifest 的后续封印 metadata 无法自引用 commit，因此由文件哈希和 `MANIFEST_SHA256.txt` 绑定。
 
-当前阶段 ordinary-source authority 已恢复；`workingTreeSealed` 仍为 false，直到两次确定性 ZIP 与全新目录解包验收完成。
+ordinary-source authority 已恢复；候选态两次确定性 ZIP 与全新目录解包验收通过后，`workingTreeSealed` 已提升为 true。最终 stable ZIP 仍由外部 `.sha256` 与 `.validation.json` sidecar 绑定，避免归档自引用。
 
 ## 固定 Harness
 
@@ -59,4 +59,4 @@ apps/cli/lib SHA-256: 6a294d72c51e6570852acaf73458cda98f555bd53c9c7ff0b49c568e7c
 - `MANIFEST_SHA256.txt` 覆盖除自身外的所有普通文件；
 - 不自动 merge、push、tag 或创建 GitHub Release。
 
-最终 stable seal 已绑定上述 final repair commit/tree、当前 Provider evidence、package lock、provenance 和安全/安装证据；ordinary-source authority、真实 Provider 与最终归档门禁均未被跳过。
+最终 hotfix R2 stable seal 已绑定上述 pre-seal commit/tree、当前 `evidence/08`/`evidence/09`、package lock 与 provenance；ordinary-source authority、真实 Provider 与最终归档门禁均未被跳过。

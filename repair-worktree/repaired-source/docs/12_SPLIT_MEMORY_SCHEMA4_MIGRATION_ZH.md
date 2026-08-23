@@ -43,4 +43,4 @@ no_effect
 3. 一个基础设施失败用 `10000/2000` 执行，而下一候选提议 `20000/4000`；advice 必须仍为 `20000/4000`。
 4. 默认 Flash 与显式 Flash 的 memory key 完全相同。
 
-当前 hotfix R2 的 split-memory 窄测试、87 项全量回归、direct acceptance、动态 Harness、失败注入与真实 Provider 已独立通过；此前 stable 的结果只保留为历史证据。release bindings 与最终解压归档仍需完成后才能转为 stable。
+当前 hotfix R2 的 split-memory 窄测试、87 项全量回归、direct acceptance、动态 Harness、失败注入与真实 Provider 已独立通过；release bindings、确定性双构建与最终解压归档也已完成。此前 stable 的结果只保留为历史证据。
