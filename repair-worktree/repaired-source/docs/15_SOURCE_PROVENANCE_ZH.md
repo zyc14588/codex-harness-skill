@@ -24,7 +24,21 @@ ea81ec6f91a0c13b0a6167581baf34e28be66d05
 
 `b481c79` 和 `d30d9ac` 均由恢复历史直接解析；撤回提交未被重写或删除。安全修复实现提交为 `f1d4864be8eb1ad3982fef81d6856e71f2b18385`，tree 为 `c3a17b397d03ad68497007c513bde8ff2a83f97e`；metadata 提交为 `e27d729a7b2205667cddf3cf3aa4f8006950c449`。完整内层历史在转换前用 `git bundle verify` 验证。
 
-外层无 URL gitlink 已从索引移除，当前源码以普通 tracked files 纳入外层 repair/evidence 分支。当前 real-provider gate、artifact bindings 与 ZIP 解压复验均通过，`SOURCE_PROVENANCE.json` 为 `workingTreeSealed=true`。最后一个完整预封印验证提交为 `80aa1f70276a32a8792f6a8c49d35b62f8be46af`，tree 为 `b14f90f28c29e1264b64efd9240ac35b7a060cf3`；其后的 stable metadata/manifest seal 通过文件哈希绑定，避免在 provenance 文件内制造自引用 commit。
+外层无 URL gitlink 已从索引移除，源码以普通 tracked files 纳入外层 repair/evidence 分支。在原 stable 封印中，real-provider gate、artifact bindings 与 ZIP 解压复验均通过，最后一个完整预封印验证提交为 `80aa1f70276a32a8792f6a8c49d35b62f8be46af`，tree 为 `b14f90f28c29e1264b64efd9240ac35b7a060cf3`；其后的 stable metadata/manifest seal 通过文件哈希绑定，避免在 provenance 文件内制造自引用 commit。
+
+## Runtime hotfix R2 重资格链
+
+本修订从外层 stable seal `ae5b46c0b86ac6dae830fb0080d8a47c08fae0f2` 建立本地分支 `release/0.6.5-hotfix-r2`。完成实现、本地/动态门禁与本修订真实 Provider smoke 后，普通源码基线封存为：
+
+```text
+commit:      2ea0bd3850c8a9cf255f7c3f1dd12dd533a9f97e
+outer tree:  750daed76f271e4aeea2991af1c9f5da750cd0c8
+source tree: e0f30105928291e1d076a3cd1fb1c58ff0a65f74
+```
+
+该 source tree 有 317 个普通 blob（303 个 mode 100644、14 个 mode 100755），symlink/gitlink 为 0。本修订真实 Provider 证据为 `evidence/09_RUNTIME_HOTFIX_REAL_DEEPSEEK_REDACTED.json`，SHA-256 为 `bb023ca725b56f55a0539f5bdbd245ec6accf75869ff11d199be1033b6bc54b0`。provenance、release status 与 manifest 的后续封印 metadata 无法自引用 commit，因此由文件哈希和 `MANIFEST_SHA256.txt` 绑定。
+
+当前阶段 ordinary-source authority 已恢复；`workingTreeSealed` 仍为 false，直到两次确定性 ZIP 与全新目录解包验收完成。
 
 ## 固定 Harness
 

@@ -31,6 +31,17 @@
     "status": "ordinary source authority restored; current real-provider gates and pre-seal package acceptance passed; stable metadata is protected by manifest and artifact bindings",
     "sealSemantics": "finalRepairCommit/finalRepairTree identify the last complete pre-seal validation baseline. The following metadata/manifest commit cannot self-reference and is instead bound by release-status SHA-256 fields and MANIFEST_SHA256.txt."
   },
+  "hotfixR2": {
+    "baselineCommit": "ae5b46c0b86ac6dae830fb0080d8a47c08fae0f2",
+    "branch": "release/0.6.5-hotfix-r2",
+    "preSealValidationCommit": "2ea0bd3850c8a9cf255f7c3f1dd12dd533a9f97e",
+    "preSealOuterTree": "750daed76f271e4aeea2991af1c9f5da750cd0c8",
+    "preSealSourceTree": "e0f30105928291e1d076a3cd1fb1c58ff0a65f74",
+    "ordinaryOuterTrackedFiles": true,
+    "workingTreeSealed": false,
+    "status": "ordinary source authority restored and current local/dynamic/real-provider gates passed; final deterministic archive and unpacked revalidation pending",
+    "sealSemantics": "preSealValidationCommit and its two trees identify the complete tested ordinary-source baseline. Later provenance/release-status/manifest seal metadata cannot self-reference and is bound by SHA-256 plus MANIFEST_SHA256.txt."
+  },
   "realHarness": {
     "root": "/home/zyc14588/deepseek-harness",
     "commit": "141eb6fef83422698aef7a981029e843e8161534",
@@ -38,14 +49,16 @@
     "cleanAtLastLocalFixture": true,
     "cleanAtCurrentRealSmoke": true,
     "currentRealSmokeObservedAt": "2026-08-23",
-    "currentRealSmokeEvidence": "evidence/03_REAL_DEEPSEEK_0_6_5_STABLE_REDACTED.json"
+    "currentRealSmokeEvidence": "evidence/09_RUNTIME_HOTFIX_REAL_DEEPSEEK_REDACTED.json",
+    "currentRealSmokeEvidenceSha256": "bb023ca725b56f55a0539f5bdbd245ec6accf75869ff11d199be1033b6bc54b0"
   },
   "outerMaterialization": {
-    "commit": "1bc25e54f3d97ff44cefebf43dc9007e533267bc",
-    "tree": "216f3c2fa2f8245fec84ed2681babffd4602964a",
-    "ordinaryFileCount": 309,
+    "commit": "2ea0bd3850c8a9cf255f7c3f1dd12dd533a9f97e",
+    "tree": "750daed76f271e4aeea2991af1c9f5da750cd0c8",
+    "sourceTree": "e0f30105928291e1d076a3cd1fb1c58ff0a65f74",
+    "ordinaryFileCount": 317,
     "regularModes": {
-      "100644": 295,
+      "100644": 303,
       "100755": 14
     },
     "symlinkOrGitlinkCount": 0

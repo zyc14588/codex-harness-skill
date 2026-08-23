@@ -6,7 +6,7 @@
   "releaseStatus": "candidate",
   "controlledUseAllowed": false,
   "deliverableStatus": "DELIVERABLE_PENDING",
-  "statusReason": "Known runtime defects were repaired after the sealed 0.6.5 artifact: dashboard bearer retry looping, wrapper-based Node paths hidden by Bubblewrap, managed MCP startup misclassification, and schema-v4 split-memory pollution. Local component, direct, package, security, skill, fixed real managed-Harness with loopback Provider, zero-I/O failure injection, and bounded real DeepSeek Flash/Pro gates pass. Ordinary source/provenance sealing and the final deterministic archive/unpacked revalidation remain pending. The previously sealed stable archive remains historical evidence and was not replaced.",
+  "statusReason": "Known runtime defects were repaired after the sealed 0.6.5 artifact: dashboard bearer retry looping, wrapper-based Node paths hidden by Bubblewrap, managed MCP startup misclassification, and schema-v4 split-memory pollution. Local component, direct, package, security, skill, fixed real managed-Harness with loopback Provider, zero-I/O failure injection, bounded real DeepSeek Flash/Pro, and ordinary source/provenance gates pass. Only the final deterministic archive/unpacked revalidation remains pending. The previously sealed stable archive remains historical evidence and was not replaced.",
   "gates": {
     "unitAndComponentRegression": "PASS",
     "directAcceptance": "PASS",
@@ -18,7 +18,7 @@
     "packageAcceptance": "PASS",
     "skillValidation": "PASS",
     "securityAuditRepair": "PASS",
-    "ordinarySourceAuthority": "PENDING",
+    "ordinarySourceAuthority": "PASS",
     "strongHarnessIsolation": "PASS",
     "operatorControlAuthentication": "PASS",
     "finalZipUnpackedRevalidation": "PENDING"
@@ -72,7 +72,7 @@
     "scope": "bounded real DeepSeek Minimal Flash and Pro Thinking through the authenticated local credential broker"
   },
   "artifactBindings": {
-    "sourceProvenanceSha256": "82558e61d2315c865429c1de47271cc38205f468d9f51ab5c51bc0ae638cc404",
+    "sourceProvenanceSha256": "5983c5b34fbcbbe579fa6531c04e5d1544d3fd5c5e7f9e3112ada017c1a182af",
     "packageLockSha256": "e84bcff962b6a8a743b9cb7b7c302b9c3783a314d1ee9af5b9b84b42e8e5922b",
     "requiredEvidenceSha256": {
       "evidence/08_RUNTIME_HOTFIX_CANDIDATE_LOCAL_VALIDATION.json": "2454ac625c35bb7fa2ada0531198c033804fab2a139f71aa70a5f22b48607d7f",
