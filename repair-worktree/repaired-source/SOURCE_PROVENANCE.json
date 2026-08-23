@@ -24,11 +24,12 @@
     "candidateImplementationTree": "c3a17b397d03ad68497007c513bde8ff2a83f97e",
     "candidateMetadataCommit": "e27d729a7b2205667cddf3cf3aa4f8006950c449",
     "candidateMetadataTree": "348d101512ca925af37e4f7d3f4103f9b2ad9294",
-    "workingTreeSealed": false,
-    "finalRepairCommit": null,
-    "finalRepairTree": null,
+    "workingTreeSealed": true,
+    "finalRepairCommit": "80aa1f70276a32a8792f6a8c49d35b62f8be46af",
+    "finalRepairTree": "b14f90f28c29e1264b64efd9240ac35b7a060cf3",
     "ordinaryOuterTrackedFiles": true,
-    "status": "ordinary source authority restored; current real-provider gates passed; final stable package seal pending"
+    "status": "ordinary source authority restored; current real-provider gates and pre-seal package acceptance passed; stable metadata is protected by manifest and artifact bindings",
+    "sealSemantics": "finalRepairCommit/finalRepairTree identify the last complete pre-seal validation baseline. The following metadata/manifest commit cannot self-reference and is instead bound by release-status SHA-256 fields and MANIFEST_SHA256.txt."
   },
   "realHarness": {
     "root": "/home/zyc14588/deepseek-harness",

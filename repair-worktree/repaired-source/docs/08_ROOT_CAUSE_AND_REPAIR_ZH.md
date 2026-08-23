@@ -46,4 +46,4 @@ INVALID_REQUEST: The reasoning_content in the thinking mode must be passed back 
 - 当前修订的真实双模式 smoke 仍需操作员明确授权；
 - package acceptance 覆盖安装、升级、回滚、重装和卸载。
 
-因此主因不是 Token 不足或任务过大，而是 attempt 内协议模式不一致；当前修订已在 Provider 边界前建立不可变、可审计、失败封闭的状态机，并通过真实 smoke。只有最终 artifact bindings 与归档门禁也通过后，才能升级 stable。
+因此主因不是 Token 不足或任务过大，而是 attempt 内协议模式不一致；当前修订已在 Provider 边界前建立不可变、可审计、失败封闭的状态机，并通过真实 smoke、artifact bindings 与归档门禁，已升级为 stable。

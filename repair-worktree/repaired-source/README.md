@@ -2,15 +2,15 @@
 
 ```text
 Version: 0.6.5
-Release status: candidate
-Install mode: explicit audit only
-Controlled use allowed: false
-Deliverable status: REPAIR_FINAL_SEAL_IN_PROGRESS
+Release status: stable
+Install mode: controlled
+Controlled use allowed: true
+Deliverable status: DELIVERABLE_PASS
 ```
 
 这是一个由 Codex 总控的本地 MCP Bridge。Codex 冻结计划、依赖、写租约、Token 门禁、审查与验证；DeepSeek Harness 或受控 llama.cpp 只执行有界叶子。Bridge 不自动 merge、push、tag 或创建 GitHub Release。
 
-当前源码已完成 2026-08-23 审计中 F-001–F-015 的本地修复与确定性验证，并在操作员明确授权后通过当前修订的真实 DeepSeek Minimal Flash 与 Pro Thinking smoke。烟测只发送了含单行 README seed 的合成临时仓库任务；当前项目源码和用户仓库内容未外传。源码仍处于最终稳定封印阶段，在确定性 ZIP 双构建、解压 manifest/release gate 与安装包验收全部通过前保持 candidate。
+当前源码已完成 2026-08-23 审计中 F-001–F-015 的修复与确定性验证，并在操作员明确授权后通过当前修订的真实 DeepSeek Minimal Flash 与 Pro Thinking smoke。烟测只发送了含单行 README seed 的合成临时仓库任务；当前项目源码和用户仓库内容未外传。稳定交付同时通过 artifact bindings、确定性 ZIP 双构建、解压 manifest/release gate 与安装包验收。
 
 ## 本次修复
 
@@ -33,28 +33,27 @@ Deliverable status: REPAIR_FINAL_SEAL_IN_PROGRESS
 | reasoning replay 失败注入 | PASS，Provider 0、Token 0/0、split 不变 |
 | Bubblewrap/read/network/PID/credential 隔离 | PASS |
 | operator/llama/process/release 安全负向测试 | PASS |
-| candidate package acceptance | PASS，含 schema 4→7、双回滚与卸载 |
+| package acceptance | PASS，含 schema 4→7、双回滚、重装与卸载 |
 | skill validation | PASS |
 | 当前修订真实 Minimal Flash | PASS，4 轮、3 次原生工具调用、全程 disabled |
 | 当前修订真实 Pro Thinking | PASS，4 轮、回放深度 0/1/2/3、全程 enabled/high 且无 tool choice |
-| stable 确定性 ZIP 与解压复验 | 最终封印中 |
+| stable 确定性 ZIP 与解压复验 | PASS，双构建 byte-identical，解压门禁与 package acceptance PASS |
 
 机器可读状态以 `release-status.json` 为准。只要其中不是 `stable`、`controlledUseAllowed=true`、`deliverableStatus=DELIVERABLE_PASS` 且所有 gate 精确为 `PASS`，就不得用于 controlled use。
 
-## Candidate 审计安装
+## Stable 受控安装
 
-要求 Linux、Node `>=22.12.0`、Git、Python 3、Bubblewrap、Codex CLI，以及固定且干净的 DeepSeek Harness checkout。候选包只能显式审计安装：
+要求 Linux、Node `>=22.12.0`、Git、Python 3、Bubblewrap、Codex CLI，以及固定且干净的 DeepSeek Harness checkout：
 
 ```bash
 sha256sum -c MANIFEST_SHA256.txt
 scripts/install.sh \
-  --audit-candidate \
   --harness-root /home/zyc14588/deepseek-harness \
   --allowed-root /absolute/path/to/repositories \
   --provider-key-file /absolute/private/provider.key
 ```
 
-`--provider-key-file` 必须是操作员拥有、非 symlink、group/other 无权限的普通文件。candidate 可显式使用 `--skip-self-tests` 加速重复审计；stable 安装永远不能跳过自测。
+`--provider-key-file` 必须是操作员拥有、非 symlink、group/other 无权限的普通文件。stable 安装永远不能使用 `--skip-self-tests` 跳过确定性自测。
 
 ## 受控工作流
 
@@ -82,7 +81,7 @@ controller_split_advice
 - `docs/17_SECURITY_AUDIT_REPAIR_MATRIX_ZH.md`：F-001–F-015 修复矩阵；
 - `evidence/01_DYNAMIC_PROFILE_FIXTURE_REDACTED.json`：当前动态 Harness/本地 Provider 证据；
 - `evidence/04_FAILURE_INJECTION_0_6_5_STABLE.json`：当前 replay 失败注入证据；
-- `evidence/05_PACKAGE_ACCEPTANCE_0_6_5_STABLE.json`：当前 candidate package 证据；
+- `evidence/05_PACKAGE_ACCEPTANCE_0_6_5_STABLE.json`：当前稳定封印的 package prerequisite 证据；最终解压安装验收另由 ZIP validation sidecar 绑定；
 - `evidence/06_SKILL_VALIDATION_0_6_5_STABLE.json` 与 `07_SECURITY_ACCEPTANCE_0_6_5_STABLE.json`：当前本地门禁；
 - `evidence/02_REAL_DEEPSEEK_SMOKE_REDACTED.json`：withdrawn rc.1 历史失败；
 - `evidence/03_REAL_DEEPSEEK_0_6_5_STABLE_REDACTED.json`：2026-08-23 当前修订真实 Provider PASS；仅保存策略、序号、哈希、长度和指纹，不保存密钥或推理正文。

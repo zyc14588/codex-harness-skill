@@ -24,7 +24,7 @@ ea81ec6f91a0c13b0a6167581baf34e28be66d05
 
 `b481c79` 和 `d30d9ac` 均由恢复历史直接解析；撤回提交未被重写或删除。安全修复实现提交为 `f1d4864be8eb1ad3982fef81d6856e71f2b18385`，tree 为 `c3a17b397d03ad68497007c513bde8ff2a83f97e`；metadata 提交为 `e27d729a7b2205667cddf3cf3aa4f8006950c449`。完整内层历史在转换前用 `git bundle verify` 验证。
 
-外层无 URL gitlink 已从索引移除，当前源码以普通 tracked files 纳入外层 repair/evidence 分支。当前 real-provider gate 已通过；在最终 artifact binding 与 ZIP 解压复验完成前，`SOURCE_PROVENANCE.json` 仍保持 `workingTreeSealed=false`。这不表示源码不可审计，只表示最终稳定发布尚未 seal。
+外层无 URL gitlink 已从索引移除，当前源码以普通 tracked files 纳入外层 repair/evidence 分支。当前 real-provider gate、artifact bindings 与 ZIP 解压复验均通过，`SOURCE_PROVENANCE.json` 为 `workingTreeSealed=true`。最后一个完整预封印验证提交为 `80aa1f70276a32a8792f6a8c49d35b62f8be46af`，tree 为 `b14f90f28c29e1264b64efd9240ac35b7a060cf3`；其后的 stable metadata/manifest seal 通过文件哈希绑定，避免在 provenance 文件内制造自引用 commit。
 
 ## 固定 Harness
 
@@ -45,4 +45,4 @@ apps/cli/lib SHA-256: 6a294d72c51e6570852acaf73458cda98f555bd53c9c7ff0b49c568e7c
 - `MANIFEST_SHA256.txt` 覆盖除自身外的所有普通文件；
 - 不自动 merge、push、tag 或创建 GitHub Release。
 
-最终 stable seal 后仍须填入 final repair commit/tree；当前 ordinary-source authority gate 已完成，但不得据此跳过真实 Provider 或最终归档门禁。
+最终 stable seal 已绑定上述 final repair commit/tree、当前 Provider evidence、package lock、provenance 和安全/安装证据；ordinary-source authority、真实 Provider 与最终归档门禁均未被跳过。

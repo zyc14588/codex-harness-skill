@@ -1,6 +1,6 @@
 # 2026-08-23 安全审计修复矩阵
 
-本矩阵对应外部审计 F-001–F-015。状态表示实现与本地确定性验证；真实 Provider 与最终 stable seal 仍按 `release-status.json` 独立控制。
+本矩阵对应外部审计 F-001–F-015。状态表示实现与本地确定性验证；真实 Provider 与最终 stable seal 已按 `release-status.json` 的独立门禁通过。
 
 | Finding | 修复 | 验证 |
 |---|---|---|
@@ -38,4 +38,4 @@ Provider enabled-thinking tool call
 
 ## 剩余发布门禁
 
-本地修复矩阵没有用 fixture 冒充真实 Provider。操作员授权后，当前修订真实 Minimal/Pro smoke 已通过；尚需 stable metadata/hash seal、两次确定性 ZIP 字节比较及解压复验。任何一步失败都保持 candidate/controlled-use false。
+本地修复矩阵没有用 fixture 冒充真实 Provider。操作员授权后，当前修订真实 Minimal/Pro smoke、stable metadata/hash seal、两次确定性 ZIP 字节比较及解压复验均已通过；最终状态为 stable/controlled-use true。

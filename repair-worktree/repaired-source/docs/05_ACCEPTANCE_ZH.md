@@ -1,6 +1,6 @@
 # 0.6.5 稳定版严格验收清单
 
-当前修订已满足真实 Provider 项，最终 ZIP 项仍在封印中；本文件描述升级为 stable 前必须达到的终态，不把尚未完成的归档复验提前声明为 PASS。
+当前 stable 修订已满足本清单，包括真实 Provider、artifact bindings、确定性 ZIP 双构建与解压后完整包验收；逐项机器证据以 release status、evidence、manifest 和 ZIP sidecar 为准。
 
 ## 构建
 

@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "version": "0.6.5",
+  "hotfixRevision": "security-audit-repair-r1",
+  "observedAt": "2026-08-23T16:03:15+10:00",
+  "result": "DELIVERABLE_PASS",
+  "reportedAnomaly": "provider_protocol: enabled-thinking Provider tool call omitted non-empty reasoning_content",
+  "repairEvidence": "repair-worktree/repaired-source/evidence/03_REAL_DEEPSEEK_0_6_5_STABLE_REDACTED.json",
+  "releaseStatus": "stable",
+  "controlledUseAllowed": true,
+  "realMinimalFlash": {
+    "result": "PASS",
+    "providerRequests": 4,
+    "nativeToolCalls": 3,
+    "thinkingType": "disabled",
+    "reasoningEffortPresent": false
+  },
+  "realProThinking": {
+    "result": "PASS",
+    "providerRequests": 4,
+    "nativeToolCalls": 3,
+    "thinkingType": "enabled",
+    "reasoningEffort": "high",
+    "toolChoicePresent": false,
+    "replayDepths": [0, 1, 2, 3],
+    "reasoningContentPersisted": false
+  },
+  "failureInjection": {
+    "result": "PASS",
+    "providerCalls": 0,
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "splitSampleCount": 0
+  },
+  "archive": {
+    "path": "deliverables/CODEX_HARNESS_BRIDGE_0_6_5_STABLE.zip",
+    "sha256": "0dc60c0d9ada0045cffec95a3ec7d74cfb9e292af197603943e8a2d9a2f7b640",
+    "bytes": 763805,
+    "entries": 309,
+    "manifestEntries": 308,
+    "deterministicDoubleBuild": "PASS",
+    "unpackedManifest": "PASS",
+    "unpackedReleaseGate": "PASS",
+    "unpackedPackageAcceptance": "PASS",
+    "symlinkAndNodeModulesHygiene": "PASS"
+  },
+  "preSealCommit": "80aa1f70276a32a8792f6a8c49d35b62f8be46af",
+  "preSealTree": "b14f90f28c29e1264b64efd9240ac35b7a060cf3",
+  "merged": false,
+  "pushed": false,
+  "tagged": false
+}

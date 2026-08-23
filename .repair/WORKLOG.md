@@ -115,3 +115,23 @@
 - Fresh unpack validation: CRC PASS; no absolute/traversal path; no symlink; manifest 243/243 with exact ordinary-file coverage; stable release status PASS; skill validator PASS.
 - Full `scripts/package-acceptance.sh` from the unpacked ZIP: PASS with exit code 0 for fresh install, installed acceptance, config upgrade, same-version rollback, cross-version rollback, stable reinstall, uninstall and package hygiene.
 - Original outer main branch content was not merged with the repair branch; no push, tag or GitHub Release was performed.
+
+## 2026-08-23T15:49:20+10:00 — Security audit repair R1 supersedes the prior stable artifact
+
+- The 2026-08-22 archive and evidence remain in Git history but no longer serve as the current release gate because they predated the mandatory credential Broker, Bubblewrap isolation, strong process identity, operator API authentication and SHA-bound release governance.
+- Restored the authoritative TypeScript source as ordinary outer tracked files; removed the URL-less gitlink and preserved the withdrawn failure history. Final pre-seal validation baseline: `80aa1f70276a32a8792f6a8c49d35b62f8be46af`, tree `b14f90f28c29e1264b64efd9240ac35b7a060cf3`.
+- Repaired the reported `provider_protocol` anomaly with immutable attempt policies. Flash stays disabled and omits reasoning effort. Pro stays enabled/high with no tool choice; every non-empty Provider reasoning payload is hashed/length-checked and replayed exactly. Missing or altered replay aborts before later Provider I/O and never shrinks split memory.
+- Final non-sandbox regression: PASS 83/83. Direct process acceptance, fixed real Harness + observable local Provider, replay failure injection, security acceptance and skill validation all PASS.
+- Operator-authorized current real DeepSeek smoke: Minimal Flash PASS with 4 requests and 3 native tools; Pro Thinking PASS with 4 requests, 3 native tools and replay depths 0/1/2/3. No key, token, prompt or reasoning body is persisted in evidence.
+- Candidate pre-seal package acceptance and final unpacked stable package acceptance both PASS for fresh install, installed tests/E2E/stdio, schema 4→7 migration, same-version rollback, cross-version rollback, reinstall, uninstall and package hygiene.
+- Stable release gate binds six evidence files plus `SOURCE_PROVENANCE.json` and `bridge/package-lock.json`; all gates are exactly PASS.
+- `scripts/build-deliverable.sh` produced two byte-identical deterministic ZIPs and revalidated the exact unpacked archive. Current ZIP: 763773 bytes, 309 entries, 308/308 manifest records.
+- Current ZIP SHA-256: `d9285d89a7a2abfb268d687e3218dc2f20ea1401c2116f38c87d4fb9049752ca`; validation sidecar reports every check PASS.
+- No merge, push, tag or GitHub Release was performed.
+
+## 2026-08-23T16:03:15+10:00 — Final read-only audit correction and stable reseal
+
+- A final read-only content audit found that `docs/11_REAL_PROVIDER_SMOKE_RUNBOOK_ZH.md` still described the superseded 7-request/6-call smoke shape. The runbook alone was corrected to the current redacted evidence: 4 Provider requests, 3 native calls, 3 reasoning requirements, replay counts 3/2/1 and depths 0/1/2/3.
+- Regenerated the 308-entry source manifest, then reran the complete deterministic build and exact-unpacked validation. The previously generated `d9285d89a7a2abfb268d687e3218dc2f20ea1401c2116f38c87d4fb9049752ca` archive is superseded.
+- Final archive: 763805 bytes, 309 ordinary ZIP entries, SHA-256 `0dc60c0d9ada0045cffec95a3ec7d74cfb9e292af197603943e8a2d9a2f7b640`. Deterministic double-build, CRC, unpacked manifest, stable release gate, complete 9-stage package acceptance, symlink hygiene and `node_modules` hygiene all PASS.
+- No merge, push, tag or GitHub Release was performed.

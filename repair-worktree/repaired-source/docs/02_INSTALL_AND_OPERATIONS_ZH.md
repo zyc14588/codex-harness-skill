@@ -8,7 +8,7 @@
 - `candidate`：仅在显式 `--audit-candidate` 下安装，且保持 `controlledUseAllowed=false`；
 - `stable`：要求 `DELIVERABLE_PASS`、每个 gate 精确 `PASS`、provenance/lockfile/证据 SHA-256 绑定有效，且禁止 `--skip-self-tests`。
 
-当前包是 candidate，不得按 controlled-use 安装。
+当前包是 stable；仍须先验证归档 sidecar、manifest 与 release gate，再按受控模式安装。
 
 ## 前置条件
 
@@ -18,12 +18,11 @@
 - 至少一个明确的绝对仓库允许根；
 - operator-owned、非 symlink、mode-0600 Provider key 文件。
 
-候选审计安装：
+稳定受控安装：
 
 ```bash
 sha256sum -c MANIFEST_SHA256.txt
 scripts/install.sh \
-  --audit-candidate \
   --harness-root /home/zyc14588/deepseek-harness \
   --allowed-root /absolute/repository/root \
   --provider-key-file /absolute/private/provider.key

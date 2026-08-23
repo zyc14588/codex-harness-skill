@@ -51,4 +51,4 @@ Bubblewrap SHA-256: 0abea81db798ebf6b4742ac0664802d97521547a353c2a0dbdc21d76cbbf
 
 ## 仓库与发布边界
 
-smoke 临时主仓库的 HEAD 前后一致且 clean；Bridge 未 merge、push、tag 或创建 release。此真实门禁只证明 Provider 协议与隔离路径通过；最终 stable 仍须由 artifact bindings、确定性 ZIP 双构建和解压复验共同封印。
+smoke 临时主仓库的 HEAD 前后一致且 clean；Bridge 未 merge、push、tag 或创建 release。此真实门禁与 artifact bindings、确定性 ZIP 双构建及解压复验共同构成当前 stable 封印。

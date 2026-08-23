@@ -23,6 +23,6 @@ Pro enabled-thinking 响应包含原生工具调用时，Provider 必须同时�
 - unit/component：PASS，83 项；
 - loopback Provider fault injection：PASS，首次请求 422、Provider 调用 1 次、usage 1 次、后续同 attempt Provider 调用 0 次；
 - direct acceptance：PASS，worker 在 8 秒内终止故意驻留的 fake Harness，任务与 attempt 均失败且 diff 为空；
-- candidate package acceptance 与安装态 fault injection：PASS。
+- stable package acceptance 与安装态 fault injection：PASS。
 
-2026-08-22 的真实 Provider smoke 只留在历史中，未被本热修订冒充为当前证据。操作员授权后，2026-08-23 当前修订真实 Flash/Pro smoke 已 PASS；最终 ZIP sidecar 尚未生成，因此预封印阶段仍保持 candidate。
+2026-08-22 的真实 Provider smoke 只留在历史中，未被本热修订冒充为当前证据。操作员授权后，2026-08-23 当前修订真实 Flash/Pro smoke 已 PASS；最终 ZIP 与解压复验也已 PASS，当前状态为 stable。

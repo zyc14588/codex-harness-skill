@@ -65,4 +65,4 @@ replayCount
 - infrastructure failure kind；
 - Provider request ordinal 与 Token totals。
 
-稳定版真实 Pro smoke 在同一 attempt 完成 7 次 Provider 请求、6 次工具调用，并产生 6 条真实 reasoning requirement；它们的最终回放次数依次为 6、5、4、3、2、1。
+2026-08-23 安全审计修订的真实 Pro smoke 在同一 attempt 完成 4 次 Provider 请求、3 次原生工具调用，并产生 3 条真实 reasoning requirement；它们的最终回放次数依次为 3、2、1，请求级回放深度为 0/1/2/3。

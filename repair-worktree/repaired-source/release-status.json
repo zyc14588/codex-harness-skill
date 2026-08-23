@@ -3,10 +3,10 @@
   "version": "0.6.5",
   "hotfixRevision": "security-audit-repair-r1",
   "hotfixDate": "2026-08-23",
-  "releaseStatus": "candidate",
-  "controlledUseAllowed": false,
-  "deliverableStatus": "REPAIR_FINAL_SEAL_IN_PROGRESS",
-  "statusReason": "The current post-audit repair passed real DeepSeek Minimal Flash and Pro Thinking smoke through the authenticated credential broker and mandatory Bubblewrap isolation. Stable metadata, deterministic ZIP double-build, unpacked manifest/release-gate checks, and unpacked package acceptance are now being sealed; controlled use remains disabled until those steps pass.",
+  "releaseStatus": "stable",
+  "controlledUseAllowed": true,
+  "deliverableStatus": "DELIVERABLE_PASS",
+  "statusReason": "The post-audit repair passed all local, real DeepSeek, security, package, provenance, deterministic archive, and unpacked revalidation gates. Current evidence, package lock, and source provenance are SHA-256 bound. No merge, push, tag, or GitHub Release was performed.",
   "gates": {
     "unitAndComponentRegression": "PASS",
     "directAcceptance": "PASS",
@@ -15,13 +15,13 @@
     "realMinimalFlashSmoke": "PASS",
     "realProThinkingSmoke": "PASS",
     "failureInjectionSmoke": "PASS",
-    "packageAcceptanceCandidate": "PASS",
+    "packageAcceptance": "PASS",
     "skillValidation": "PASS",
     "securityAuditRepair": "PASS",
     "ordinarySourceAuthority": "PASS",
     "strongHarnessIsolation": "PASS",
     "operatorControlAuthentication": "PASS",
-    "finalZipUnpackedRevalidation": "PENDING_FINAL_STABLE_SEAL"
+    "finalZipUnpackedRevalidation": "PASS"
   },
   "currentValidation": {
     "componentTests": 83,
@@ -32,7 +32,8 @@
     "realProRequests": 4,
     "realProReplayDepths": [0, 1, 2, 3],
     "failureInjectionProviderRequests": 0,
-    "packageMode": "candidate-pre-seal",
+    "packageMode": "stable-unpacked-revalidated",
+    "deterministicZipBuilds": 2,
     "externalNetworkUsed": true
   },
   "realSmokeAuthorizationBoundary": {
@@ -49,6 +50,23 @@
     "credentialBoundary": "The parent broker read a private operator-owned credential; Bubblewrap-confined Harness received only a one-task proxy token.",
     "currentEvidencePath": "evidence/03_REAL_DEEPSEEK_0_6_5_STABLE_REDACTED.json",
     "currentEvidenceAccepted": true
+  },
+  "artifactBindings": {
+    "sourceProvenanceSha256": "82558e61d2315c865429c1de47271cc38205f468d9f51ab5c51bc0ae638cc404",
+    "packageLockSha256": "e84bcff962b6a8a743b9cb7b7c302b9c3783a314d1ee9af5b9b84b42e8e5922b",
+    "requiredEvidenceSha256": {
+      "evidence/01_DYNAMIC_PROFILE_FIXTURE_REDACTED.json": "d25d7354376e001c4a00348b71d580ce87fb5b9fddd37f5e39580452606f75de",
+      "evidence/03_REAL_DEEPSEEK_0_6_5_STABLE_REDACTED.json": "c10c9dadeff49b555c599ef5c11b892e9768bb172bd9ea759082bbbe13549052",
+      "evidence/04_FAILURE_INJECTION_0_6_5_STABLE.json": "eaf55f924419943a2382caee13e317643cb1b41791e8df001b049dcebcb238f3",
+      "evidence/05_PACKAGE_ACCEPTANCE_0_6_5_STABLE.json": "2a32f899e6ccc36ff73db5c76b4ec52775e38c44563eb2a91316c3d65f927c45",
+      "evidence/06_SKILL_VALIDATION_0_6_5_STABLE.json": "724466086340ea85a0448b990a8d2a9dc5820db910c1ac3bc394c6039959a12e",
+      "evidence/07_SECURITY_ACCEPTANCE_0_6_5_STABLE.json": "989ad7f4189f75687528a5285d2b6786db84fa2c678fe4430520c3f38efcba46"
+    }
+  },
+  "finalArchive": {
+    "name": "CODEX_HARNESS_BRIDGE_0_6_5_STABLE.zip",
+    "sha256Sidecar": "CODEX_HARNESS_BRIDGE_0_6_5_STABLE.zip.sha256",
+    "validationSidecar": "CODEX_HARNESS_BRIDGE_0_6_5_STABLE.zip.validation.json"
   },
   "automaticMerge": false,
   "pushed": false,

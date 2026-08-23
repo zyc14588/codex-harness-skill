@@ -1,14 +1,14 @@
 # 0.6.5 安全修复最终封印验证报告
 
 ```text
-DELIVERABLE_PASS: NO
+DELIVERABLE_PASS: YES
 Version: 0.6.5
-Release status: candidate
-Controlled use allowed: false
+Release status: stable
+Controlled use allowed: true
 Local deterministic repair gates: PASS
 Current real Minimal Flash smoke: PASS
 Current real Pro Thinking smoke: PASS
-Final stable ZIP: NOT_RUN
+Final stable ZIP: PASS
 ```
 
 ## 已完成的本地验证
@@ -23,7 +23,7 @@ Final stable ZIP: NOT_RUN
 | real Pro Thinking | PASS | 4 轮全部 enabled/high、无 tool choice，replay 深度 0/1/2/3；Provider 推理只以 SHA-256/字节长度留证 |
 | replay 失败注入 | PASS | `thinking_replay_state`，Provider 0，Token 0/0，split 不变 |
 | security acceptance | PASS | operator auth、Broker、Bubblewrap、最小环境、进程身份、release gate |
-| candidate package acceptance | PASS | fresh install、schema 4→7、双回滚、重装、卸载 |
+| package acceptance | PASS | fresh install、schema 4→7、双回滚、重装、卸载；最终 ZIP 解压后再次 PASS |
 | stdio MCP acceptance | PASS | 安装态协议交互 |
 | skill validation | PASS | `Skill is valid!` |
 
@@ -38,10 +38,10 @@ Final stable ZIP: NOT_RUN
 - 三个非空 reasoning 载荷均以 Provider 派生 SHA-256 与 UTF-8 长度校验，证据不保存推理正文；
 - 两个任务的 reviewed/current/verified 指纹一致，隔离 worktree 与分支已清理，smoke 主仓库 HEAD 不变且未 push。
 
-## 尚未完成
+## 最终归档
 
-当前只剩 stable 元数据绑定，以及 deterministic ZIP ×2、全新目录解压、manifest、stable release gate 和 unpacked package acceptance。完成前不声明 `DELIVERABLE_PASS`。
+`CODEX_HARNESS_BRIDGE_0_6_5_STABLE.zip` 已执行 deterministic ZIP ×2 并逐字节一致；全新目录解压后的 manifest、stable release gate、无 symlink/`node_modules` 卫生和 transactional package acceptance 均 PASS。归档 SHA-256 以同目录 `.sha256` 和 `.validation.json` sidecar 为准。
 
 ## 判定
 
-当前仍只能作为显式 `--audit-candidate` 的审计候选。最终 ZIP 复验通过前不得声称 stable、`DELIVERABLE_PASS` 或 controlled use。最终权威状态始终取自 `release-status.json`。
+当前结果为 `stable`、`controlledUseAllowed=true`、`DELIVERABLE_PASS`，所有机器 gate 精确为 `PASS`。没有执行 merge、push、tag 或 GitHub Release；最终权威状态取自 `release-status.json`，归档完整性取自 manifest 与 sidecar。

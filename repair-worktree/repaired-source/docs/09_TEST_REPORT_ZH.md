@@ -1,6 +1,6 @@
 # 0.6.5 安全修复测试报告
 
-报告状态：`REAL_AND_LOCAL_GATES_PASS / FINAL_SEAL_IN_PROGRESS`。最终 ZIP 复验完成前仍不是 stable 或 `DELIVERABLE_PASS`。
+报告状态：`DELIVERABLE_PASS / stable`。
 
 | 层级 | 结果 |
 |---|---|
@@ -10,11 +10,11 @@
 | reasoning replay failure injection | PASS |
 | security acceptance | PASS |
 | stdio MCP acceptance | PASS |
-| candidate package acceptance | PASS |
+| package acceptance | PASS，预封印与最终 ZIP 解压态 |
 | skill validation | PASS |
 | current repaired code + real DeepSeek Minimal | PASS，4 轮、3 次原生工具调用 |
 | current repaired code + real DeepSeek Pro | PASS，4 轮、replay 0/1/2/3 |
-| stable deterministic ZIP/unpacked gate | 未执行 |
+| stable deterministic ZIP/unpacked gate | PASS |
 
 ## 关键覆盖
 
@@ -30,7 +30,7 @@
 
 ## Package acceptance
 
-`scripts/package-acceptance.sh` 已在 candidate audit 模式验证安装态 doctor、direct acceptance、83 项 installed tests、stdio MCP、迁移、双回滚、重装和卸载。`package-lock.json` 被打包，`node_modules`、symlink 和 secret 均不被打包。
+`scripts/package-acceptance.sh` 已在预封印源码与最终 ZIP 解压态验证安装态 doctor、direct acceptance、83 项 installed tests、stdio MCP、迁移、双回滚、重装和卸载。`package-lock.json` 被打包，`node_modules`、symlink 和 secret 均不被打包。
 
 ## 真实 Provider 边界
 
