@@ -37,12 +37,16 @@
     "preSealValidationCommit": "2ea0bd3850c8a9cf255f7c3f1dd12dd533a9f97e",
     "preSealOuterTree": "750daed76f271e4aeea2991af1c9f5da750cd0c8",
     "preSealSourceTree": "e0f30105928291e1d076a3cd1fb1c58ff0a65f74",
+    "finalPackagingBaselineCommit": "cd97077ec7abbe42374b62b66655bf317f9956e0",
+    "finalPackagingOuterTree": "72472caab5e5668ef2ffe8721db9a52097e3e1fc",
+    "finalPackagingSourceTree": "dfee675d6248751f291590bac8e04482950e5cd0",
+    "finalPackagingDelta": "installer release log no longer hard-codes an obsolete unit-test count; executable behavior is unchanged",
     "ordinaryOuterTrackedFiles": true,
     "workingTreeSealed": true,
     "preSealCandidateArchiveBuilds": 2,
     "preSealCandidateArchiveSha256": "c2d97af0ca88a1cb93599d71690a6d3fe1a957a00f3ad328617144f860121a1d",
     "status": "ordinary source authority restored; current local/dynamic/real-provider gates and deterministic pre-seal unpacked package acceptance passed; stable metadata is protected by manifest and artifact bindings",
-    "sealSemantics": "preSealValidationCommit and its two trees identify the complete tested ordinary-source baseline. Later provenance/release-status/manifest seal metadata cannot self-reference and is bound by SHA-256 plus MANIFEST_SHA256.txt."
+    "sealSemantics": "preSealValidationCommit identifies the complete implementation qualification baseline; finalPackagingBaselineCommit identifies the last ordinary-source commit after the log-only correction. Later provenance/release-status/manifest seal metadata cannot self-reference and is bound by SHA-256 plus MANIFEST_SHA256.txt."
   },
   "realHarness": {
     "root": "/home/zyc14588/deepseek-harness",
@@ -55,9 +59,9 @@
     "currentRealSmokeEvidenceSha256": "bb023ca725b56f55a0539f5bdbd245ec6accf75869ff11d199be1033b6bc54b0"
   },
   "outerMaterialization": {
-    "commit": "2ea0bd3850c8a9cf255f7c3f1dd12dd533a9f97e",
-    "tree": "750daed76f271e4aeea2991af1c9f5da750cd0c8",
-    "sourceTree": "e0f30105928291e1d076a3cd1fb1c58ff0a65f74",
+    "commit": "cd97077ec7abbe42374b62b66655bf317f9956e0",
+    "tree": "72472caab5e5668ef2ffe8721db9a52097e3e1fc",
+    "sourceTree": "dfee675d6248751f291590bac8e04482950e5cd0",
     "ordinaryFileCount": 317,
     "regularModes": {
       "100644": 303,

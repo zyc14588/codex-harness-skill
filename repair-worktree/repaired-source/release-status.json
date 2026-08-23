@@ -41,6 +41,8 @@
     "failureInjectionProviderRequests": 0,
     "failureInjectionInputTokens": 0,
     "failureInjectionOutputTokens": 0,
+    "finalPackagingBaselineCommit": "cd97077ec7abbe42374b62b66655bf317f9956e0",
+    "finalPackagingSourceTree": "dfee675d6248751f291590bac8e04482950e5cd0",
     "packageMode": "source-preseal-and-final-unpacked-stable-pass",
     "preSealDeterministicZipBuilds": 2,
     "preSealCandidateArchiveSha256": "c2d97af0ca88a1cb93599d71690a6d3fe1a957a00f3ad328617144f860121a1d",
@@ -74,7 +76,7 @@
     "scope": "bounded real DeepSeek Minimal Flash and Pro Thinking through the authenticated local credential broker"
   },
   "artifactBindings": {
-    "sourceProvenanceSha256": "775d62f401726d4a72c3a82278a33019ffee98dfbf337d31e6a680897b1d3f75",
+    "sourceProvenanceSha256": "0bcaa67081defb7b08857bac2a6410080dbe5e7f3eafbbf0d946ed5471600b1f",
     "packageLockSha256": "e84bcff962b6a8a743b9cb7b7c302b9c3783a314d1ee9af5b9b84b42e8e5922b",
     "requiredEvidenceSha256": {
       "evidence/08_RUNTIME_HOTFIX_CANDIDATE_LOCAL_VALIDATION.json": "2454ac625c35bb7fa2ada0531198c033804fab2a139f71aa70a5f22b48607d7f",

@@ -25,7 +25,7 @@ All release gates: PASS
 | zero-I/O failure injection | PASS | Provider 0、Token 0/0、split 不变 |
 | real Minimal Flash | PASS | 4 轮 disabled，3 次原生工具调用 |
 | real Pro Thinking | PASS | 4 轮 enabled/high，replay 0/1/2/3 |
-| ordinary source/provenance | PASS | commit `2ea0bd3850c8a9cf255f7c3f1dd12dd533a9f97e` |
+| ordinary source/provenance | PASS | implementation baseline `2ea0bd3`；final packaging baseline `cd97077` |
 | package acceptance | PASS | fresh install、schema 4→7、双回滚、重装、卸载 |
 | deterministic archive/unpacked | PASS | 双构建字节一致；全新目录重新验收 |
 
@@ -40,7 +40,7 @@ All release gates: PASS
 
 ## 源码与制品
 
-普通源码基线为 commit `2ea0bd3850c8a9cf255f7c3f1dd12dd533a9f97e`，outer tree `750daed76f271e4aeea2991af1c9f5da750cd0c8`，source tree `e0f30105928291e1d076a3cd1fb1c58ff0a65f74`；317 个普通 blob，无 symlink/gitlink。
+完整实现资格基线为 commit `2ea0bd3850c8a9cf255f7c3f1dd12dd533a9f97e`。修正一条硬编码旧测试数量的安装日志后，最终普通源码/包装基线为 commit `cd97077ec7abbe42374b62b66655bf317f9956e0`，outer tree `72472caab5e5668ef2ffe8721db9a52097e3e1fc`，source tree `dfee675d6248751f291590bac8e04482950e5cd0`；317 个普通 blob，无 symlink/gitlink。
 
 最终制品为 `CODEX_HARNESS_BRIDGE_0_6_5_HOTFIX_R2_STABLE.zip`。构建脚本生成两份确定性 ZIP 并逐字节比较，在全新目录中重新验证 manifest、stable release gate、无 symlink/`node_modules` 卫生以及完整 transactional package acceptance。最终 SHA-256 以归档同目录 `.sha256` 和 `.validation.json` sidecar 为准。
 

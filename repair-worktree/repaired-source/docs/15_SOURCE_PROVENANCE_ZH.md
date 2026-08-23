@@ -38,6 +38,8 @@ source tree: e0f30105928291e1d076a3cd1fb1c58ff0a65f74
 
 该 source tree 有 317 个普通 blob（303 个 mode 100644、14 个 mode 100755），symlink/gitlink 为 0。本修订真实 Provider 证据为 `evidence/09_RUNTIME_HOTFIX_REAL_DEEPSEEK_REDACTED.json`，SHA-256 为 `bb023ca725b56f55a0539f5bdbd245ec6accf75869ff11d199be1033b6bc54b0`。provenance、release status 与 manifest 的后续封印 metadata 无法自引用 commit，因此由文件哈希和 `MANIFEST_SHA256.txt` 绑定。
 
+首次完整 stable 构建发现安装器日志仍硬编码旧测试数量；实际执行始终为 87 项。仅修正文案后，最终普通源码/包装基线为 commit `cd97077ec7abbe42374b62b66655bf317f9956e0`，outer tree `72472caab5e5668ef2ffe8721db9a52097e3e1fc`，source tree `dfee675d6248751f291590bac8e04482950e5cd0`。最终制品从该基线加不可自引用的 seal metadata 生成，并重新执行完整构建与解包验收。
+
 ordinary-source authority 已恢复；候选态两次确定性 ZIP 与全新目录解包验收通过后，`workingTreeSealed` 已提升为 true。最终 stable ZIP 仍由外部 `.sha256` 与 `.validation.json` sidecar 绑定，避免归档自引用。
 
 ## 固定 Harness
