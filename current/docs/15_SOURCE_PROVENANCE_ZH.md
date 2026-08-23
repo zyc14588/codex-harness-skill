@@ -8,4 +8,4 @@
 
 固定 Harness commit 为 `141eb6fef83422698aef7a981029e843e8161534`，build tree SHA-256 为 `6a294d72c51e6570852acaf73458cda98f555bd53c9c7ff0b49c568e7cf88a38`。
 
-当前 implementation commit/tree 尚未封存，因此 release status 必须保持 candidate。0.6.5 的真实 Provider 证据只作历史，不可为本修订续期；安全关键路径已经改变，必须从封存后的当前 revision 重跑 Flash、Pro 与负向 smoke。禁止自动 push、merge、tag 或 GitHub Release。
+精确 implementation commit/tree 不写入同一实现提交内的自引用文档，而是在提交完成后记录到机器权威 `release-status.json` 与 `SOURCE_PROVENANCE.json`。只要当前修订的本地资格化、Flash、Pro、负向 smoke、实际 CI、分支保护和归档复验未全部完成，release status 就必须保持 candidate。0.6.5 的真实 Provider 证据只作历史，不可为本修订续期。禁止自动 push、merge、tag 或 GitHub Release。
