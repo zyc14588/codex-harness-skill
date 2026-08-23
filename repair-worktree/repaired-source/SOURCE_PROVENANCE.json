@@ -36,6 +36,16 @@
     "buildTreeSha256": "6a294d72c51e6570852acaf73458cda98f555bd53c9c7ff0b49c568e7cf88a38",
     "cleanAtLastLocalFixture": true
   },
+  "outerMaterialization": {
+    "commit": "1bc25e54f3d97ff44cefebf43dc9007e533267bc",
+    "tree": "216f3c2fa2f8245fec84ed2681babffd4602964a",
+    "ordinaryFileCount": 309,
+    "regularModes": {
+      "100644": 295,
+      "100755": 14
+    },
+    "symlinkOrGitlinkCount": 0
+  },
   "build": {
     "node": "24.18.0",
     "typescript": "5.8.3",
