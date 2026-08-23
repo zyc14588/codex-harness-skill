@@ -1,6 +1,6 @@
 # 0.6.5 安全修复测试报告
 
-报告状态：`LOCAL_GATES_PASS / candidate`。这不是 stable 或 `DELIVERABLE_PASS`。
+报告状态：`REAL_AND_LOCAL_GATES_PASS / FINAL_SEAL_IN_PROGRESS`。最终 ZIP 复验完成前仍不是 stable 或 `DELIVERABLE_PASS`。
 
 | 层级 | 结果 |
 |---|---|
@@ -12,8 +12,8 @@
 | stdio MCP acceptance | PASS |
 | candidate package acceptance | PASS |
 | skill validation | PASS |
-| current repaired code + real DeepSeek Minimal | 未执行，需外部授权 |
-| current repaired code + real DeepSeek Pro | 未执行，需外部授权 |
+| current repaired code + real DeepSeek Minimal | PASS，4 轮、3 次原生工具调用 |
+| current repaired code + real DeepSeek Pro | PASS，4 轮、replay 0/1/2/3 |
 | stable deterministic ZIP/unpacked gate | 未执行 |
 
 ## 关键覆盖
@@ -34,4 +34,4 @@
 
 ## 真实 Provider 边界
 
-`evidence/03_REAL_DEEPSEEK_0_6_5_STABLE_REDACTED.json` 是 2026-08-22 历史 PASS，早于本次安全边界变化，不能作为当前 gate。当前真实烟测参数和待授权范围见 `docs/10_REAL_DEEPSEEK_SMOKE_ZH.md`。
+`evidence/03_REAL_DEEPSEEK_0_6_5_STABLE_REDACTED.json` 是 2026-08-23 当前修订 PASS：Flash 全程 disabled；Pro 全程 enabled/high、无 tool choice，完整回放前三条非空 Provider reasoning requirement。证据不包含密钥、token、prompt 或 reasoning 正文。执行参数、隔离边界与请求级结论见 `docs/10_REAL_DEEPSEEK_SMOKE_ZH.md`。

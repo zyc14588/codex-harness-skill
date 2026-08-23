@@ -24,7 +24,7 @@ ea81ec6f91a0c13b0a6167581baf34e28be66d05
 
 `b481c79` 和 `d30d9ac` 均由恢复历史直接解析；撤回提交未被重写或删除。安全修复实现提交为 `f1d4864be8eb1ad3982fef81d6856e71f2b18385`，tree 为 `c3a17b397d03ad68497007c513bde8ff2a83f97e`；metadata 提交为 `e27d729a7b2205667cddf3cf3aa4f8006950c449`。完整内层历史在转换前用 `git bundle verify` 验证。
 
-外层无 URL gitlink 已从索引移除，当前源码以普通 tracked files 纳入外层 repair/evidence 分支。由于当前 real-provider 与 stable seal 尚未完成，`SOURCE_PROVENANCE.json` 仍保持 `workingTreeSealed=false`；这不再表示源码不可审计，只表示最终稳定发布尚未 seal。
+外层无 URL gitlink 已从索引移除，当前源码以普通 tracked files 纳入外层 repair/evidence 分支。当前 real-provider gate 已通过；在最终 artifact binding 与 ZIP 解压复验完成前，`SOURCE_PROVENANCE.json` 仍保持 `workingTreeSealed=false`。这不表示源码不可审计，只表示最终稳定发布尚未 seal。
 
 ## 固定 Harness
 

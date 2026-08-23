@@ -38,4 +38,4 @@ Provider enabled-thinking tool call
 
 ## 剩余发布门禁
 
-本地修复矩阵没有用 fixture 冒充真实 Provider。当前尚需操作员授权真实 Minimal/Pro smoke；通过后还需 stable metadata/hash seal、两次确定性 ZIP 字节比较及解压复验。任何一步失败都保持 candidate/controlled-use false。
+本地修复矩阵没有用 fixture 冒充真实 Provider。操作员授权后，当前修订真实 Minimal/Pro smoke 已通过；尚需 stable metadata/hash seal、两次确定性 ZIP 字节比较及解压复验。任何一步失败都保持 candidate/controlled-use false。

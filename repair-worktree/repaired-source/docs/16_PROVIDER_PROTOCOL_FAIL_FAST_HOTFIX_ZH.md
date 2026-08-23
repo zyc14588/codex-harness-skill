@@ -25,4 +25,4 @@ Pro enabled-thinking 响应包含原生工具调用时，Provider 必须同时�
 - direct acceptance：PASS，worker 在 8 秒内终止故意驻留的 fake Harness，任务与 attempt 均失败且 diff 为空；
 - candidate package acceptance 与安装态 fault injection：PASS。
 
-2026-08-22 的真实 Provider smoke 仍作为历史证据保留，未被本热修订冒充为当前证据。当前修订真实 smoke 需要外部授权，最终 ZIP sidecar 尚未生成，因此当前 release status 保持 candidate。
+2026-08-22 的真实 Provider smoke 只留在历史中，未被本热修订冒充为当前证据。操作员授权后，2026-08-23 当前修订真实 Flash/Pro smoke 已 PASS；最终 ZIP sidecar 尚未生成，因此预封印阶段仍保持 candidate。

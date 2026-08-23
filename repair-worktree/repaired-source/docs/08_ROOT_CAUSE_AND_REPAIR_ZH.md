@@ -42,8 +42,8 @@ INVALID_REQUEST: The reasoning_content in the thinking mode must be passed back 
 - dynamic Flash 4 轮全 disabled，dynamic Pro replay 深度 0/1/2；
 - replay 缺失在 Provider 前失败，调用 0、Token 0/0、split 不变；
 - 当前动态真实 Harness + 本地可观测 Broker 中，Flash 4 轮全 disabled，Pro 3 轮全 enabled/high/no tool-choice 并回放 0/1/2；
-- 2026-08-22 的历史真实 Flash/Pro smoke 保留作协议佐证，但早于本次安全边界修复，不充当当前 stable gate；
+- 2026-08-22 的历史真实 Flash/Pro smoke 只保留在 Git 历史；2026-08-23 当前安全边界下的 Flash/Pro smoke 已作为当前 stable gate 通过；
 - 当前修订的真实双模式 smoke 仍需操作员明确授权；
 - package acceptance 覆盖安装、升级、回滚、重装和卸载。
 
-因此主因不是 Token 不足或任务过大，而是 attempt 内协议模式不一致；当前 candidate 已在 Provider 边界前建立不可变、可审计、失败封闭的状态机。只有当前真实 smoke 和最终归档门禁也通过后，才能升级 stable。
+因此主因不是 Token 不足或任务过大，而是 attempt 内协议模式不一致；当前修订已在 Provider 边界前建立不可变、可审计、失败封闭的状态机，并通过真实 smoke。只有最终 artifact bindings 与归档门禁也通过后，才能升级 stable。

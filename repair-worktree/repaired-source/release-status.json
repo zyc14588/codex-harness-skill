@@ -5,15 +5,15 @@
   "hotfixDate": "2026-08-23",
   "releaseStatus": "candidate",
   "controlledUseAllowed": false,
-  "deliverableStatus": "REPAIR_AWAITING_EXTERNAL_PROVIDER_AUTHORIZATION",
-  "statusReason": "All deterministic local repair gates completed so far pass. The current repaired source has not run the required real DeepSeek Minimal Flash and Pro Thinking smoke because sending the synthetic smoke task to DeepSeek and incurring API charges requires explicit operator authorization. Historical 2026-08-22 real-provider evidence is not accepted as a current gate.",
+  "deliverableStatus": "REPAIR_FINAL_SEAL_IN_PROGRESS",
+  "statusReason": "The current post-audit repair passed real DeepSeek Minimal Flash and Pro Thinking smoke through the authenticated credential broker and mandatory Bubblewrap isolation. Stable metadata, deterministic ZIP double-build, unpacked manifest/release-gate checks, and unpacked package acceptance are now being sealed; controlled use remains disabled until those steps pass.",
   "gates": {
     "unitAndComponentRegression": "PASS",
     "directAcceptance": "PASS",
     "providerProtocolAttemptFailFast": "PASS",
     "dynamicManagedProfile": "PASS",
-    "realMinimalFlashSmoke": "BLOCKED_EXTERNAL_AUTHORIZATION_REQUIRED",
-    "realProThinkingSmoke": "BLOCKED_EXTERNAL_AUTHORIZATION_REQUIRED",
+    "realMinimalFlashSmoke": "PASS",
+    "realProThinkingSmoke": "PASS",
     "failureInjectionSmoke": "PASS",
     "packageAcceptanceCandidate": "PASS",
     "skillValidation": "PASS",
@@ -21,20 +21,24 @@
     "ordinarySourceAuthority": "PASS",
     "strongHarnessIsolation": "PASS",
     "operatorControlAuthentication": "PASS",
-    "finalZipUnpackedRevalidation": "NOT_RUN_UNTIL_STABLE_GATES_PASS"
+    "finalZipUnpackedRevalidation": "PENDING_FINAL_STABLE_SEAL"
   },
   "currentValidation": {
     "componentTests": 83,
     "dynamicFlashRequests": 4,
     "dynamicProRequests": 3,
     "dynamicProReplayDepths": [0, 1, 2],
+    "realFlashRequests": 4,
+    "realProRequests": 4,
+    "realProReplayDepths": [0, 1, 2, 3],
     "failureInjectionProviderRequests": 0,
-    "packageMode": "candidate-audit-only",
-    "externalNetworkUsed": false
+    "packageMode": "candidate-pre-seal",
+    "externalNetworkUsed": true
   },
   "realSmokeAuthorizationBoundary": {
-    "currentRepairExecuted": false,
-    "payloadScope": "A synthetic temporary Git repository containing only a one-line README seed and instructions to copy it with bounded tools.",
+    "currentRepairExecuted": true,
+    "executedAt": "2026-08-23",
+    "payloadScope": "A synthetic temporary Git repository containing only a one-line README seed and bounded copy/read/write/verify instructions.",
     "models": ["deepseek-v4-flash", "deepseek-v4-pro"],
     "perLeafLimits": {
       "maxApiCalls": 8,
@@ -42,13 +46,9 @@
       "maxOutputTokens": 10000,
       "maxCostCnyReferenceAlert": 5
     },
-    "credentialBoundary": "The parent broker reads a private operator-owned credential; Bubblewrap-confined Harness receives only a one-task proxy token."
-  },
-  "historicalEvidence": {
-    "realProviderEvidencePath": "evidence/03_REAL_DEEPSEEK_0_6_5_STABLE_REDACTED.json",
-    "observedAt": "2026-08-22",
-    "acceptedAsCurrentGate": false,
-    "reason": "It predates the mandatory credential broker, Bubblewrap isolation, process-identity, release-governance, and audit repair changes."
+    "credentialBoundary": "The parent broker read a private operator-owned credential; Bubblewrap-confined Harness received only a one-task proxy token.",
+    "currentEvidencePath": "evidence/03_REAL_DEEPSEEK_0_6_5_STABLE_REDACTED.json",
+    "currentEvidenceAccepted": true
   },
   "automaticMerge": false,
   "pushed": false,

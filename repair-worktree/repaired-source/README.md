@@ -5,12 +5,12 @@ Version: 0.6.5
 Release status: candidate
 Install mode: explicit audit only
 Controlled use allowed: false
-Deliverable status: REPAIR_AWAITING_EXTERNAL_PROVIDER_AUTHORIZATION
+Deliverable status: REPAIR_FINAL_SEAL_IN_PROGRESS
 ```
 
 这是一个由 Codex 总控的本地 MCP Bridge。Codex 冻结计划、依赖、写租约、Token 门禁、审查与验证；DeepSeek Harness 或受控 llama.cpp 只执行有界叶子。Bridge 不自动 merge、push、tag 或创建 GitHub Release。
 
-当前源码已完成 2026-08-23 审计中 F-001–F-015 的本地修复与确定性验证，但还不是稳定版。当前修订必须重新执行真实 DeepSeek Minimal Flash 与 Pro Thinking smoke；该步骤会向外部 DeepSeek API 发送一个仅含单行 README 的合成临时仓库任务并产生费用，因此在操作员明确授权前保持阻塞。2026-08-22 的真实 smoke 只作为历史证据，不充当当前门禁。
+当前源码已完成 2026-08-23 审计中 F-001–F-015 的本地修复与确定性验证，并在操作员明确授权后通过当前修订的真实 DeepSeek Minimal Flash 与 Pro Thinking smoke。烟测只发送了含单行 README seed 的合成临时仓库任务；当前项目源码和用户仓库内容未外传。源码仍处于最终稳定封印阶段，在确定性 ZIP 双构建、解压 manifest/release gate 与安装包验收全部通过前保持 candidate。
 
 ## 本次修复
 
@@ -35,9 +35,9 @@ Deliverable status: REPAIR_AWAITING_EXTERNAL_PROVIDER_AUTHORIZATION
 | operator/llama/process/release 安全负向测试 | PASS |
 | candidate package acceptance | PASS，含 schema 4→7、双回滚与卸载 |
 | skill validation | PASS |
-| 当前修订真实 Minimal Flash | BLOCKED_EXTERNAL_AUTHORIZATION_REQUIRED |
-| 当前修订真实 Pro Thinking | BLOCKED_EXTERNAL_AUTHORIZATION_REQUIRED |
-| stable 确定性 ZIP 与解压复验 | 等真实门禁通过后执行 |
+| 当前修订真实 Minimal Flash | PASS，4 轮、3 次原生工具调用、全程 disabled |
+| 当前修订真实 Pro Thinking | PASS，4 轮、回放深度 0/1/2/3、全程 enabled/high 且无 tool choice |
+| stable 确定性 ZIP 与解压复验 | 最终封印中 |
 
 机器可读状态以 `release-status.json` 为准。只要其中不是 `stable`、`controlledUseAllowed=true`、`deliverableStatus=DELIVERABLE_PASS` 且所有 gate 精确为 `PASS`，就不得用于 controlled use。
 
@@ -85,4 +85,4 @@ controller_split_advice
 - `evidence/05_PACKAGE_ACCEPTANCE_0_6_5_STABLE.json`：当前 candidate package 证据；
 - `evidence/06_SKILL_VALIDATION_0_6_5_STABLE.json` 与 `07_SECURITY_ACCEPTANCE_0_6_5_STABLE.json`：当前本地门禁；
 - `evidence/02_REAL_DEEPSEEK_SMOKE_REDACTED.json`：withdrawn rc.1 历史失败；
-- `evidence/03_REAL_DEEPSEEK_0_6_5_STABLE_REDACTED.json`：2026-08-22 历史 PASS，明确不计入当前修订门禁。
+- `evidence/03_REAL_DEEPSEEK_0_6_5_STABLE_REDACTED.json`：2026-08-23 当前修订真实 Provider PASS；仅保存策略、序号、哈希、长度和指纹，不保存密钥或推理正文。
