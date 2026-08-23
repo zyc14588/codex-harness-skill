@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "result": "BLOCKED_EXTERNAL",
+  "generatedAt": "2026-08-24T04:02:12+10:00",
+  "repository": "zyc14588/codex-harness-skill",
+  "defaultBranch": "main",
+  "targetBranch": "repair/0.6.6-provider-capability-and-release-integrity",
+  "targetCommit": "adcd07a6ee7904cd70b3cdc8a57c896dc1f12628",
+  "readOnlyQueries": {
+    "actionsRunsReturned": 0,
+    "targetBranchPresentOnRemote": false,
+    "targetCommitPresentOnRemote": false,
+    "branchProtectionHttpStatus": 403,
+    "branchProtectionMessage": "Upgrade to GitHub Pro or make this repository public to enable this feature."
+  },
+  "conclusion": {
+    "actualTargetSealActionsPass": false,
+    "branchProtectionRequiredChecksConfigured": false,
+    "stablePromotionAllowed": false
+  },
+  "mutationsPerformed": false,
+  "pushed": false,
+  "workflowTriggered": false
+}

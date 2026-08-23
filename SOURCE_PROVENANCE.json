@@ -8,10 +8,18 @@
   "auditedBaselineHead": "10a70fc0e59ad93fce387c6a1660596d9f01ad7f",
   "auditedBaselineTree": "3468eb8ce22bec2a00df4f126619bdf7ee739ba3",
   "withdrawalCommit": "1c7dd48e2e39c642f8b8bf63d384166208004a5a",
-  "implementationCommit": null,
-  "implementationTree": null,
+  "implementationCommit": "adcd07a6ee7904cd70b3cdc8a57c896dc1f12628",
+  "implementationTree": "0011222e61d2f6aaf9d0e1024a9f869013f85fca",
+  "implementationCommittedAt": "2026-08-24T03:54:43+10:00",
   "historicalArchive": "archive/",
-  "generatedAt": "2026-08-24T03:43:12+10:00",
+  "generatedAt": "2026-08-24T04:03:34+10:00",
+  "qualificationResult": "LOCAL_AND_REAL_PASS_EXTERNAL_GATES_PENDING",
+  "canonicalEvidence": {
+    "current/evidence/01_CURRENT_REVISION_LOCAL_QUALIFICATION.json": "2d0328b23a0184a451d0f113ff7e8cba0e71608e32a7fb14d624f3969263f576",
+    "current/evidence/02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json": "b912f39ab628dea7659dd33a8e237c4dca6db79f786afafbe57dc24e45b4b03e",
+    "current/evidence/03_CURRENT_REVISION_NEGATIVE_SMOKE.json": "b9e86926ed7728c90c8df04e5637ee4af196b2588f08d829135636d1a65736b0",
+    "current/evidence/04_GITHUB_EXTERNAL_GATES_2026-08-24.json": "eb28c4e08e40b52e54a00dac8a744100b8b108b2f7aab1784daade1bcf1d08b5"
+  },
   "pushed": false,
   "tagged": false
 }

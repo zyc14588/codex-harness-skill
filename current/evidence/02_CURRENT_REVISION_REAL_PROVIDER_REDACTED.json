@@ -1,0 +1,712 @@
+{
+  "result": "PASS",
+  "version": "0.6.6",
+  "generatedAt": "2026-08-23T17:57:56.547Z",
+  "currentRevision": true,
+  "sourceCommit": "adcd07a6ee7904cd70b3cdc8a57c896dc1f12628",
+  "sourceTree": "0011222e61d2f6aaf9d0e1024a9f869013f85fca",
+  "sourceTreeSha256": "8fbc146f96f0509400eddf80ce44b458a41d684ae5b5b5e97e96e1f2fca9d76d",
+  "sourceFileCount": 298,
+  "criticalSetSha256": "796b91bd3340c0659fce7f3c833d6ad9440f5a608bc249ba0aa4da840e58c9c8",
+  "criticalPathSha256": {
+    "bridge/src/security.ts": "68861770fb3e41d66d712eca99f8561d81dd9a6180a219d352463e5f844da0e7",
+    "bridge/src/monitor-daemon.ts": "aa27b39725d7761197633cfcd25ca56ac42b3d2121bf9bd5cbfbf436f1891184",
+    "bridge/src/harness-sandbox-entry.ts": "9c6cefe228f92d6efd1ef40b29d2294ddfd6f2e8185ba4a44eae3d2ef142cb8b",
+    "bridge/src/harness-isolation.ts": "4a466625402f77bf83d89b7581c9d87f3eb1eee3880e1feaaa14453ee7ecee65",
+    "bridge/src/brokered-tool-host.ts": "9ecc99771d8f50ba6c35cf6f149d3a4e1d56bd3a5938598874255936c44644f0",
+    "bridge/src/thinking-policy.ts": "ff021e0d64fb5bc535387872de7f9d25043dad7e67a29a09cd18d153a3cd75b2",
+    "bridge/src/minimal-request-state.ts": "b0c60eaed42e599028602e7dbf4afa946eb2613641db3d377286c028e5d94af4",
+    "bridge/src/provider-policy.ts": "aea8b29afd3f98129422d1027a4f7cc2ba1f59ef7abaceec90067d9938520233",
+    "bridge/src/worker.ts": "bf9d948b248e8bb1130bfadfa22c6c08c7de032091a902cf81e16bd112b04b26",
+    "bridge/src/service.ts": "7fd384411429139881abfce759ea22f3d80c11ba45b59702078606ee95d3d013",
+    "harness/minimal/preset/agent.cordis.yml.in": "05945570459b34499ca4fd775642c0fc28696c67e2fa48b42a00ab36416ea29f",
+    "harness/minimal/profile/bridge-brokered-tools.mjs": "1066eda6d4865bbe3927c3f2b392966937004006fb35df499c59beb77071465a",
+    "harness/minimal/profile/bridge-headless-runner.mjs": "c647264daeecc37d845de1b42937c328fec22c5c1618f0c830108ab83e74c8c3",
+    "harness/minimal/profile/cordis.patch.yml": "e46d24af07c98ce331b17658fa9dce4d68db793d8f5447f43f49c8d2d5b209ce"
+  },
+  "provider": "DeepSeek real API via authenticated local credential broker",
+  "credentialHandling": "parsed only in the parent trust domain and stored as a private 0600 broker key; Provider, Adapter-state, and tool broker use three distinct one-attempt capabilities delivered once over anonymous stdin",
+  "harnessNetworkBoundary": "Harness adapter has only its authenticated Unix-socket Provider route; model-visible Bash/Pwsh run in sibling private-PID/private-network Bubblewrap sandboxes without broker capabilities or sockets",
+  "bubblewrapSha256": "0abea81db798ebf6b4742ac0664802d97521547a353c2a0dbdc21d76cbbfd2c0",
+  "harnessCommit": "141eb6fef83422698aef7a981029e843e8161534",
+  "harnessBuildSha256": "6a294d72c51e6570852acaf73458cda98f555bd53c9c7ff0b49c568e7cf88a38",
+  "flash": {
+    "id": "stable-real-flash-multiturn-task",
+    "model": "deepseek-v4-flash",
+    "status": "completed",
+    "exitCode": 0,
+    "changedPaths": [
+      "real-flash-multiturn.txt"
+    ],
+    "outOfScopePaths": [],
+    "executionAttempts": [
+      {
+        "id": "f41889ce-89e0-499f-8c41-fbb3e5ccd870",
+        "ordinal": 1,
+        "executor": "harness",
+        "startedAt": "2026-08-23T17:57:57.139Z",
+        "model": "deepseek-v4-flash",
+        "thinkingPolicy": {
+          "schemaVersion": 1,
+          "policyVersion": "attempt-thinking-policy-v1",
+          "model": "deepseek-v4-flash",
+          "thinkingType": "disabled",
+          "reasoningEffort": "off",
+          "frozenAt": "2026-08-23T17:57:57.139Z"
+        },
+        "completedAt": "2026-08-23T17:58:03.535Z",
+        "outcome": "completed"
+      }
+    ],
+    "providerRequestOrdinal": 4,
+    "thinkingRequestEvidence": [
+      {
+        "requestOrdinal": 1,
+        "attemptId": "f41889ce-89e0-499f-8c41-fbb3e5ccd870",
+        "model": "deepseek-v4-flash",
+        "thinkingType": "disabled",
+        "toolChoicePresent": true,
+        "replayRequirementCount": 0,
+        "replayedRequirementOrdinals": [],
+        "providerSentAt": "2026-08-23T17:57:57.762Z"
+      },
+      {
+        "requestOrdinal": 2,
+        "attemptId": "f41889ce-89e0-499f-8c41-fbb3e5ccd870",
+        "model": "deepseek-v4-flash",
+        "thinkingType": "disabled",
+        "toolChoicePresent": true,
+        "replayRequirementCount": 0,
+        "replayedRequirementOrdinals": [],
+        "providerSentAt": "2026-08-23T17:57:59.013Z"
+      },
+      {
+        "requestOrdinal": 3,
+        "attemptId": "f41889ce-89e0-499f-8c41-fbb3e5ccd870",
+        "model": "deepseek-v4-flash",
+        "thinkingType": "disabled",
+        "toolChoicePresent": false,
+        "replayRequirementCount": 0,
+        "replayedRequirementOrdinals": [],
+        "providerSentAt": "2026-08-23T17:58:00.484Z"
+      },
+      {
+        "requestOrdinal": 4,
+        "attemptId": "f41889ce-89e0-499f-8c41-fbb3e5ccd870",
+        "model": "deepseek-v4-flash",
+        "thinkingType": "disabled",
+        "toolChoicePresent": false,
+        "replayRequirementCount": 0,
+        "replayedRequirementOrdinals": [],
+        "providerSentAt": "2026-08-23T17:58:01.901Z"
+      }
+    ],
+    "reasoningReplayRequirements": [],
+    "minimalMutationForceCount": 2,
+    "minimalMutationForcedTools": [
+      "bash",
+      "str_replace_editor"
+    ],
+    "toolProtocolNativeCallCount": 3,
+    "toolProtocolNativeTools": [
+      "bash"
+    ],
+    "toolProtocolRecoveryCount": 0,
+    "toolProtocolRecoveredTools": [],
+    "minimalRequestEvidence": [
+      {
+        "requestOrdinal": 1,
+        "purpose": "primary_mutation",
+        "adapterToolNames": [
+          "bash",
+          "capability_catalog",
+          "capability_enable",
+          "str_replace_editor"
+        ],
+        "adapterObservedAt": "2026-08-23T17:57:57.694Z",
+        "adapterReasoningEffort": "off",
+        "endpoint": "/chat/completions",
+        "topLevelKeys": [
+          "max_tokens",
+          "messages",
+          "model",
+          "stream",
+          "thinking",
+          "tools"
+        ],
+        "toolSchemaCount": 4,
+        "wireToolNames": [
+          "bash",
+          "capability_catalog",
+          "capability_enable",
+          "str_replace_editor"
+        ],
+        "proxyParsedToolNames": [
+          "bash",
+          "capability_catalog",
+          "capability_enable",
+          "str_replace_editor"
+        ],
+        "messageRoles": [
+          "system",
+          "user"
+        ],
+        "maxTokens": 256000,
+        "thinkingType": "disabled",
+        "contractMarkerPresent": true,
+        "proxyObservedAt": "2026-08-23T17:57:57.701Z",
+        "policyApplied": true,
+        "providerThinkingType": "disabled",
+        "providerToolChoicePresent": true,
+        "providerSentAt": "2026-08-23T17:57:57.762Z"
+      },
+      {
+        "requestOrdinal": 2,
+        "purpose": "mutation_followup",
+        "adapterToolNames": [
+          "bash",
+          "capability_catalog",
+          "capability_enable",
+          "str_replace_editor"
+        ],
+        "adapterObservedAt": "2026-08-23T17:57:58.952Z",
+        "adapterReasoningEffort": "off",
+        "endpoint": "/chat/completions",
+        "topLevelKeys": [
+          "max_tokens",
+          "messages",
+          "model",
+          "stream",
+          "thinking",
+          "tools"
+        ],
+        "toolSchemaCount": 4,
+        "wireToolNames": [
+          "bash",
+          "capability_catalog",
+          "capability_enable",
+          "str_replace_editor"
+        ],
+        "proxyParsedToolNames": [
+          "bash",
+          "capability_catalog",
+          "capability_enable",
+          "str_replace_editor"
+        ],
+        "messageRoles": [
+          "assistant",
+          "system",
+          "tool",
+          "user"
+        ],
+        "maxTokens": 256000,
+        "thinkingType": "disabled",
+        "contractMarkerPresent": true,
+        "proxyObservedAt": "2026-08-23T17:57:58.956Z",
+        "policyApplied": true,
+        "providerThinkingType": "disabled",
+        "providerToolChoicePresent": true,
+        "providerSentAt": "2026-08-23T17:57:59.013Z"
+      },
+      {
+        "requestOrdinal": 3,
+        "purpose": "mutation_followup",
+        "adapterToolNames": [
+          "bash",
+          "capability_catalog",
+          "capability_enable",
+          "str_replace_editor"
+        ],
+        "adapterObservedAt": "2026-08-23T17:58:00.421Z",
+        "adapterReasoningEffort": "off",
+        "endpoint": "/chat/completions",
+        "topLevelKeys": [
+          "max_tokens",
+          "messages",
+          "model",
+          "stream",
+          "thinking",
+          "tools"
+        ],
+        "toolSchemaCount": 4,
+        "wireToolNames": [
+          "bash",
+          "capability_catalog",
+          "capability_enable",
+          "str_replace_editor"
+        ],
+        "proxyParsedToolNames": [
+          "bash",
+          "capability_catalog",
+          "capability_enable",
+          "str_replace_editor"
+        ],
+        "messageRoles": [
+          "assistant",
+          "system",
+          "tool",
+          "user"
+        ],
+        "maxTokens": 256000,
+        "thinkingType": "disabled",
+        "contractMarkerPresent": true,
+        "proxyObservedAt": "2026-08-23T17:58:00.426Z",
+        "providerThinkingType": "disabled",
+        "providerToolChoicePresent": false,
+        "providerSentAt": "2026-08-23T17:58:00.484Z"
+      },
+      {
+        "requestOrdinal": 4,
+        "purpose": "mutation_followup",
+        "adapterToolNames": [
+          "bash",
+          "capability_catalog",
+          "capability_enable",
+          "str_replace_editor"
+        ],
+        "adapterObservedAt": "2026-08-23T17:58:01.838Z",
+        "adapterReasoningEffort": "off",
+        "endpoint": "/chat/completions",
+        "topLevelKeys": [
+          "max_tokens",
+          "messages",
+          "model",
+          "stream",
+          "thinking",
+          "tools"
+        ],
+        "toolSchemaCount": 4,
+        "wireToolNames": [
+          "bash",
+          "capability_catalog",
+          "capability_enable",
+          "str_replace_editor"
+        ],
+        "proxyParsedToolNames": [
+          "bash",
+          "capability_catalog",
+          "capability_enable",
+          "str_replace_editor"
+        ],
+        "messageRoles": [
+          "assistant",
+          "system",
+          "tool",
+          "user"
+        ],
+        "maxTokens": 256000,
+        "thinkingType": "disabled",
+        "contractMarkerPresent": true,
+        "proxyObservedAt": "2026-08-23T17:58:01.843Z",
+        "providerThinkingType": "disabled",
+        "providerToolChoicePresent": false,
+        "providerSentAt": "2026-08-23T17:58:01.901Z"
+      }
+    ],
+    "reviewDecision": "approved",
+    "reviewedPaths": [
+      "real-flash-multiturn.txt"
+    ],
+    "reviewedFingerprint": "7da85d130dfa20929238bf3c2b44a8f48426b0edecbee7a587e3a6de0278dbde",
+    "verificationPassed": true,
+    "verifiedFingerprint": "7da85d130dfa20929238bf3c2b44a8f48426b0edecbee7a587e3a6de0278dbde",
+    "reviewedPatchSha256": "0484243bac7ba0e683e806ffa327755a8f569d34855113fca9993e3f0b0aed71",
+    "verificationCleanStart": true,
+    "verificationIgnoredResidueExcluded": 0,
+    "verificationResultFingerprint": "b54085a5bda593ef90c0ac4ca06b79d85e00970d256cb5813f84e8c05e4a7097",
+    "verificationWorktreeRemoved": true,
+    "bridgeCommit": "6ef38b30645be7edca20f2aa288ba94d0dcc570a",
+    "worktreeRemoved": true,
+    "branchDeleted": true,
+    "requestCount": 4,
+    "toolCallCount": 3,
+    "currentFingerprint": "7da85d130dfa20929238bf3c2b44a8f48426b0edecbee7a587e3a6de0278dbde",
+    "localCommit": "6ef38b30645be7edca20f2aa288ba94d0dcc570a",
+    "usage": {
+      "apiCalls": 4,
+      "completedCalls": 4,
+      "failedCalls": 0,
+      "inputTokens": 6707,
+      "outputTokens": 419,
+      "estimatedInputTokens": 0,
+      "estimatedOutputTokens": 0,
+      "cacheHitInputTokens": 3840,
+      "cacheMissInputTokens": 2867,
+      "costCny": 0,
+      "costUsd": 0,
+      "unpricedCalls": 4,
+      "lastEventAt": "2026-08-23T17:58:03.407Z"
+    }
+  },
+  "pro": {
+    "id": "stable-real-pro-thinking-task",
+    "model": "deepseek-v4-pro",
+    "status": "completed",
+    "exitCode": 0,
+    "changedPaths": [
+      "real-pro-thinking.txt"
+    ],
+    "outOfScopePaths": [],
+    "executionAttempts": [
+      {
+        "id": "46a32ff1-6d52-4773-906d-aea69117df43",
+        "ordinal": 1,
+        "executor": "harness",
+        "startedAt": "2026-08-23T17:58:06.732Z",
+        "model": "deepseek-v4-pro",
+        "thinkingPolicy": {
+          "schemaVersion": 1,
+          "policyVersion": "attempt-thinking-policy-v1",
+          "model": "deepseek-v4-pro",
+          "thinkingType": "enabled",
+          "reasoningEffort": "high",
+          "frozenAt": "2026-08-23T17:58:06.732Z"
+        },
+        "completedAt": "2026-08-23T17:58:20.713Z",
+        "outcome": "completed"
+      }
+    ],
+    "providerRequestOrdinal": 4,
+    "thinkingRequestEvidence": [
+      {
+        "requestOrdinal": 1,
+        "attemptId": "46a32ff1-6d52-4773-906d-aea69117df43",
+        "model": "deepseek-v4-pro",
+        "thinkingType": "enabled",
+        "reasoningEffort": "high",
+        "toolChoicePresent": false,
+        "replayRequirementCount": 0,
+        "replayedRequirementOrdinals": [],
+        "providerSentAt": "2026-08-23T17:58:07.266Z"
+      },
+      {
+        "requestOrdinal": 2,
+        "attemptId": "46a32ff1-6d52-4773-906d-aea69117df43",
+        "model": "deepseek-v4-pro",
+        "thinkingType": "enabled",
+        "reasoningEffort": "high",
+        "toolChoicePresent": false,
+        "replayRequirementCount": 1,
+        "replayedRequirementOrdinals": [
+          1
+        ],
+        "providerSentAt": "2026-08-23T17:58:11.036Z"
+      },
+      {
+        "requestOrdinal": 3,
+        "attemptId": "46a32ff1-6d52-4773-906d-aea69117df43",
+        "model": "deepseek-v4-pro",
+        "thinkingType": "enabled",
+        "reasoningEffort": "high",
+        "toolChoicePresent": false,
+        "replayRequirementCount": 2,
+        "replayedRequirementOrdinals": [
+          1,
+          2
+        ],
+        "providerSentAt": "2026-08-23T17:58:13.462Z"
+      },
+      {
+        "requestOrdinal": 4,
+        "attemptId": "46a32ff1-6d52-4773-906d-aea69117df43",
+        "model": "deepseek-v4-pro",
+        "thinkingType": "enabled",
+        "reasoningEffort": "high",
+        "toolChoicePresent": false,
+        "replayRequirementCount": 3,
+        "replayedRequirementOrdinals": [
+          1,
+          2,
+          3
+        ],
+        "providerSentAt": "2026-08-23T17:58:16.247Z"
+      }
+    ],
+    "reasoningReplayRequirements": [
+      {
+        "schemaVersion": 1,
+        "attemptId": "46a32ff1-6d52-4773-906d-aea69117df43",
+        "responseRequestOrdinal": 1,
+        "reasoningSha256": "8e26eb87a2722d6f7334f6860f264e9cfad5f42c20fa67e49f24a1eaec44e701",
+        "reasoningUtf8Bytes": 572,
+        "toolCallIds": [
+          "call_00_2rupGQ68aqhZp5rTyKMr4663"
+        ],
+        "recordedAt": "2026-08-23T17:58:10.924Z",
+        "replayCount": 3,
+        "lastReplayedAt": "2026-08-23T17:58:16.247Z",
+        "lastReplayRequestOrdinal": 4
+      },
+      {
+        "schemaVersion": 1,
+        "attemptId": "46a32ff1-6d52-4773-906d-aea69117df43",
+        "responseRequestOrdinal": 2,
+        "reasoningSha256": "90723684364e07e65a4f0d2701b9914f24feb499dbcb768b970911ebebcc9745",
+        "reasoningUtf8Bytes": 206,
+        "toolCallIds": [
+          "call_00_zX7OctasDjhnQpbGiQw30473"
+        ],
+        "recordedAt": "2026-08-23T17:58:13.359Z",
+        "replayCount": 2,
+        "lastReplayedAt": "2026-08-23T17:58:16.247Z",
+        "lastReplayRequestOrdinal": 4
+      },
+      {
+        "schemaVersion": 1,
+        "attemptId": "46a32ff1-6d52-4773-906d-aea69117df43",
+        "responseRequestOrdinal": 3,
+        "reasoningSha256": "0c161caed24c600feeda7df77a782d0ebe2ff75eac15d324d064958632aabdc9",
+        "reasoningUtf8Bytes": 440,
+        "toolCallIds": [
+          "call_00_wxOKi8vDbTkmgPFuLezn6946"
+        ],
+        "recordedAt": "2026-08-23T17:58:16.135Z",
+        "replayCount": 1,
+        "lastReplayedAt": "2026-08-23T17:58:16.247Z",
+        "lastReplayRequestOrdinal": 4
+      }
+    ],
+    "minimalMutationForceCount": 0,
+    "minimalMutationForcedTools": [],
+    "toolProtocolNativeCallCount": 3,
+    "toolProtocolNativeTools": [
+      "bash"
+    ],
+    "toolProtocolRecoveryCount": 0,
+    "toolProtocolRecoveredTools": [],
+    "minimalRequestEvidence": [
+      {
+        "requestOrdinal": 1,
+        "purpose": "primary_mutation",
+        "adapterToolNames": [
+          "bash",
+          "capability_catalog",
+          "capability_enable",
+          "str_replace_editor"
+        ],
+        "adapterObservedAt": "2026-08-23T17:58:07.203Z",
+        "adapterReasoningEffort": "high",
+        "endpoint": "/chat/completions",
+        "topLevelKeys": [
+          "max_tokens",
+          "messages",
+          "model",
+          "reasoning_effort",
+          "stream",
+          "thinking",
+          "tools"
+        ],
+        "toolSchemaCount": 4,
+        "wireToolNames": [
+          "bash",
+          "capability_catalog",
+          "capability_enable",
+          "str_replace_editor"
+        ],
+        "proxyParsedToolNames": [
+          "bash",
+          "capability_catalog",
+          "capability_enable",
+          "str_replace_editor"
+        ],
+        "messageRoles": [
+          "system",
+          "user"
+        ],
+        "maxTokens": 256000,
+        "thinkingType": "enabled",
+        "contractMarkerPresent": true,
+        "proxyObservedAt": "2026-08-23T17:58:07.209Z",
+        "providerThinkingType": "enabled",
+        "providerReasoningEffort": "high",
+        "providerToolChoicePresent": false,
+        "providerSentAt": "2026-08-23T17:58:07.266Z"
+      },
+      {
+        "requestOrdinal": 2,
+        "purpose": "mutation_followup",
+        "adapterToolNames": [
+          "bash",
+          "capability_catalog",
+          "capability_enable",
+          "str_replace_editor"
+        ],
+        "adapterObservedAt": "2026-08-23T17:58:10.979Z",
+        "adapterReasoningEffort": "high",
+        "endpoint": "/chat/completions",
+        "topLevelKeys": [
+          "max_tokens",
+          "messages",
+          "model",
+          "reasoning_effort",
+          "stream",
+          "thinking",
+          "tools"
+        ],
+        "toolSchemaCount": 4,
+        "wireToolNames": [
+          "bash",
+          "capability_catalog",
+          "capability_enable",
+          "str_replace_editor"
+        ],
+        "proxyParsedToolNames": [
+          "bash",
+          "capability_catalog",
+          "capability_enable",
+          "str_replace_editor"
+        ],
+        "messageRoles": [
+          "assistant",
+          "system",
+          "tool",
+          "user"
+        ],
+        "maxTokens": 256000,
+        "thinkingType": "enabled",
+        "contractMarkerPresent": true,
+        "proxyObservedAt": "2026-08-23T17:58:10.984Z",
+        "providerThinkingType": "enabled",
+        "providerReasoningEffort": "high",
+        "providerToolChoicePresent": false,
+        "providerSentAt": "2026-08-23T17:58:11.036Z"
+      },
+      {
+        "requestOrdinal": 3,
+        "purpose": "mutation_followup",
+        "adapterToolNames": [
+          "bash",
+          "capability_catalog",
+          "capability_enable",
+          "str_replace_editor"
+        ],
+        "adapterObservedAt": "2026-08-23T17:58:13.403Z",
+        "adapterReasoningEffort": "high",
+        "endpoint": "/chat/completions",
+        "topLevelKeys": [
+          "max_tokens",
+          "messages",
+          "model",
+          "reasoning_effort",
+          "stream",
+          "thinking",
+          "tools"
+        ],
+        "toolSchemaCount": 4,
+        "wireToolNames": [
+          "bash",
+          "capability_catalog",
+          "capability_enable",
+          "str_replace_editor"
+        ],
+        "proxyParsedToolNames": [
+          "bash",
+          "capability_catalog",
+          "capability_enable",
+          "str_replace_editor"
+        ],
+        "messageRoles": [
+          "assistant",
+          "system",
+          "tool",
+          "user"
+        ],
+        "maxTokens": 256000,
+        "thinkingType": "enabled",
+        "contractMarkerPresent": true,
+        "proxyObservedAt": "2026-08-23T17:58:13.407Z",
+        "providerThinkingType": "enabled",
+        "providerReasoningEffort": "high",
+        "providerToolChoicePresent": false,
+        "providerSentAt": "2026-08-23T17:58:13.462Z"
+      },
+      {
+        "requestOrdinal": 4,
+        "purpose": "mutation_followup",
+        "adapterToolNames": [
+          "bash",
+          "capability_catalog",
+          "capability_enable",
+          "str_replace_editor"
+        ],
+        "adapterObservedAt": "2026-08-23T17:58:16.183Z",
+        "adapterReasoningEffort": "high",
+        "endpoint": "/chat/completions",
+        "topLevelKeys": [
+          "max_tokens",
+          "messages",
+          "model",
+          "reasoning_effort",
+          "stream",
+          "thinking",
+          "tools"
+        ],
+        "toolSchemaCount": 4,
+        "wireToolNames": [
+          "bash",
+          "capability_catalog",
+          "capability_enable",
+          "str_replace_editor"
+        ],
+        "proxyParsedToolNames": [
+          "bash",
+          "capability_catalog",
+          "capability_enable",
+          "str_replace_editor"
+        ],
+        "messageRoles": [
+          "assistant",
+          "system",
+          "tool",
+          "user"
+        ],
+        "maxTokens": 256000,
+        "thinkingType": "enabled",
+        "contractMarkerPresent": true,
+        "proxyObservedAt": "2026-08-23T17:58:16.188Z",
+        "providerThinkingType": "enabled",
+        "providerReasoningEffort": "high",
+        "providerToolChoicePresent": false,
+        "providerSentAt": "2026-08-23T17:58:16.247Z"
+      }
+    ],
+    "reviewDecision": "approved",
+    "reviewedPaths": [
+      "real-pro-thinking.txt"
+    ],
+    "reviewedFingerprint": "8bd0510f20eb2bf033700da20d90e882077102dab1b6201d95189bcab5bb4335",
+    "verificationPassed": true,
+    "verifiedFingerprint": "8bd0510f20eb2bf033700da20d90e882077102dab1b6201d95189bcab5bb4335",
+    "reviewedPatchSha256": "d7c253f2ff115852c09b568f518737b52969c867e3e944d3ed80378ffa9a10ce",
+    "verificationCleanStart": true,
+    "verificationIgnoredResidueExcluded": 0,
+    "verificationResultFingerprint": "e660e6289242d2cef12a5349cf18d5b4a4d0b8e2e0f22771699231f85cd304ea",
+    "verificationWorktreeRemoved": true,
+    "bridgeCommit": "85d4ce40f4e194bcb9ba90487af8aed283afb59a",
+    "worktreeRemoved": true,
+    "branchDeleted": true,
+    "requestCount": 4,
+    "toolCallCount": 3,
+    "currentFingerprint": "8bd0510f20eb2bf033700da20d90e882077102dab1b6201d95189bcab5bb4335",
+    "localCommit": "85d4ce40f4e194bcb9ba90487af8aed283afb59a",
+    "usage": {
+      "apiCalls": 4,
+      "completedCalls": 4,
+      "failedCalls": 0,
+      "inputTokens": 7423,
+      "outputTokens": 687,
+      "estimatedInputTokens": 0,
+      "estimatedOutputTokens": 0,
+      "cacheHitInputTokens": 5760,
+      "cacheMissInputTokens": 1663,
+      "costCny": 0,
+      "costUsd": 0,
+      "unpricedCalls": 4,
+      "lastEventAt": "2026-08-23T17:58:20.596Z"
+    }
+  },
+  "mainHeadBefore": "97d94cbe5d432257c11e6c1826bd0e9be7dfe159",
+  "mainHeadAfter": "97d94cbe5d432257c11e6c1826bd0e9be7dfe159",
+  "mainClean": true,
+  "pushed": false
+}

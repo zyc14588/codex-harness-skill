@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "result": "PASS",
+  "version": "0.6.6",
+  "generatedAt": "2026-08-23T17:57:46.814Z",
+  "currentRevision": true,
+  "sourceCommit": "adcd07a6ee7904cd70b3cdc8a57c896dc1f12628",
+  "sourceTree": "0011222e61d2f6aaf9d0e1024a9f869013f85fca",
+  "sourceTreeSha256": "8fbc146f96f0509400eddf80ce44b458a41d684ae5b5b5e97e96e1f2fca9d76d",
+  "sourceFileCount": 298,
+  "criticalSetSha256": "796b91bd3340c0659fce7f3c833d6ad9440f5a608bc249ba0aa4da840e58c9c8",
+  "criticalPathSha256": {
+    "bridge/src/security.ts": "68861770fb3e41d66d712eca99f8561d81dd9a6180a219d352463e5f844da0e7",
+    "bridge/src/monitor-daemon.ts": "aa27b39725d7761197633cfcd25ca56ac42b3d2121bf9bd5cbfbf436f1891184",
+    "bridge/src/harness-sandbox-entry.ts": "9c6cefe228f92d6efd1ef40b29d2294ddfd6f2e8185ba4a44eae3d2ef142cb8b",
+    "bridge/src/harness-isolation.ts": "4a466625402f77bf83d89b7581c9d87f3eb1eee3880e1feaaa14453ee7ecee65",
+    "bridge/src/brokered-tool-host.ts": "9ecc99771d8f50ba6c35cf6f149d3a4e1d56bd3a5938598874255936c44644f0",
+    "bridge/src/thinking-policy.ts": "ff021e0d64fb5bc535387872de7f9d25043dad7e67a29a09cd18d153a3cd75b2",
+    "bridge/src/minimal-request-state.ts": "b0c60eaed42e599028602e7dbf4afa946eb2613641db3d377286c028e5d94af4",
+    "bridge/src/provider-policy.ts": "aea8b29afd3f98129422d1027a4f7cc2ba1f59ef7abaceec90067d9938520233",
+    "bridge/src/worker.ts": "bf9d948b248e8bb1130bfadfa22c6c08c7de032091a902cf81e16bd112b04b26",
+    "bridge/src/service.ts": "7fd384411429139881abfce759ea22f3d80c11ba45b59702078606ee95d3d013",
+    "harness/minimal/preset/agent.cordis.yml.in": "05945570459b34499ca4fd775642c0fc28696c67e2fa48b42a00ab36416ea29f",
+    "harness/minimal/profile/bridge-brokered-tools.mjs": "1066eda6d4865bbe3927c3f2b392966937004006fb35df499c59beb77071465a",
+    "harness/minimal/profile/bridge-headless-runner.mjs": "c647264daeecc37d845de1b42937c328fec22c5c1618f0c830108ab83e74c8c3",
+    "harness/minimal/profile/cordis.patch.yml": "e46d24af07c98ce331b17658fa9dce4d68db793d8f5447f43f49c8d2d5b209ce"
+  },
+  "tests": [
+    {
+      "testFile": "bridge/dist/test/harness-isolation.test.js",
+      "result": "PASS",
+      "exitCode": 0,
+      "signal": null,
+      "testCount": 1,
+      "outputSha256": "7fa9f6ef1f9167dab6f4f14b6610993df50eae9ed762789608dcade66c090985"
+    },
+    {
+      "testFile": "bridge/dist/test/provider-protocol-fail-fast.test.js",
+      "result": "PASS",
+      "exitCode": 0,
+      "signal": null,
+      "testCount": 2,
+      "outputSha256": "359428430a168da837729c525d93c691b624d0f6475cb44aae24cf35b16f4b9b"
+    },
+    {
+      "testFile": "bridge/dist/test/verification-isolation.test.js",
+      "result": "PASS",
+      "exitCode": 0,
+      "signal": null,
+      "testCount": 1,
+      "outputSha256": "ef16f05851ca8346b079ab5196fe06cfa2d77f9f6e5e35c80ccafeadd179c199"
+    }
+  ],
+  "assertions": {
+    "shellEnvironmentContainsNoProviderAdapterOrToolCapability": true,
+    "shellProcEnvironmentCredentialLeak": false,
+    "shellCanReachBrokerSocket": false,
+    "shellCanReachLoopbackRelay": false,
+    "directAttemptsProviderUpstreamCallCount": 0,
+    "capabilityCrossUseRejected": true,
+    "arbitraryMethodContentTypeQueryAndSuffixRejected": true,
+    "reasoningReplayOmissionProviderRequestCount": 0,
+    "reasoningReplayOmissionInputTokens": 0,
+    "reasoningReplayOmissionOutputTokens": 0,
+    "reasoningReplayOmissionSplitMemoryChanged": false,
+    "ignoredArtifactCanCauseAuthoritativeFalsePass": false,
+    "verificationWorktreeRemoved": true
+  }
+}

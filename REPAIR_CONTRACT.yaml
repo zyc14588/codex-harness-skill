@@ -4,8 +4,9 @@ canonicalSource: current/
 repairBranch: repair/0.6.6-provider-capability-and-release-integrity
 releaseStatus: candidate
 controlledUseAllowed: false
-deliverableStatus: FINAL_VERSION_QUALIFICATION_IN_PROGRESS
+deliverableStatus: QUALIFIED_CANDIDATE_EXTERNAL_GATES_PENDING
 qualificationStage: FINAL_VERSION_CURRENT_REVISION_QUALIFICATION
+externalGateState: BLOCKED_TARGET_NOT_REMOTE_NO_ACTIONS_AND_BRANCH_PROTECTION_PLAN_403
 requirements:
   providerCapabilityIsolation: required
   cleanReviewedPatchVerification: required

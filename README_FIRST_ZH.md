@@ -8,11 +8,11 @@
 releaseStatus=candidate
 controlledUseAllowed=false
 qualificationStage=FINAL_VERSION_CURRENT_REVISION_QUALIFICATION
-deliverableStatus=FINAL_VERSION_QUALIFICATION_IN_PROGRESS
-realProviderSmoke=pending
+deliverableStatus=QUALIFIED_CANDIDATE_EXTERNAL_GATES_PENDING
+realProviderSmoke=pass
 ```
 
-Provider/Adapter/tool capability 分域、Host 侧工具兄弟 Bubblewrap、clean reviewed-patch verification、ignored poisoning、operator 认证以及 RC 基线完整 regression/安装回滚矩阵均已通过本地验证。活动版本面现已固定为 `0.6.6`，但这只是为了在最终版本字节上生成同修订资格证据；最终版完整重跑、当前 revision Flash/Pro、GitHub Actions 实际 run、branch protection 与最终归档尚未全部完成。
+Provider/Adapter/tool capability 分域、Host 侧工具兄弟 Bubblewrap、clean reviewed-patch verification、ignored poisoning、operator 认证、最终版完整 regression/安装回滚矩阵、负向 smoke，以及当前 revision Flash/Pro 均已通过并绑定实现提交 `adcd07a6ee7904cd70b3cdc8a57c896dc1f12628`。只读 GitHub 核验显示目标分支/提交不在远端、Actions run 列表为空，私有仓库 branch-protection API 因方案限制返回 HTTP 403；最终归档因此未生成，状态继续是 candidate。
 
 从这里开始：
 
