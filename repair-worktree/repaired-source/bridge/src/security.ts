@@ -1,5 +1,5 @@
 import { randomBytes, timingSafeEqual } from "node:crypto";
-import { chmod, lstat, mkdir, open, readFile, realpath } from "node:fs/promises";
+import { chmod, lstat, mkdir, open, readFile, realpath, rename, rm } from "node:fs/promises";
 import path from "node:path";
 import type { BridgeConfig } from "./types.js";
 
@@ -80,6 +80,42 @@ export async function ensureOperatorToken(config: BridgeConfig): Promise<string>
     if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
   }
   return await readPrivateSecret(target, "monitor operator token");
+}
+
+export function validateOperatorToken(value: unknown): string {
+  if (typeof value !== "string" || value !== value.trim() || /\s/u.test(value)) {
+    throw new Error("new operator password must be a single line without whitespace");
+  }
+  const bytes = Buffer.byteLength(value, "utf8");
+  if (bytes < SECRET_MIN_BYTES || bytes > SECRET_MAX_BYTES || value.includes("\0")) {
+    throw new Error(`new operator password must contain ${SECRET_MIN_BYTES}-${SECRET_MAX_BYTES} UTF-8 bytes`);
+  }
+  return value;
+}
+
+export async function replaceOperatorToken(config: BridgeConfig, value: unknown): Promise<string> {
+  const selected = validateOperatorToken(value);
+  const target = operatorTokenPath(config);
+  await ensureOperatorToken(config);
+  const parent = path.dirname(target);
+  const canonicalParent = await realpath(parent);
+  if (canonicalParent !== path.resolve(parent)) throw new Error(`monitor secret directory must not traverse symlinks: ${parent}`);
+  const temporary = path.join(parent, `.operator.token.tmp.${process.pid}.${randomBytes(8).toString("hex")}`);
+  try {
+    const handle = await open(temporary, "wx", 0o600);
+    try {
+      await handle.writeFile(`${selected}\n`, "utf8");
+      await handle.sync();
+    } finally {
+      await handle.close();
+    }
+    await rename(temporary, target);
+    await chmod(target, 0o600);
+    return await readPrivateSecret(target, "monitor operator token");
+  } catch (error) {
+    await rm(temporary, { force: true });
+    throw error;
+  }
 }
 
 export async function readProviderApiKey(config: BridgeConfig): Promise<string> {

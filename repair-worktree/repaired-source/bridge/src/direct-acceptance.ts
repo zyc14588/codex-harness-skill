@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import http, { type IncomingMessage, type Server, type ServerResponse } from "node:http";
-import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { lstat, mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -518,12 +518,16 @@ try {
   const dashboard = await fetch(`${dashboardBase}/`);
   assert.equal(dashboard.status, 200);
   const dashboardText = await dashboard.text();
-  for (const required of ["Codex ↔ Harness 控制中心", "任务", "费用", "本地模型", "当前执行任务", "自适应拆分记忆", "人工费用对账", "全局预算策略", "Pro 复杂叶子默认高 Token 门禁", "输入 Token 与输出 Token 是唯一执行门禁", "llama-cli", "llama-server", "CN¥"]) {
+  for (const required of ["Codex ↔ Harness 控制中心", "任务", "费用", "本地模型", "设置", "操作员认证", "操作员密码 / 令牌", "当前执行任务", "自适应拆分记忆", "人工费用对账", "全局预算策略", "认证后将显示全局预算调整框", "Pro 复杂叶子默认高 Token 门禁", "输入 Token 与输出 Token 是唯一执行门禁", "llama-cli", "llama-server", "CN¥"]) {
     assert.match(dashboardText, new RegExp(required));
   }
   assert.match(dashboardText, /data-theme="soft"/);
   assert.match(dashboardText, /color-scheme:light/);
   assert.match(dashboardText, /id="authenticate"/, "dashboard must expose an explicit re-authentication control");
+  assert.match(dashboardText, /id="operatorCredential" type="password"/, "dashboard must expose an inline operator login field");
+  assert.match(dashboardText, /id="newOperatorCredential" type="password"/, "dashboard must expose authenticated operator-password rotation");
+  assert.doesNotMatch(dashboardText, /window\.prompt/, "dashboard must not hide authentication behind a native prompt");
+  assert.ok(dashboardText.includes("/\\s/u.test(next)"), "dashboard password validation lost its whitespace-regex escape during HTML generation");
   assert.match(dashboardText, /if\(r\.status===401\)\{sessionStorage\.removeItem/, "401 must clear a rejected bearer");
   assert.doesNotMatch(dashboardText, /r\.status===401\|\|r\.status===403/, "CSRF/origin 403 must not discard a valid bearer");
   assert.doesNotMatch(dashboardText, /USD|美元/, "default dashboard must not display USD prices");
@@ -547,6 +551,67 @@ try {
     body: JSON.stringify({ reason: "must reject missing csrf" }),
   });
   assert.equal(rejectedMutation.status, 403);
+  const invalidCredentialRotation = await fetch(`${dashboardBase}/api/operator-credential`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${operatorToken}`,
+      "content-type": "application/json",
+      "x-codex-harness-csrf": csrf,
+      origin: dashboardBase,
+    },
+    body: JSON.stringify({ newToken: "too-short" }),
+  });
+  assert.equal(invalidCredentialRotation.status, 400, "operator password accepted an unsafe short value");
+  assert.equal((await fetch(`${dashboardBase}/api/snapshot`, {
+    headers: { authorization: `Bearer ${operatorToken}` },
+  })).status, 200, "invalid password rotation changed the active credential");
+  const previousOperatorToken = operatorToken;
+  const nextOperatorToken = "r3-operator-password-rotation-acceptance-0001";
+  const credentialRotation = await fetch(`${dashboardBase}/api/operator-credential`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${operatorToken}`,
+      "content-type": "application/json",
+      "x-codex-harness-csrf": csrf,
+      origin: dashboardBase,
+    },
+    body: JSON.stringify({ newToken: nextOperatorToken }),
+  });
+  const credentialRotationText = await credentialRotation.text();
+  assert.equal(credentialRotation.status, 200, credentialRotationText);
+  assert.doesNotMatch(credentialRotationText, new RegExp(nextOperatorToken), "operator password leaked in the rotation response");
+  const operatorTokenInfo = await lstat(path.join(stateRoot, "secrets", "operator.token"));
+  assert.equal(operatorTokenInfo.mode & 0o777, 0o600, "rotated operator password lost private file mode");
+  assert.equal((await fetch(`${dashboardBase}/api/snapshot`, {
+    headers: { authorization: `Bearer ${previousOperatorToken}` },
+  })).status, 401, "old operator password remained valid after rotation");
+  operatorToken = nextOperatorToken;
+  assert.equal((await fetch(`${dashboardBase}/api/snapshot`, {
+    headers: { authorization: `Bearer ${operatorToken}` },
+  })).status, 200, "new operator password was not immediately accepted");
+  const concurrentTokens = [
+    "r3-concurrent-operator-password-rotation-a-0001",
+    "r3-concurrent-operator-password-rotation-b-0001",
+  ];
+  const concurrentRotations = await Promise.all(concurrentTokens.map(async (newToken) => ({
+    newToken,
+    response: await fetch(`${dashboardBase}/api/operator-credential`, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${operatorToken}`,
+        "content-type": "application/json",
+        "x-codex-harness-csrf": csrf,
+        origin: dashboardBase,
+      },
+      body: JSON.stringify({ newToken }),
+    }),
+  })));
+  assert.deepEqual(concurrentRotations.map(({ response }) => response.status).sort(), [200, 401], "concurrent operator rotations did not serialize");
+  operatorToken = concurrentRotations.find(({ response }) => response.status === 200)?.newToken ?? "";
+  assert.ok(operatorToken);
+  assert.equal((await fetch(`${dashboardBase}/api/snapshot`, {
+    headers: { authorization: `Bearer ${operatorToken}` },
+  })).status, 200, "serialized operator rotation did not retain its winner");
   const rejectedBinaryReplacement = await fetch(`${dashboardBase}/api/llama/config`, {
     method: "POST",
     headers: {
@@ -1412,7 +1477,7 @@ try {
     realtimeStreamingCnyObserved: true,
     liveBudgetAdjustmentObserved: true,
     manualCnyReconciliationObserved: true,
-    uiTabs: ["任务", "费用", "本地模型"],
+    uiTabs: ["任务", "费用", "本地模型", "设置"],
     defaultUsdDisplay: false,
     dashboardTheme: "soft-light",
     autoRoutedLlamaTask: "llama-task",
