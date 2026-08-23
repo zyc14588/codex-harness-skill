@@ -10,7 +10,7 @@ Deliverable status: DELIVERABLE_PASS
 
 这是一个由 Codex 总控的本地 MCP Bridge。Codex 冻结计划、依赖、写租约、Token 门禁、审查与验证；DeepSeek Harness 或受控 llama.cpp 只执行有界叶子。Bridge 不自动 merge、push、tag 或创建 GitHub Release。
 
-Runtime hotfix R3 在 R2 的运行时修复之上补齐 Dashboard 首次使用体验：未认证时明确解释预算调整框为何隐藏，使用页面内认证表单替代反复弹出的原生提示，并新增“设置 → 操作员认证”密码轮换入口。R3 已通过 89 项回归、strict/direct/package/security/skill、桌面与移动浏览器验证、普通源码/provenance、确定性双构建与全新目录解包验收。Provider/Harness 执行路径未修改，因此 R2 的有界真实 DeepSeek 证据作为继承回归证据保留，本轮没有冒充为重新调用。旧归档均保留为历史，R3 使用独立名称。
+Runtime hotfix R4 在 R3 Dashboard 修复之上，按操作员要求把新密码下限调整为至少 6 个 Unicode 字符，同时保持无空白、16384 UTF-8 字节上限、Bearer/Origin/CSRF、原子 mode-0600 持久化和并发闭锁。Provider API key 仍要求至少 24 字节。R4 已通过 90 项回归、strict/direct/package/security/skill、桌面与移动浏览器验证、普通源码/provenance、确定性双构建与全新目录解包验收。Provider/Harness 请求执行路径未修改，因此 R2 的有界真实 DeepSeek 证据仅作为继承回归证据保留。旧归档均保留为历史，R4 使用独立名称。
 
 ## 本次修复
 
@@ -23,7 +23,8 @@ Runtime hotfix R3 在 R2 的运行时修复之上补齐 Dashboard 首次使用�
 - Provider 输入门禁覆盖 canonical 完整请求；DeepSeek V4 单请求固定 1M context/384K output 能力上限；malformed JSON 在本地 400，绝不触达 Provider。
 - release gate 拒绝 withdrawn；candidate 必须显式 audit acknowledgement；stable 必须所有门禁精确 PASS 并绑定 lockfile、provenance 和证据哈希。
 - Dashboard 使用内嵌“操作员认证”表单，不再调用原生 `prompt`；未认证费用页明确说明预算字段需要登录，认证后显示全局预算和任务预算/空状态。
-- “设置 → 操作员认证”支持原子轮换 operator password；旧密码立即失效，新密码不回显，文件保持 mode-0600，并发陈旧请求 fail closed。
+- “设置 → 操作员认证”支持至少 6 个 Unicode 字符的 operator password；5 字符拒绝，6 位数字和 6 个中文字符接受。旧密码立即失效，新密码不回显，文件保持 mode-0600，并发陈旧请求 fail closed。
+- operator password 的放宽不影响 Provider API key；运行时仍对 Provider key 执行至少 24 字节校验。
 - installer 使用 `process.execPath` 固定真实 Node；doctor 与 Bubblewrap 启动前拒绝与 Bridge runtime 不一致的 managed preset 命令。
 - DSH managed MCP 同步失败归为 `minimal_tool_plane_composition`；split-memory schema 5 隔离可能受污染的 schema 4，`no_effect` 不再缩小任务建议。
 
@@ -31,9 +32,9 @@ Runtime hotfix R3 在 R2 的运行时修复之上补齐 Dashboard 首次使用�
 
 | 门禁 | 当前结果 |
 |---|---|
-| strict build + unit/component | PASS，89 项 |
+| strict build + unit/component | PASS，90 项 |
 | Dashboard desktop/mobile browser QA | PASS，无原生 dialog、无控制台错误、无移动横向溢出 |
-| operator credential rotation | PASS，旧密码失效、新密码生效、匿名 HTML 无 secret |
+| operator credential rotation | PASS，5 字符拒绝、6 字符接受、旧密码失效、新密码生效 |
 | direct process acceptance | PASS |
 | 动态真实 Harness + 本地可观测 Provider | PASS，Flash 4 轮、Pro 3 轮 |
 | reasoning replay 失败注入 | PASS，Provider 0、Token 0/0、split 不变 |
@@ -41,15 +42,15 @@ Runtime hotfix R3 在 R2 的运行时修复之上补齐 Dashboard 首次使用�
 | operator/llama/process/release 安全负向测试 | PASS |
 | package acceptance | PASS |
 | skill validation | PASS |
-| 继承的 R2 真实 Minimal Flash | PASS，4 轮、3 次原生工具调用；R3 路径未变 |
-| 继承的 R2 真实 Pro Thinking | PASS，4 轮、replay 0/1/2/3；R3 未重跑 |
+| 继承的 R2 真实 Minimal Flash | PASS，4 轮、3 次原生工具调用；R4 请求路径未变 |
+| 继承的 R2 真实 Pro Thinking | PASS，4 轮、replay 0/1/2/3；R4 未重跑 |
 | stable 确定性 ZIP 与解压复验 | PASS，双构建字节一致 |
 
 机器可读状态以 `release-status.json` 为准；当前所有 gate 精确为 `PASS`。任何后续修改都会使 manifest、artifact bindings 与外部 sidecar 失效，必须重新封印。
 
 ## Stable 安装说明
 
-只从 `CODEX_HARNESS_BRIDGE_0_6_5_HOTFIX_R3_STABLE.zip` 解包目录安装，并先校验同目录 SHA-256 sidecar 与包内 manifest。
+只从 `CODEX_HARNESS_BRIDGE_0_6_5_HOTFIX_R4_STABLE.zip` 解包目录安装，并先校验同目录 SHA-256 sidecar 与包内 manifest。
 
 要求 Linux、Node `>=22.12.0`、Git、Python 3、Bubblewrap、Codex CLI，以及固定且干净的 DeepSeek Harness checkout：
 
@@ -84,7 +85,8 @@ controller_split_advice
 ## 证据入口
 
 - `release-status.json`：当前机器状态；
-- `docs/19_DASHBOARD_AUTH_BUDGET_UX_HOTFIX_ZH.md` 与 `evidence/08_RUNTIME_HOTFIX_CANDIDATE_LOCAL_VALIDATION.json`：R3 的 Dashboard、密码轮换、本地浏览器与包装资格；
+- `docs/20_OPERATOR_PASSWORD_MINIMUM_R4_ZH.md` 与 `evidence/08_RUNTIME_HOTFIX_CANDIDATE_LOCAL_VALIDATION.json`：R4 的 6 字符密码边界、本地浏览器、安全与包装资格；
+- `docs/19_DASHBOARD_AUTH_BUDGET_UX_HOTFIX_ZH.md`：R3 Dashboard 认证和预算 UI 的历史修复记录；
 - `docs/18_RUNTIME_HOTFIX_R2_REAL_SMOKE_ZH.md` 与 `evidence/09_RUNTIME_HOTFIX_REAL_DEEPSEEK_REDACTED.json`：Provider/Harness 路径未修改时继承的 R2 有界真实 DeepSeek 回归证据；
 - `SOURCE_PROVENANCE.json`：恢复提交、历史修复链与最终 seal 状态；
 - `VALIDATION_REPORT_ZH.md`：当前验收报告；

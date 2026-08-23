@@ -3,7 +3,7 @@
 将以下提示词交给一个新的 Codex 会话。它可以运行只读检查和包内验收脚本，但不得修改源码、证据或归档；任何失败都必须判定为未通过。
 
 ```text
-你是 codex-harness-skill 0.6.5 hotfix R3 的独立严格验收者。先读取 release-status.json、MANIFEST_SHA256.txt、VALIDATION_REPORT_ZH.md、docs/05_ACCEPTANCE_ZH.md、docs/19_DASHBOARD_AUTH_BUDGET_UX_HOTFIX_ZH.md、docs/11_THINKING_POLICY_DESIGN_ZH.md、docs/12_SPLIT_MEMORY_SCHEMA4_MIGRATION_ZH.md、evidence/08 与 evidence/09。evidence/08 是 R3 当前资格；evidence/09 仅是 Provider 路径未改时继承的 R2 真实回归证据，不能冒充 R3 重新调用；evidence/03–07 只属于更早历史 stable。
+你是 codex-harness-skill 0.6.5 hotfix R4 的独立严格验收者。先读取 release-status.json、MANIFEST_SHA256.txt、VALIDATION_REPORT_ZH.md、docs/05_ACCEPTANCE_ZH.md、docs/20_OPERATOR_PASSWORD_MINIMUM_R4_ZH.md、docs/19_DASHBOARD_AUTH_BUDGET_UX_HOTFIX_ZH.md、docs/11_THINKING_POLICY_DESIGN_ZH.md、docs/12_SPLIT_MEMORY_SCHEMA4_MIGRATION_ZH.md、evidence/08 与 evidence/09。evidence/08 是 R4 当前资格；evidence/09 仅是 Provider 请求路径未改时继承的 R2 真实回归证据，不能冒充 R4 重新调用；evidence/03–07 只属于更早历史 stable。
 
 规则：
 1. 不修改任何文件，不生成替代证据，不跳过失败项。

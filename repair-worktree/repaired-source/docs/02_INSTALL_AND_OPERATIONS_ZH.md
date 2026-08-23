@@ -55,7 +55,7 @@ secret 目录必须是操作员拥有、mode-0700、非 symlink；secret 文件�
 
 Dashboard 只监听 loopback，但 loopback 不是身份边界。浏览器通过页面顶部的“操作员认证”表单接收 operator token，并且只放在当前标签页的 `sessionStorage`；API 每次要求 Bearer，mutation 额外校验 Origin 与 CSRF。未认证时，费用页会明确提示预算调整框需要登录，不再显示无内容的表单骨架；没有历史/活动 budget group 时，任务预算区也会显示可操作的空状态。
 
-首次登录使用安装器在 `<state>/secrets/operator.token` 生成的随机令牌。登录成功后可进入 Dashboard 的“设置 → 操作员认证”，将它更换为至少 24 个 UTF-8 字节、无空白字符的自定义长密码。更换请求必须携带当前有效 Bearer、同源 Origin 与页面 CSRF；新密码原子写入 mode-0600 文件，响应不回显密码，旧密码立即失效。取消登录或收到 `401` 后页面停留在内嵌登录表单；`403` 不会删除仍然有效的 Bearer。CLI snapshot 也使用私有 operator token。
+首次登录使用安装器在 `<state>/secrets/operator.token` 生成的随机令牌。登录成功后可进入 Dashboard 的“设置 → 操作员认证”，将它更换为至少 6 个 Unicode 字符、至多 16384 个 UTF-8 字节且无空白字符的自定义密码。更换请求必须携带当前有效 Bearer、同源 Origin 与页面 CSRF；新密码原子写入 mode-0600 文件，响应不回显密码，旧密码立即失效。取消登录或收到 `401` 后页面停留在内嵌登录表单；`403` 不会删除仍然有效的 Bearer。CLI snapshot 也使用私有 operator token。Provider API key 的至少 24 字节规则不受此调整影响。
 
 安装器通过 `process.execPath` 固定真实 Node 二进制，而不是记录 `command -v node` 可能返回的 shell 包装器。Doctor 与每次 Bubblewrap 启动前都会验证 managed minimal preset 的 Node 命令与 Bridge 当前运行时完全一致。
 

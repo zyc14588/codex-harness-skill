@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
   "version": "0.6.5",
-  "hotfixRevision": "dashboard-auth-budget-ux-r3-stable",
+  "hotfixRevision": "operator-password-minimum-6-r4-stable",
   "hotfixDate": "2026-08-23",
   "releaseStatus": "stable",
   "controlledUseAllowed": true,
   "deliverableStatus": "DELIVERABLE_PASS",
-  "statusReason": "Runtime hotfix R3 adds discoverable inline Dashboard authentication, explicit unauthenticated budget affordances, authenticated budget empty states, and atomic operator credential rotation while preserving the R2 runtime repairs. The R3 strict build, 89 component tests, direct, security, skill, real Chrome desktop/mobile, transactional package, ordinary source/provenance, deterministic double-build, and unpacked revalidation gates pass. Provider/Harness/Broker execution paths are unchanged, so the R2 bounded real-provider result is retained only as inherited regression evidence and is not represented as an R3 rerun. Prior archives remain historical and are not overwritten.",
+  "statusReason": "Runtime hotfix R4 changes the operator password minimum to six Unicode characters while preserving the no-whitespace rule, 16384-byte cap, atomic mode-0600 persistence, concurrency controls, and the Provider API key minimum of 24 bytes. The R4 strict build, 90 component tests, direct, security, skill, real Chrome desktop/mobile, transactional package, ordinary source/provenance, deterministic double-build, and unpacked revalidation gates pass. Provider/Harness/Broker request execution paths are unchanged, so the R2 bounded real-provider result is retained only as inherited regression evidence and is not represented as an R4 rerun. Prior archives remain historical and are not overwritten.",
   "gates": {
     "unitAndComponentRegression": "PASS",
     "directAcceptance": "PASS",
@@ -22,11 +22,13 @@
     "strongHarnessIsolation": "PASS",
     "operatorControlAuthentication": "PASS",
     "operatorCredentialRotation": "PASS",
+    "operatorPasswordSixCharacterBoundary": "PASS",
+    "providerCredentialMinimumBoundary": "PASS",
     "dashboardBrowserQa": "PASS",
     "finalZipUnpackedRevalidation": "PASS"
   },
   "currentValidation": {
-    "componentTests": 89,
+    "componentTests": 90,
     "directAcceptance": "PASS",
     "securityAcceptance": "PASS",
     "skillValidation": "PASS",
@@ -35,15 +37,22 @@
     "dashboardDesktopViewport": "1440x1000",
     "dashboardMobileViewport": "390x844",
     "operatorCredentialRotation": "PASS",
+    "operatorPasswordMinimumCharacters": 6,
+    "fiveCharacterOperatorPasswordRejected": true,
+    "sixDigitOperatorPasswordAccepted": true,
+    "sixChineseCharacterOperatorPasswordAccepted": true,
+    "providerApiKeyMinimumBytes": 24,
+    "sixCharacterProviderApiKeyRejected": true,
     "authenticatedGlobalBudgetInputCount": 12,
-    "implementationCommit": "221d7a0c83919b3d86e6efa0607117df83c271dd",
-    "implementationOuterTree": "55501d97d953e6510a2b6d52f91bbfd3c9fe9f7a",
-    "implementationSourceTree": "21e79c45b350be74b3eb0f8ac8b33a11bc308e63",
-    "r3ProviderExecutionPathChanged": false,
-    "r3RealProviderRequests": 0,
-    "r3ProviderInputTokens": 0,
-    "r3ProviderOutputTokens": 0,
-    "r3ProviderCostCny": 0,
+    "implementationCommit": "e9d6a1cb13409223acedf5632000dbca8e703b51",
+    "implementationOuterTree": "ab03980dc002a43b5ba74ba6d739ae15096d4223",
+    "implementationSourceTree": "da9dcbb11bae97ac91a056a734c3dcdcb127572d",
+    "r4ProviderExecutionPathChanged": false,
+    "r4ProviderSecretValidationRefactored": true,
+    "r4RealProviderRequests": 0,
+    "r4ProviderInputTokens": 0,
+    "r4ProviderOutputTokens": 0,
+    "r4ProviderCostCny": 0,
     "inheritedR2DynamicFlashRequests": 4,
     "inheritedR2DynamicProRequests": 3,
     "inheritedR2RealFlashRequests": 4,
@@ -51,9 +60,9 @@
     "inheritedR2RealProReplayDepths": [0, 1, 2, 3],
     "inheritedHarnessCommit": "141eb6fef83422698aef7a981029e843e8161534",
     "inheritedHarnessBuildSha256": "6a294d72c51e6570852acaf73458cda98f555bd53c9c7ff0b49c568e7cf88a38",
-    "packageMode": "r3-source-preseal-and-final-unpacked-stable-pass",
+    "packageMode": "r4-source-preseal-and-final-unpacked-stable-pass",
     "deterministicZipBuilds": 2,
-    "externalNetworkUsedForR3": false,
+    "externalProviderNetworkUsedForR4": false,
     "inheritedR2ExternalProviderEvidence": true
   },
   "realSmokeAuthorizationBoundary": {
@@ -75,26 +84,26 @@
   },
   "candidateValidationEvidence": {
     "path": "evidence/08_RUNTIME_HOTFIX_CANDIDATE_LOCAL_VALIDATION.json",
-    "sha256": "044ecf23d63a6f1e0b13edded6336e1ecd8fa00ad92550626ddfe393c098b651",
-    "scope": "R3 local deterministic, browser, security, operator credential rotation, and transactional package qualification"
+    "sha256": "db97795162ab5174d18895c2cae047e9dda3e72239ada790fe1a2f3c8cf3da21",
+    "scope": "R4 local deterministic, browser, security, six-character operator password boundary, Provider credential isolation, and transactional package qualification"
   },
   "realProviderValidationEvidence": {
     "path": "evidence/09_RUNTIME_HOTFIX_REAL_DEEPSEEK_REDACTED.json",
     "sha256": "bb023ca725b56f55a0539f5bdbd245ec6accf75869ff11d199be1033b6bc54b0",
-    "scope": "inherited R2 bounded real DeepSeek Minimal Flash and Pro Thinking for an unchanged Provider/Harness/Broker execution path; not rerun for R3"
+    "scope": "inherited R2 bounded real DeepSeek Minimal Flash and Pro Thinking for an unchanged Provider/Harness/Broker execution path; not rerun for R4"
   },
   "artifactBindings": {
-    "sourceProvenanceSha256": "fae1c36de31d1a6d81561b50ae5617a676e8cd886dd203b08833db566a7790e2",
+    "sourceProvenanceSha256": "829f37ac5a8e91aab942b9a494c24214896767894288baf365aa540663f3edbd",
     "packageLockSha256": "e84bcff962b6a8a743b9cb7b7c302b9c3783a314d1ee9af5b9b84b42e8e5922b",
     "requiredEvidenceSha256": {
-      "evidence/08_RUNTIME_HOTFIX_CANDIDATE_LOCAL_VALIDATION.json": "044ecf23d63a6f1e0b13edded6336e1ecd8fa00ad92550626ddfe393c098b651",
+      "evidence/08_RUNTIME_HOTFIX_CANDIDATE_LOCAL_VALIDATION.json": "db97795162ab5174d18895c2cae047e9dda3e72239ada790fe1a2f3c8cf3da21",
       "evidence/09_RUNTIME_HOTFIX_REAL_DEEPSEEK_REDACTED.json": "bb023ca725b56f55a0539f5bdbd245ec6accf75869ff11d199be1033b6bc54b0"
     }
   },
   "finalArchive": {
-    "name": "CODEX_HARNESS_BRIDGE_0_6_5_HOTFIX_R3_STABLE.zip",
-    "sha256Sidecar": "CODEX_HARNESS_BRIDGE_0_6_5_HOTFIX_R3_STABLE.zip.sha256",
-    "validationSidecar": "CODEX_HARNESS_BRIDGE_0_6_5_HOTFIX_R3_STABLE.zip.validation.json"
+    "name": "CODEX_HARNESS_BRIDGE_0_6_5_HOTFIX_R4_STABLE.zip",
+    "sha256Sidecar": "CODEX_HARNESS_BRIDGE_0_6_5_HOTFIX_R4_STABLE.zip.sha256",
+    "validationSidecar": "CODEX_HARNESS_BRIDGE_0_6_5_HOTFIX_R4_STABLE.zip.validation.json"
   },
   "automaticMerge": false,
   "pushed": false,

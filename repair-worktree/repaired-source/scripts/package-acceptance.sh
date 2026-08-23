@@ -390,6 +390,7 @@ for rel in [
   'docs/14_FINAL_READ_ONLY_AUDIT_PROMPT_ZH.md','docs/15_SOURCE_PROVENANCE_ZH.md',
   'docs/18_RUNTIME_HOTFIX_R2_REAL_SMOKE_ZH.md',
   'docs/19_DASHBOARD_AUTH_BUDGET_UX_HOTFIX_ZH.md',
+  'docs/20_OPERATOR_PASSWORD_MINIMUM_R4_ZH.md',
   'CANDIDATE_VALIDATION_REPORT_ZH.md',
 ]:
     assert os.path.isfile(os.path.join(root,rel)), rel

@@ -1,21 +1,21 @@
 {
   "schemaVersion": 1,
   "version": "0.6.5",
-  "hotfixRevision": "dashboard-auth-budget-ux-r3-stable",
-  "validatedAt": "2026-08-23T21:17:05+10:00",
+  "hotfixRevision": "operator-password-minimum-6-r4-stable",
+  "validatedAt": "2026-08-23T21:52:40+10:00",
   "result": "PASS",
-  "scope": "R3 Dashboard authentication, budget affordance, operator credential rotation, local security, browser, and package qualification",
+  "scope": "R4 six-character operator password boundary, Provider credential isolation, local security, browser, and package qualification",
   "implementation": {
-    "branch": "release/0.6.5-hotfix-r3",
-    "commit": "221d7a0c83919b3d86e6efa0607117df83c271dd",
-    "outerTree": "55501d97d953e6510a2b6d52f91bbfd3c9fe9f7a",
-    "sourceTree": "21e79c45b350be74b3eb0f8ac8b33a11bc308e63"
+    "branch": "release/0.6.5-hotfix-r4",
+    "commit": "e9d6a1cb13409223acedf5632000dbca8e703b51",
+    "outerTree": "ab03980dc002a43b5ba74ba6d739ae15096d4223",
+    "sourceTree": "da9dcbb11bae97ac91a056a734c3dcdcb127572d"
   },
   "deterministicValidation": {
     "typescriptBuild": "PASS",
     "unitAndComponentTests": {
       "result": "PASS",
-      "passed": 89,
+      "passed": 90,
       "failed": 0
     },
     "directAcceptance": "PASS",
@@ -40,6 +40,9 @@
     "emptyTaskBudgetStateVisible": true,
     "settingsTabVisible": true,
     "operatorPasswordRotation": "PASS",
+    "operatorPasswordMinlengthAttribute": 6,
+    "fiveCharacterPasswordRejectedClientSide": true,
+    "sixDigitPasswordAcceptedServerSide": true,
     "oldPasswordRejected": true,
     "newPasswordAccepted": true,
     "anonymousHtmlSecretFree": true
@@ -49,6 +52,12 @@
     "unauthenticatedBudgetAffordance": "PASS",
     "authenticatedBudgetControls": "PASS",
     "operatorCredentialRotation": "PASS",
+    "operatorPasswordMinimumCharacters": 6,
+    "fiveCharacterOperatorPasswordRejected": "PASS",
+    "sixDigitOperatorPasswordAccepted": "PASS",
+    "sixChineseCharacterOperatorPasswordAccepted": "PASS",
+    "providerApiKeyMinimumBytes": 24,
+    "sixCharacterProviderApiKeyRejected": "PASS",
     "credentialRotationConcurrencyFailClosed": "PASS",
     "credentialFileAtomicPrivatePersistence": "PASS",
     "dashboardBearerRetryLoop": "PASS",
@@ -66,19 +75,20 @@
     "sourcePackageHygiene": "PASS"
   },
   "providerPathBoundary": {
-    "r3ProviderCodeChanged": false,
-    "r3RealProviderSmokeExecuted": false,
-    "r3ExternalProviderCalls": 0,
-    "r3ProviderTokens": 0,
-    "r3ProviderCostCny": 0,
+    "r4ProviderRequestPathChanged": false,
+    "r4ProviderSecretValidationRefactored": true,
+    "r4RealProviderSmokeExecuted": false,
+    "r4ExternalProviderCalls": 0,
+    "r4ProviderTokens": 0,
+    "r4ProviderCostCny": 0,
     "inheritedEvidencePath": "evidence/09_RUNTIME_HOTFIX_REAL_DEEPSEEK_REDACTED.json",
     "inheritedEvidenceRevision": "runtime hotfix R2",
-    "inheritedEvidenceReason": "R3 changes only Dashboard, operator credential rotation, tests, and release documentation; Provider/Harness/Broker request paths are unchanged.",
-    "inheritedEvidenceNotRepresentedAsR3Rerun": true
+    "inheritedEvidenceReason": "R4 changes operator password validation and Dashboard guidance while preserving the Provider API key boundary; Provider/Harness/Broker request execution paths are unchanged.",
+    "inheritedEvidenceNotRepresentedAsR4Rerun": true
   },
   "boundaries": {
     "operatorCredentialValuePersistedInEvidence": false,
-    "providerCredentialUsedForR3": false,
+    "providerCredentialUsedForR4": false,
     "reasoningContentPersisted": false,
     "currentRuntimeInstalledAtEvidenceCapture": false,
     "deterministicFinalZipBuiltAtEvidenceCapture": false

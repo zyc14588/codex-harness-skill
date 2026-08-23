@@ -1,6 +1,6 @@
 # 0.6.5 stable 严格验收清单
 
-Runtime hotfix R3 已完成 stable 封印。本清单是给独立审计者逐项重跑的空白清单，不以勾选框代替证据；权威机器状态取自 `release-status.json`。evidence/08 是 R3 当前本地/浏览器/包资格，evidence/09 是 Provider 路径未修改时继承的 R2 有界真实回归证据。
+Runtime hotfix R4 已完成 stable 封印。本清单是给独立审计者逐项重跑的空白清单，不以勾选框代替证据；权威机器状态取自 `release-status.json`。evidence/08 是 R4 当前本地/浏览器/包资格，evidence/09 是 Provider 路径未修改时继承的 R2 有界真实回归证据。
 
 ## 构建
 
@@ -8,14 +8,15 @@ Runtime hotfix R3 已完成 stable 封印。本清单是给独立审计者逐项
 - [ ] `bridge/dist` 从空目录重建；
 - [ ] JSON、JSON Schema、Shell 和内联 JavaScript 检查；
 - [ ] runtime 不含 npm dependencies / `node_modules`；
-- [ ] 当前 89 项单元/组件测试全部通过。
+- [ ] 当前 90 项单元/组件测试全部通过。
 
 ## Dashboard 认证与费用治理
 
 - [ ] 首次打开不产生原生 `prompt`，页面内显示操作员认证；
 - [ ] 未认证费用页解释全局/任务预算字段需要登录，并禁用身份变更操作；
 - [ ] 认证后显示 12 个全局预算字段以及任务预算字段或明确空状态；
-- [ ] “设置 → 操作员认证”可轮换至少 24 字节、无空白的密码；
+- [ ] “设置 → 操作员认证”可轮换至少 6 个 Unicode 字符、无空白的密码；
+- [ ] 5 字符被拒绝、6 位数字和 6 个中文字符被接受，Provider API key 仍要求至少 24 字节；
 - [ ] 轮换后旧密码 401、新密码立即有效，响应与匿名 HTML 不回显 secret；
 - [ ] desktop/mobile 无 console error，390×844 无横向溢出。
 

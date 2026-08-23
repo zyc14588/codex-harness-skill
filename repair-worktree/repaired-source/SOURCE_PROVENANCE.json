@@ -70,6 +70,31 @@
     "workingTreeSealed": true,
     "sealSemantics": "implementationCommit identifies the qualified behavioral baseline. Release metadata cannot self-reference; provenance, evidence, package lock, and the final ordinary tree are bound by release-status SHA-256 fields, MANIFEST_SHA256.txt, and the archive sidecars."
   },
+  "hotfixR4": {
+    "branch": "release/0.6.5-hotfix-r4",
+    "implementationCommit": "e9d6a1cb13409223acedf5632000dbca8e703b51",
+    "implementationOuterTree": "ab03980dc002a43b5ba74ba6d739ae15096d4223",
+    "implementationSourceTree": "da9dcbb11bae97ac91a056a734c3dcdcb127572d",
+    "scope": "operator password minimum changed to six Unicode characters with matching Dashboard guidance while preserving the Provider API key minimum",
+    "componentTests": 90,
+    "operatorPasswordMinimumCharacters": 6,
+    "providerApiKeyMinimumBytes": 24,
+    "browserQualification": {
+      "engine": "system Google Chrome via Playwright",
+      "desktopViewport": "1440x1000",
+      "mobileViewport": "390x844",
+      "result": "PASS"
+    },
+    "transactionalPackageAcceptance": "PASS",
+    "providerExecutionPathChanged": false,
+    "providerSecretValidationRefactored": true,
+    "r4RealProviderCalls": 0,
+    "inheritedRealProviderEvidence": "evidence/09_RUNTIME_HOTFIX_REAL_DEEPSEEK_REDACTED.json",
+    "inheritedEvidenceSemantics": "R2 bounded real-provider evidence is retained only as regression evidence for an unchanged Provider/Harness/Broker path and is not represented as an R4 rerun.",
+    "ordinaryOuterTrackedFiles": true,
+    "workingTreeSealed": true,
+    "sealSemantics": "implementationCommit identifies the qualified behavioral baseline. Release metadata cannot self-reference; provenance, evidence, package lock, and the final ordinary tree are bound by release-status SHA-256 fields, MANIFEST_SHA256.txt, and the archive sidecars."
+  },
   "realHarness": {
     "root": "/home/zyc14588/deepseek-harness",
     "commit": "141eb6fef83422698aef7a981029e843e8161534",

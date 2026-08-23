@@ -1,5 +1,7 @@
 # 0.6.5 runtime hotfix R3：Dashboard 认证、预算与密码设置
 
+> 历史 R3 行为记录：R3 的最小长度为 24 UTF-8 字节。后续 R4 已按操作员要求调整为至少 6 个字符，当前规则见 `docs/20_OPERATOR_PASSWORD_MINIMUM_R4_ZH.md`。
+
 日期：2026-08-23。状态：stable 发布门禁的一部分。
 
 ## 用户可见问题与根因

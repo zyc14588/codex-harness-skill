@@ -54,6 +54,18 @@ source tree: 21e79c45b350be74b3eb0f8ac8b33a11bc308e63
 
 该基线通过 89 项组件测试、strict/direct/security/skill、隔离 transactional package acceptance 和真实 Chrome desktop/mobile 验证。R3 没有修改 Provider/Harness/Broker 请求路径；evidence/09 的 R2 有界真实 Provider 结果仅作为继承回归证据，不冒充 R3 重跑。R3 seal metadata、evidence/08、package lock 和 provenance 由 release status 的 SHA-256 bindings 与 manifest 保护；最终 ZIP 另由 sidecar 绑定。
 
+## Runtime hotfix R4 资格链
+
+R4 从 R3 stable 建立本地分支 `release/0.6.5-hotfix-r4`。操作员密码 6 字符边界、Provider credential 隔离和对应 Dashboard 提示的实现资格基线为：
+
+```text
+commit:      e9d6a1cb13409223acedf5632000dbca8e703b51
+outer tree:  ab03980dc002a43b5ba74ba6d739ae15096d4223
+source tree: da9dcbb11bae97ac91a056a734c3dcdcb127572d
+```
+
+该基线通过 90 项组件测试与 direct acceptance：5 字符 operator password 被拒绝，6 位数字和 6 个中文字符被接受；6 字符 Provider API key 仍被拒绝，Provider 下限保持至少 24 字节。R4 没有修改 Provider/Harness/Broker 请求执行路径，也没有重新调用真实 Provider；evidence/09 只作为未修改路径的 R2 继承回归证据。R4 的浏览器、安全、事务式包与确定性归档资格由 evidence/08、release status、manifest 和最终归档 sidecar 共同绑定。
+
 ## 固定 Harness
 
 ```text
@@ -73,4 +85,4 @@ apps/cli/lib SHA-256: 6a294d72c51e6570852acaf73458cda98f555bd53c9c7ff0b49c568e7c
 - `MANIFEST_SHA256.txt` 覆盖除自身外的所有普通文件；
 - 不自动 merge、push、tag 或创建 GitHub Release。
 
-最终 hotfix R3 stable seal 已绑定 R3 implementation commit/tree、当前 `evidence/08`、继承的未修改路径 `evidence/09`、package lock 与 provenance；ordinary-source authority、本地/浏览器/安全资格与最终归档门禁均未被跳过。
+最终 hotfix R4 stable seal 已绑定 R4 implementation commit/tree、当前 `evidence/08`、继承的未修改路径 `evidence/09`、package lock 与 provenance；ordinary-source authority、本地/浏览器/安全资格与最终归档门禁均未被跳过。
