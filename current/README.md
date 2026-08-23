@@ -33,6 +33,6 @@ node scripts/verify-release-gate.mjs --root . --audit-candidate
 
 安装器同样只允许显式 audit-candidate 模式；在 `release-status.json` 成为严格绑定的 0.6.6 stable 前，不得用于受控安装或生成 stable 归档。
 
-## 尚未满足的外部门禁
+## 发布门禁
 
-RC 基线的完整 regression 与 transactional package/rollback 已通过；最终版本字节的同修订证据仍在生成。当前 revision 的真实 Flash/Pro smoke、根 GitHub Actions 实际 PASS run、branch protection required checks 与最终 deterministic archive/unpacked revalidation 尚未全部完成。权威状态只看 [`release-status.json`](release-status.json)，不得从版本号或历史报告推断 stable/PASS。
+每项资格化结果只以 [`release-status.json`](release-status.json) 及其 SHA-256 绑定的当前修订证据为准。根 GitHub Actions 的目标提交实际 PASS、branch protection required checks，以及最终 deterministic archive/unpacked revalidation 都必须拥有独立证据；任一项未通过时，状态必须保持 candidate。不得从版本号或历史报告推断 stable/PASS。
