@@ -1,5 +1,9 @@
 import assert from "node:assert/strict";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import test from "node:test";
+import { inspectMinimalPresetNodeCommand } from "../harness-isolation.js";
 import { inspectMinimalProfileComposition } from "../service.js";
 const repairedDump = `# effective profile
 - id: session-title-llm
@@ -39,5 +43,27 @@ test("rejects the R6.4 skipped name-replacement composition", () => {
     assert.equal(result.bridgeRunnerMounted, false);
     assert.equal(result.patchWarningFree, false);
     assert.ok(result.errors.length >= 3);
+});
+function minimalPreset(command) {
+    return `- id: bridge-progressive-tools\n  name: '@deepseek-ai/dsh-mcp-client'\n  config:\n    command: ${JSON.stringify(command)}\n`;
+}
+test("managed minimal preset must use the exact Node binary mounted by Bubblewrap", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "bridge-minimal-preset-node-"));
+    const preset = path.join(root, "preset");
+    const wrapper = path.join(root, "node-wrapper");
+    try {
+        await mkdir(preset);
+        await writeFile(path.join(preset, "agent.cordis.yml"), minimalPreset(process.execPath));
+        const valid = await inspectMinimalPresetNodeCommand(preset);
+        assert.equal(valid.ok, true, JSON.stringify(valid));
+        await writeFile(wrapper, `#!/bin/sh\nexec ${JSON.stringify(process.execPath)} \"$@\"\n`, { mode: 0o700 });
+        await writeFile(path.join(preset, "agent.cordis.yml"), minimalPreset(wrapper));
+        const invalid = await inspectMinimalPresetNodeCommand(preset);
+        assert.equal(invalid.ok, false);
+        assert.ok(invalid.errors.some((item) => item.includes("does not match the Bridge runtime")));
+    }
+    finally {
+        await rm(root, { recursive: true, force: true });
+    }
 });
 //# sourceMappingURL=profile-composition.test.js.map

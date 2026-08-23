@@ -9,6 +9,73 @@ const SANDBOX_PATH = "/sandbox";
 const INTERNAL_SOCKET_DIRECTORY = "/run/codex-harness-bridge";
 const INTERNAL_SOCKET_PATH = `${INTERNAL_SOCKET_DIRECTORY}/monitor.sock`;
 const PROFILE_NAME = /^[A-Za-z0-9._-]{1,80}$/;
+function renderedMinimalPresetNode(source) {
+    const lines = source.split(/\r?\n/u);
+    const start = lines.findIndex((line) => /^- id:\s*bridge-progressive-tools\s*$/u.test(line));
+    if (start < 0)
+        return undefined;
+    let end = lines.length;
+    for (let index = start + 1; index < lines.length; index += 1) {
+        if (/^- id:\s*/u.test(lines[index])) {
+            end = index;
+            break;
+        }
+    }
+    const entry = lines.slice(start, end).join("\n");
+    const match = /^\s+command:\s*("(?:[^"\\]|\\.)*")\s*$/mu.exec(entry);
+    if (!match?.[1])
+        return undefined;
+    try {
+        const value = JSON.parse(match[1]);
+        return typeof value === "string" ? value : undefined;
+    }
+    catch {
+        return undefined;
+    }
+}
+/** Verify that the install-time MCP child command is the Node binary mounted by Bubblewrap. */
+export async function inspectMinimalPresetNodeCommand(presetDirectory, expectedNode = process.execPath) {
+    const presetPath = path.join(presetDirectory, "agent.cordis.yml");
+    const errors = [];
+    let expectedCanonical;
+    let configuredNode;
+    let canonicalConfiguredNode;
+    try {
+        expectedCanonical = await realpath(expectedNode);
+    }
+    catch {
+        errors.push(`Bridge runtime Node is unavailable: ${expectedNode}`);
+    }
+    try {
+        configuredNode = renderedMinimalPresetNode(await readFile(presetPath, "utf8"));
+    }
+    catch {
+        errors.push(`managed minimal preset is unreadable: ${presetPath}`);
+    }
+    if (configuredNode === undefined)
+        errors.push("managed minimal preset has no JSON-encoded bridge-progressive-tools command");
+    else if (!path.isAbsolute(configuredNode))
+        errors.push("managed minimal preset Node command is not absolute");
+    else {
+        try {
+            canonicalConfiguredNode = await realpath(configuredNode);
+        }
+        catch {
+            errors.push(`managed minimal preset Node command is unavailable: ${configuredNode}`);
+        }
+    }
+    if (expectedCanonical !== undefined && canonicalConfiguredNode !== undefined && canonicalConfiguredNode !== expectedCanonical) {
+        errors.push(`managed minimal preset Node command does not match the Bridge runtime: ${canonicalConfiguredNode} != ${expectedCanonical}`);
+    }
+    return {
+        ok: errors.length === 0,
+        presetPath,
+        ...(expectedCanonical === undefined ? {} : { expectedNode: expectedCanonical }),
+        ...(configuredNode === undefined ? {} : { configuredNode }),
+        ...(canonicalConfiguredNode === undefined ? {} : { canonicalConfiguredNode }),
+        errors,
+    };
+}
 async function gitCommonDirectory(worktree) {
     const result = await runProcess("/usr/bin/git", ["-C", worktree, "rev-parse", "--path-format=absolute", "--git-common-dir"], {
         timeoutMs: 10_000,
@@ -99,6 +166,14 @@ export async function prepareHarnessSandbox(config, task, launcher, profile, sel
     const canonicalProfilesRoot = await realpath(path.join(hostDshHome, "profiles"));
     if (!isWithin(profileModules, canonicalProfilesRoot))
         throw new Error(`Harness profile node_modules resolves outside its trusted root: ${profileModules}`);
+    const nodeExecutable = await realpath(process.execPath);
+    const minimalPresetSource = path.join(hostDshHome, ".agent-presets", "codex-bridge-minimal");
+    if (task.harnessMode === "minimal") {
+        const nodeInspection = await inspectMinimalPresetNodeCommand(minimalPresetSource, nodeExecutable);
+        if (!nodeInspection.ok) {
+            throw new Error(`MINIMAL_TOOL_PLANE_COMPOSITION: ${nodeInspection.errors.join("; ")}`);
+        }
+    }
     const sandboxRoot = path.join(taskDirectory(config, task.id), "harness-sandbox");
     await rm(sandboxRoot, { recursive: true, force: true });
     for (const relative of [
@@ -108,8 +183,7 @@ export async function prepareHarnessSandbox(config, task, launcher, profile, sel
         await mkdir(path.join(sandboxRoot, relative), { recursive: true, mode: 0o700 });
     await copyManagedDirectory(profileSource, path.join(sandboxRoot, "dsh", "profiles", profile), path.join(hostDshHome, "profiles"), "Harness profile");
     if (task.harnessMode === "minimal") {
-        const presetSource = path.join(hostDshHome, ".agent-presets", "codex-bridge-minimal");
-        await copyManagedDirectory(presetSource, path.join(sandboxRoot, "dsh", ".agent-presets", "codex-bridge-minimal"), path.join(hostDshHome, ".agent-presets"), "Harness minimal preset");
+        await copyManagedDirectory(minimalPresetSource, path.join(sandboxRoot, "dsh", ".agent-presets", "codex-bridge-minimal"), path.join(hostDshHome, ".agent-presets"), "Harness minimal preset");
     }
     const prompt = await readFile(task.promptPath);
     if (prompt.length === 0 || prompt.length > 256_000)
@@ -150,7 +224,6 @@ export async function prepareHarnessSandbox(config, task, launcher, profile, sel
     const shadowTaskDir = path.join(sandboxRoot, "state", "tasks", task.id);
     await mkdir(shadowTaskDir, { recursive: true, mode: 0o700 });
     await writeFile(path.join(shadowTaskDir, "task.json"), `${JSON.stringify(sanitizedShadowTask(task), null, 2)}\n`, { mode: 0o600, flag: "wx" });
-    const nodeExecutable = await realpath(process.execPath);
     const nodeRoot = path.dirname(path.dirname(nodeExecutable));
     const socketSourceDirectory = path.join(config.stateRoot, "monitor-internal");
     const socketSource = path.join(socketSourceDirectory, "monitor.sock");

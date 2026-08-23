@@ -1,5 +1,5 @@
 import type { BridgeConfig, HarnessExecutionMode, RequestedExecutor, SplitDecisionSnapshot, SplitMemoryProfile, SplitOutcomeStage, TaskBudget, TaskComplexity, TaskMode, TaskRecord, WorkerExecutor } from "./types.js";
-export declare const SPLIT_MEMORY_SCHEMA_VERSION: 4;
+export declare const SPLIT_MEMORY_SCHEMA_VERSION: 5;
 export interface SplitCandidateDescriptor {
     taskFamily: string;
     requestedExecutor: RequestedExecutor;

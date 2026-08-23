@@ -158,7 +158,7 @@
           "type": "string"
         },
         "memorySchemaVersion": {
-          "const": 3
+          "const": 5
         },
         "ignoredLegacySampleCount": {
           "type": "integer",

@@ -82,6 +82,7 @@ import {
 } from "./util.js";
 import { captureProcessIdentity, processIdentityMatches, signalVerifiedProcessGroup } from "./process-identity.js";
 import { ensureOperatorToken, readProviderApiKey } from "./security.js";
+import { inspectMinimalPresetNodeCommand } from "./harness-isolation.js";
 
 const ACCEPTABLE_FOR_ADOPTION = new Set<TaskRecord["status"]>(["completed", "completed_no_changes"]);
 const MAX_TASK_PROMPT_BYTES = 96_000;
@@ -968,6 +969,7 @@ export async function doctor(probeHarness: boolean): Promise<unknown> {
   const minimalPresetPath = path.join(dshHome, ".agent-presets", "codex-bridge-minimal");
   const minimalServerPath = fileURLToPath(new URL("./minimal-tools-server.js", import.meta.url));
   const minimalRequestStatePath = fileURLToPath(new URL("./minimal-request-state.js", import.meta.url));
+  const minimalPresetNode = await inspectMinimalPresetNodeCommand(minimalPresetPath);
   const minimalIntegration = {
     profile: minimalProfilePath,
     profileExists: await pathExists(path.join(minimalProfilePath, "cordis.patch.yml")),
@@ -979,6 +981,7 @@ export async function doctor(probeHarness: boolean): Promise<unknown> {
     progressiveToolServerExists: await pathExists(minimalServerPath),
     requestStateModule: minimalRequestStatePath,
     requestStateModuleExists: await pathExists(minimalRequestStatePath),
+    nodeCommand: minimalPresetNode,
   };
   const checks: Record<string, unknown> = {
     configPath: defaultConfigPath(), configReadable: true, stateRoot: config.stateRoot,
@@ -1024,7 +1027,8 @@ export async function doctor(probeHarness: boolean): Promise<unknown> {
       });
       const minimalStructureOk = minimalIntegration.profileExists && minimalIntegration.profileManaged
         && minimalIntegration.presetExists && minimalIntegration.presetManaged
-        && minimalIntegration.progressiveToolServerExists && minimalIntegration.requestStateModuleExists;
+        && minimalIntegration.progressiveToolServerExists && minimalIntegration.requestStateModuleExists
+        && minimalPresetNode.ok;
       const minimalEffectiveComposition = inspectMinimalProfileComposition(minimalComposition.stdout, minimalComposition.stderr);
       probeOk = version.code === 0 && standardComposition.code === 0 && minimalComposition.code === 0
         && minimalStructureOk && minimalEffectiveComposition.ok;
@@ -1050,7 +1054,8 @@ export async function doctor(probeHarness: boolean): Promise<unknown> {
   const llama = await probeLlamaCpp(config);
   checks.llamaCppProbe = llama;
   const llamaOk = llama.ok === true;
-  const ok = node.code === 0 && nodeSupported && git.code === 0 && launcherOk && probeOk && monitorOk && llamaOk &&
+  const ok = node.code === 0 && nodeSupported && git.code === 0 && launcherOk && probeOk && monitorOk && llamaOk
+    && minimalPresetNode.ok &&
     rootChecks.every((item) => item.ok === true) && (!config.enforceHarnessPin || revision.matches);
   return { ok, checks };
 }

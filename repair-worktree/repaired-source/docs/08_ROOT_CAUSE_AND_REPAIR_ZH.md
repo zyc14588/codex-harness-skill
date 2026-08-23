@@ -23,7 +23,7 @@ INVALID_REQUEST: The reasoning_content in the thinking mode must be passed back 
 3. Pro 每轮省略 `tool_choice`；从真实 Provider 工具响应捕获 reasoning 哈希、长度和 tool-call IDs。
 4. 后续请求在 Provider 前校验完整历史 assistant message 和原 reasoning；缺失、空或篡改均 fail-closed。
 5. Provider 协议、thinking state/replay 和既有工具/传输/no-effect 统一归为 infrastructure。
-6. split-memory 升到 schema 4，隔离 schema 1–3；规范化默认 Flash key；零样本基础设施画像保留当前提议预算。
+6. split-memory 升到 schema 5，隔离 schema 1–4；规范化默认 Flash key；零样本基础设施画像保留当前提议预算，并隔离曾被零 I/O MCP 启动错误污染的 schema 4 画像。
 
 ## 修复过程中发现并关闭的次级根因
 
@@ -36,14 +36,14 @@ INVALID_REQUEST: The reasoning_content in the thinking mode must be passed back 
 
 每项失败都先保留 `.repair/evidence`，再增加稳定复现、实施最小修复并从窄测试跑回完整门禁。
 
-## 当前因果证明
+## 当前 hotfix R2 因果证明
 
-- 回归 83 项全部通过；
-- dynamic Flash 4 轮全 disabled，dynamic Pro replay 深度 0/1/2；
-- replay 缺失在 Provider 前失败，调用 0、Token 0/0、split 不变；
-- 当前动态真实 Harness + 本地可观测 Broker 中，Flash 4 轮全 disabled，Pro 3 轮全 enabled/high/no tool-choice 并回放 0/1/2；
-- 2026-08-22 的历史真实 Flash/Pro smoke 只保留在 Git 历史；2026-08-23 当前安全边界下的 Flash/Pro smoke 已作为当前 stable gate 通过；
-- 当前修订的真实双模式 smoke 仍需操作员明确授权；
-- package acceptance 覆盖安装、升级、回滚、重装和卸载。
+- 回归 87 项、direct acceptance、package acceptance、安全验收与 skill 校验全部通过；
+- managed MCP 通用同步错误在 Provider I/O 前归为 `minimal_tool_plane_composition`，不会学习成叶子过大；
+- preset Node wrapper 与 Bridge `process.execPath` 不一致时，doctor 与 Bubblewrap 启动前均 fail-closed；
+- Dashboard 在取消认证或收到 `401` 后停止自动重弹，`403` 不再删除有效 Bearer；
+- 旧 `evidence/03` 仍只属于此前 stable；本修订没有复用它取得资格；
+- 本修订独立完成动态 Harness、0-I/O 失败注入和有界真实双模式 smoke：Flash 4 轮，Pro 4 轮并完整回放深度 0/1/2/3，见 `evidence/08` 与 `evidence/09`；
+- 普通源码/provenance 与最终确定性归档仍须独立封印。
 
-因此主因不是 Token 不足或任务过大，而是 attempt 内协议模式不一致；当前修订已在 Provider 边界前建立不可变、可审计、失败封闭的状态机，并通过真实 smoke、artifact bindings 与归档门禁，已升级为 stable。
+因此本次 Q1 失败不是 Token 不足或任务过大，而是 Bubblewrap 与 managed MCP 的 Node 运行时组合错误；修复后的门禁已证明错误能在 Provider 边界前被正确拒绝和归因。当前状态保持 `candidate / controlledUseAllowed=false`，直到来源与归档门禁完成。

@@ -34,7 +34,7 @@ function taskRecord(root: string, id: string): TaskRecord {
     toolCapabilities: [],
     taskFamily: "minimal-request-state-test",
     splitDecision: {
-      memorySchemaVersion: 4,
+      memorySchemaVersion: 5,
       memoryKey: "minimal-request-state-test",
       taskFamily: "minimal-request-state-test",
       memoryRevision: 0,

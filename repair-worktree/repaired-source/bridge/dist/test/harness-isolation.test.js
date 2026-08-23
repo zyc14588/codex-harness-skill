@@ -204,7 +204,7 @@ await writeFile(${JSON.stringify(path.join(worktree, "isolation-report.json"))},
             toolCapabilities: [],
             taskFamily: "security/harness-isolation",
             splitDecision: {
-                memorySchemaVersion: 4, memoryKey: "isolation", taskFamily: "security/harness-isolation", memoryRevision: 0,
+                memorySchemaVersion: 5, memoryKey: "isolation", taskFamily: "security/harness-isolation", memoryRevision: 0,
                 sampleCount: 0, ignoredLegacySampleCount: 0, confidence: 0, recommendedLeafScale: 1,
                 recommendedComplexity: "small", recommendedMaxInputTokens: 900_000, recommendedMaxOutputTokens: 500_000,
                 anomalyRate: 0, rationale: ["security test"], chosenComplexity: "small", chosenMaxInputTokens: 900_000, chosenMaxOutputTokens: 500_000,

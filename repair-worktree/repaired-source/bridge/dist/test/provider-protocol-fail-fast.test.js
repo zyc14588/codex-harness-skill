@@ -172,7 +172,7 @@ test("provider protocol failure is a non-retryable attempt abort and blocks late
         toolCapabilities: [],
         taskFamily: "test/provider-protocol-fail-fast",
         splitDecision: {
-            memorySchemaVersion: 4,
+            memorySchemaVersion: 5,
             memoryKey: "provider-protocol-fail-fast-memory",
             taskFamily: "test/provider-protocol-fail-fast",
             memoryRevision: 0,

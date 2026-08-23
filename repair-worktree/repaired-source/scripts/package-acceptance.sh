@@ -199,6 +199,13 @@ echo "[package 1/9] Fresh transactional installation"
 [[ -f "$MINIMAL_PRESET_DIR/.codex-harness-bridge-managed.json" ]]
 [[ -f "$MINIMAL_PRESET_DIR/agent.cordis.yml" ]]
 grep -F "minimal-tools-server.js" "$MINIMAL_PRESET_DIR/agent.cordis.yml" >/dev/null
+EXPECTED_NODE_RUNTIME="$(node -p 'process.execPath')"
+python3 - "$MINIMAL_PRESET_DIR/agent.cordis.yml" "$EXPECTED_NODE_RUNTIME" <<'PY_NODE_RUNTIME'
+import json,sys
+source=open(sys.argv[1],encoding="utf-8").read()
+expected=f"    command: {json.dumps(sys.argv[2])}\n"
+assert expected in source, (expected, source)
+PY_NODE_RUNTIME
 grep -A1 -F -- "- id: session-title-llm" "$MINIMAL_PROFILE_DIR/cordis.patch.yml" | grep -F "disabled: true" >/dev/null
 (cd "$INSTALL_ROOT" && sha256sum -c MANIFEST_SHA256.txt >/dev/null)
 codex mcp get codex_harness >/dev/null
@@ -358,7 +365,7 @@ echo "[package 9/9] Source package hygiene and schemas"
 [[ -f "$SOURCE_ROOT/bridge/package-lock.json" ]]
 find "$SOURCE_ROOT" -type l -print -quit | grep -q . && { echo "Package contains symlink" >&2; exit 1; } || true
 python3 - "$SOURCE_ROOT" <<'PY'
-import json,os,sys
+import hashlib,json,os,sys
 root=sys.argv[1]
 for rel in [
   'bridge/package.json','.codex-plugin/plugin.json','config/config.example.json',
@@ -370,21 +377,38 @@ for rel in [
   'evidence/05_PACKAGE_ACCEPTANCE_0_6_5_STABLE.json',
   'evidence/06_SKILL_VALIDATION_0_6_5_STABLE.json',
   'evidence/07_SECURITY_ACCEPTANCE_0_6_5_STABLE.json',
+  'evidence/08_RUNTIME_HOTFIX_CANDIDATE_LOCAL_VALIDATION.json',
+  'evidence/09_RUNTIME_HOTFIX_REAL_DEEPSEEK_REDACTED.json',
 ]:
     json.load(open(os.path.join(root,rel),encoding='utf-8'))
+task_schema=json.load(open(os.path.join(root,'schemas/task-envelope.schema.json'),encoding='utf-8'))
+assert task_schema['$defs']['splitDecision']['properties']['memorySchemaVersion']['const']==5
 for rel in [
   'docs/08_ROOT_CAUSE_AND_REPAIR_ZH.md','docs/09_TEST_REPORT_ZH.md',
   'docs/10_REAL_DEEPSEEK_SMOKE_ZH.md','docs/11_THINKING_POLICY_DESIGN_ZH.md',
   'docs/12_SPLIT_MEMORY_SCHEMA4_MIGRATION_ZH.md','docs/13_STRICT_ACCEPTANCE_PROMPT_ZH.md',
   'docs/14_FINAL_READ_ONLY_AUDIT_PROMPT_ZH.md','docs/15_SOURCE_PROVENANCE_ZH.md',
+  'docs/18_RUNTIME_HOTFIX_R2_REAL_SMOKE_ZH.md',
+  'CANDIDATE_VALIDATION_REPORT_ZH.md',
 ]:
     assert os.path.isfile(os.path.join(root,rel)), rel
 release=json.load(open(os.path.join(root,'release-status.json'),encoding='utf-8'))
 assert release['version']=='0.6.5'
+candidate_evidence=release['candidateValidationEvidence']
+candidate_path=os.path.join(root,candidate_evidence['path'])
+assert hashlib.sha256(open(candidate_path,'rb').read()).hexdigest()==candidate_evidence['sha256']
+real_evidence=release['realProviderValidationEvidence']
+real_path=os.path.join(root,real_evidence['path'])
+assert hashlib.sha256(open(real_path,'rb').read()).hexdigest()==real_evidence['sha256']
 if release['releaseStatus']=='stable':
     assert release['controlledUseAllowed'] is True
     assert release['deliverableStatus']=='DELIVERABLE_PASS'
     assert all(value=='PASS' for value in release['gates'].values())
+    bindings=release['artifactBindings']
+    for rel,expected in bindings['requiredEvidenceSha256'].items():
+        assert not os.path.isabs(rel) and '..' not in rel.replace('\\','/').split('/'), rel
+        actual=hashlib.sha256(open(os.path.join(root,rel),'rb').read()).hexdigest()
+        assert actual==expected, rel
 else:
     assert release['releaseStatus']=='candidate'
     assert release['controlledUseAllowed'] is False

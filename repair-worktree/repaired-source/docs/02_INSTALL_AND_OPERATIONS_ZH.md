@@ -53,7 +53,9 @@ secret 目录必须是操作员拥有、mode-0700、非 symlink；secret 文件�
 ~/.local/share/codex-harness-bridge/0.6.5/scripts/monitor.sh stop
 ```
 
-Dashboard 只监听 loopback，但 loopback 不是身份边界。浏览器把 operator token 仅放在 `sessionStorage`，API 每次要求 Bearer；mutation 额外校验 Origin 与 CSRF。CLI snapshot 也使用私有 operator token。
+Dashboard 只监听 loopback，但 loopback 不是身份边界。浏览器把 operator token 仅放在 `sessionStorage`，API 每次要求 Bearer；mutation 额外校验 Origin 与 CSRF。页面首次缺少令牌时只提示一次，取消或 `401` 后暂停自动认证并显示“输入令牌”按钮；`403` 不再删除仍然有效的 Bearer。CLI snapshot 也使用私有 operator token。
+
+安装器通过 `process.execPath` 固定真实 Node 二进制，而不是记录 `command -v node` 可能返回的 shell 包装器。Doctor 与每次 Bubblewrap 启动前都会验证 managed minimal preset 的 Node 命令与 Bridge 当前运行时完全一致。
 
 ## 配置与迁移
 

@@ -18,7 +18,7 @@ export const INFRASTRUCTURE_FAILURE_TAXONOMY: Readonly<Record<InfrastructureFail
   provider_protocol: Object.freeze({ infrastructure: true, attemptAbort: true, retryable: false, attribution: "infrastructure" }),
   provider_transport: Object.freeze({ infrastructure: true, attemptAbort: false, retryable: true, attribution: "infrastructure" }),
   provider_credential: Object.freeze({ infrastructure: true, attemptAbort: true, retryable: false, attribution: "infrastructure" }),
-  no_effect: Object.freeze({ infrastructure: false, attemptAbort: false, retryable: false, attribution: "task_shape" }),
+  no_effect: Object.freeze({ infrastructure: true, attemptAbort: false, retryable: false, attribution: "infrastructure" }),
 });
 
 export const ATTEMPT_PROTOCOL_FAILURE_HTTP_STATUS = 422;
@@ -67,4 +67,24 @@ export function infrastructureAnomalyLabels(task: Pick<TaskRecord, "infrastructu
 
 export function failureAttribution(kind: InfrastructureFailureKind | undefined): SplitOutcomeAttribution | undefined {
   return kind === undefined ? undefined : INFRASTRUCTURE_FAILURE_TAXONOMY[kind].attribution;
+}
+
+/**
+ * Normalize failures emitted before the managed minimal MCP tool plane can
+ * publish its first runner snapshot. DSH currently wraps child-spawn and MCP
+ * initialize/list failures in a generic preset-mount error, so relying only on
+ * Bridge-authored MINIMAL_TOOL_* markers misattributes a zero-I/O startup
+ * failure to the task shape.
+ */
+export function classifyMinimalToolPlaneFailure(
+  task: Pick<TaskRecord, "executor" | "harnessMode">,
+  details: string,
+): Extract<InfrastructureFailureKind, "minimal_tool_plane_composition" | "minimal_tool_serialization_mismatch"> | undefined {
+  if (task.executor !== "harness" || task.harnessMode !== "minimal") return undefined;
+  if (/MINIMAL_TOOL_SERIALIZATION_MISMATCH:/u.test(details)) return "minimal_tool_serialization_mismatch";
+  if (/MINIMAL_TOOL_(?:PLANE|PLANE_COMPOSITION):/u.test(details)) return "minimal_tool_plane_composition";
+
+  const managedMcpEntry = /bridge-progressive-tools|mcp-client\(bridge\)|managed minimal preset Node command/iu.test(details);
+  const startupFailure = /initial connection or tool synchroni[sz]ation failed|failed to mount|does not match the Bridge runtime/iu.test(details);
+  return managedMcpEntry && startupFailure ? "minimal_tool_plane_composition" : undefined;
 }

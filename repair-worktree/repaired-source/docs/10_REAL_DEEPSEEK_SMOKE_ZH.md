@@ -1,4 +1,6 @@
-# 0.6.5 当前修订真实 DeepSeek smoke
+# 0.6.5 原 stable 修订真实 DeepSeek smoke
+
+> 历史封印报告：这里的“当前修订”指此前封印的 0.6.5 stable。封印后 runtime hotfix candidate 尚未重跑真实 Provider，不能复用本报告取得资格。
 
 当前状态：`PASS`。执行日期：2026-08-23。脱敏机器证据为 `evidence/03_REAL_DEEPSEEK_0_6_5_STABLE_REDACTED.json`。
 
@@ -51,4 +53,4 @@ Bubblewrap SHA-256: 0abea81db798ebf6b4742ac0664802d97521547a353c2a0dbdc21d76cbbf
 
 ## 仓库与发布边界
 
-smoke 临时主仓库的 HEAD 前后一致且 clean；Bridge 未 merge、push、tag 或创建 release。此真实门禁与 artifact bindings、确定性 ZIP 双构建及解压复验共同构成当前 stable 封印。
+smoke 临时主仓库的 HEAD 前后一致且 clean；Bridge 未 merge、push、tag 或创建 release。此真实门禁与 artifact bindings、确定性 ZIP 双构建及解压复验共同构成当时的 stable 封印。

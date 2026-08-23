@@ -21,7 +21,7 @@ import { withNamedLock } from "./store.js";
 import { usageForBudgetGroup } from "./telemetry.js";
 import { atomicWriteJson, ensureDir, nowIso, pathExists, readJson } from "./util.js";
 
-export const SPLIT_MEMORY_SCHEMA_VERSION = 4 as const;
+export const SPLIT_MEMORY_SCHEMA_VERSION = 5 as const;
 const COMPLEXITIES: TaskComplexity[] = ["trivial", "small", "medium", "large"];
 
 export interface SplitCandidateDescriptor {
@@ -166,7 +166,7 @@ export async function adviseSplit(
   const rationale: string[] = [];
   if (!config.controller.splitMemory.enabled) rationale.push("adaptive split memory is disabled by operator configuration");
   else if (!profile) {
-    rationale.push("no matching schema-v4 historical profile; retain the proposed leaf size and token gates");
+    rationale.push("no matching schema-v5 historical profile; retain the proposed leaf size and token gates");
     if (loaded.ignoredLegacySampleCount > 0 || loaded.ignoredLegacySchemaVersion !== undefined) {
       rationale.push(`ignored legacy split-memory schema v${loaded.ignoredLegacySchemaVersion ?? "unknown"} with ${loaded.ignoredLegacySampleCount} sample(s)`);
     }

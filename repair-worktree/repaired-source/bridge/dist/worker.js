@@ -12,7 +12,7 @@ import { effectiveBudget, effectiveLlamaConfig } from "./controls.js";
 import { budgetExceededReason, budgetReferenceAlerts, readBudgetMarker, usageForBudgetGroup, writeUsageSnapshot } from "./telemetry.js";
 import { recordTaskSplitOutcome } from "./split-memory.js";
 import { isWithin, nowIso, pathExists, sleep, tailText } from "./util.js";
-import { attemptInfrastructureAbortReason } from "./infrastructure-failure.js";
+import { attemptInfrastructureAbortReason, classifyMinimalToolPlaneFailure } from "./infrastructure-failure.js";
 import { createExecutionAttempt, thinkingPolicyForModel } from "./thinking-policy.js";
 import { cleanupHarnessSandbox, prepareHarnessSandbox } from "./harness-isolation.js";
 import { captureProcessIdentity, signalVerifiedProcessGroup } from "./process-identity.js";
@@ -456,10 +456,10 @@ async function main() {
     const stateToolPlaneFailure = latest.infrastructureFailureKind === "minimal_tool_plane"
         || latest.infrastructureFailureKind === "minimal_tool_plane_composition"
         || latest.infrastructureFailureKind === "minimal_tool_serialization_mismatch";
+    const inferredToolPlaneFailure = classifyMinimalToolPlaneFailure(latest, [launchError, errorSummary].filter((value) => Boolean(value)).join("\n"));
     const minimalToolPlaneFailure = latest.executor === "harness"
         && latest.harnessMode === "minimal"
-        && (stateToolPlaneFailure
-            || /MINIMAL_TOOL_(?:PLANE|PLANE_COMPOSITION|SERIALIZATION_MISMATCH):/u.test(errorSummary));
+        && (stateToolPlaneFailure || inferredToolPlaneFailure !== undefined);
     const leakedToolProtocol = latest.executor === "harness"
         && latest.harnessMode === "minimal"
         && finalPaths.length === 0
@@ -504,10 +504,10 @@ async function main() {
         current.resultSummary = resultSummary;
         current.referenceAlerts = referenceAlerts;
         if (minimalToolPlaneFailure && current.infrastructureFailureKind === undefined) {
-            current.infrastructureFailureKind = /MINIMAL_TOOL_SERIALIZATION_MISMATCH:/u.test(errorSummary)
-                ? "minimal_tool_serialization_mismatch"
-                : "minimal_tool_plane_composition";
-            current.infrastructureFailureDetails = errorSummary;
+            current.infrastructureFailureKind = inferredToolPlaneFailure ?? "minimal_tool_plane_composition";
+            current.infrastructureFailureDetails = [launchError, errorSummary]
+                .filter((value) => Boolean(value))
+                .join("\n");
         }
         else if (leakedToolProtocol) {
             current.infrastructureFailureKind = "tool_protocol";
@@ -642,11 +642,16 @@ main().catch(async (error) => {
             const task = await updateTask(config, taskId, (current) => {
                 if (current.status === "cancelled")
                     return;
+                const infrastructureFailureKind = classifyMinimalToolPlaneFailure(current, message);
                 current.status = "failed";
                 delete current.workerDeadObservedAt;
                 current.phase = "failed";
                 current.completedAt = nowIso();
                 current.error = message;
+                if (infrastructureFailureKind !== undefined && current.infrastructureFailureKind === undefined) {
+                    current.infrastructureFailureKind = infrastructureFailureKind;
+                    current.infrastructureFailureDetails = message;
+                }
             });
             await updatePlan(config, task.planId, (plan) => {
                 const leaf = plan.leaves.find((candidate) => candidate.id === task.leafId);

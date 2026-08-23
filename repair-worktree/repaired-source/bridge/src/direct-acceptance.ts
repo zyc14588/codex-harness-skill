@@ -523,6 +523,9 @@ try {
   }
   assert.match(dashboardText, /data-theme="soft"/);
   assert.match(dashboardText, /color-scheme:light/);
+  assert.match(dashboardText, /id="authenticate"/, "dashboard must expose an explicit re-authentication control");
+  assert.match(dashboardText, /if\(r\.status===401\)\{sessionStorage\.removeItem/, "401 must clear a rejected bearer");
+  assert.doesNotMatch(dashboardText, /r\.status===401\|\|r\.status===403/, "CSRF/origin 403 must not discard a valid bearer");
   assert.doesNotMatch(dashboardText, /USD|美元/, "default dashboard must not display USD prices");
   const inlineScript = /<script>([\s\S]*?)<\/script>/.exec(dashboardText)?.[1];
   assert.ok(inlineScript, "dashboard did not contain its inline controller script");
@@ -894,7 +897,7 @@ try {
       model: "deepseek-v4-flash",
       taskFamily: "required-change-no-effect-family",
       harnessWritePaths: ["src/harness/no-effect-must-exist.json"],
-      acceptanceCriteria: ["Required leased output must exist; an empty diff is task-shape evidence"],
+      acceptanceCriteria: ["Required leased output must exist; an empty diff is rejected without becoming task-shape evidence"],
       verificationCommands: ["test -f src/harness/no-effect-must-exist.json"],
       budget: { maxApiCalls: 3, maxInputTokens: 20_000, maxOutputTokens: 4_000, maxCostCny: 2 },
     }],
@@ -910,17 +913,17 @@ try {
   const noEffectAfter = payloadArray(payload(await controllerSplitAdvice(repo, [{
     id: "no-effect-after", taskFamily: "required-change-no-effect-family", executor: "harness", harnessMode: "minimal", complexity: "trivial",
   }])).candidates)[0]!;
-  assert.equal(noEffectAfter.sampleCount, 1, JSON.stringify(noEffectAfter));
-  assert.ok(Number(noEffectAfter.recommendedLeafScale) < 1, JSON.stringify(noEffectAfter));
-  assert.ok(Number(noEffectAfter.recommendedMaxInputTokens) < Number(noEffectBefore.recommendedMaxInputTokens), JSON.stringify(noEffectAfter));
-  assert.ok(Number(noEffectAfter.recommendedMaxOutputTokens) < Number(noEffectBefore.recommendedMaxOutputTokens), JSON.stringify(noEffectAfter));
+  assert.equal(noEffectAfter.sampleCount, 0, JSON.stringify(noEffectAfter));
+  assert.equal(noEffectAfter.recommendedLeafScale, 1, JSON.stringify(noEffectAfter));
+  assert.equal(noEffectAfter.recommendedMaxInputTokens, noEffectBefore.recommendedMaxInputTokens, JSON.stringify(noEffectAfter));
+  assert.equal(noEffectAfter.recommendedMaxOutputTokens, noEffectBefore.recommendedMaxOutputTokens, JSON.stringify(noEffectAfter));
   const noEffectMemory = payload(await controllerSplitMemory(repo));
   const noEffectProfile = payloadArray(noEffectMemory.profiles).find((item) => item.taskFamily === "required-change-no-effect-family");
   assert.ok(noEffectProfile, JSON.stringify(noEffectMemory));
-  assert.equal(noEffectProfile.sampleCount, 1);
+  assert.equal(noEffectProfile.sampleCount, 0);
   assert.equal(noEffectProfile.successCount, 0);
-  assert.equal(noEffectProfile.infrastructureFailureCount, 0);
-  assert.equal(noEffectProfile.anomalyCount, 1);
+  assert.equal(noEffectProfile.infrastructureFailureCount, 1);
+  assert.equal(noEffectProfile.anomalyCount, 0);
 
   const requiredViolationBefore = payloadArray(payload(await controllerSplitAdvice(repo, [{
     id: "required-violation-before", taskFamily: "required-tool-choice-violation-family", executor: "harness", harnessMode: "minimal", complexity: "trivial",

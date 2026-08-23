@@ -1,6 +1,6 @@
-# 0.6.5 稳定版严格验收清单
+# 0.6.5 候选版严格验收清单
 
-当前 stable 修订已满足本清单，包括真实 Provider、artifact bindings、确定性 ZIP 双构建与解压后完整包验收；逐项机器证据以 release status、evidence、manifest 和 ZIP sidecar 为准。
+当前工作树是封印后热修 candidate。本清单同时列出发布所需门禁；勾选状态必须以 `release-status.json` 为准，历史 stable 的 evidence 与 ZIP sidecar 不自动给当前 candidate 续期。
 
 ## 构建
 
@@ -8,7 +8,7 @@
 - [ ] `bridge/dist` 从空目录重建；
 - [ ] JSON、JSON Schema、Shell 和内联 JavaScript 检查；
 - [ ] runtime 不含 npm dependencies / `node_modules`；
-- [ ] 当前 83 项单元/组件测试全部通过。
+- [x] 当前 87 项单元/组件测试全部通过。
 
 ## Token 门禁
 
@@ -62,7 +62,7 @@
 - [ ] minimal runner 在首个模型请求前核验 Shell、编辑器与渐进式工具；
 - [ ] DSML 恢复后实际产生租约内文件、diff、review、verification 和本地提交；
 - [ ] tool/thinking/replay/provider/transport/no-effect infrastructure 不缩小拆分画像；
-- [ ] split-memory schema-v1/v2/v3 被隔离并归档；schema 4 零样本基础设施画像不改变当前 advice。
+- [ ] split-memory schema-v1/v2/v3/v4 被隔离并归档；schema 5 零样本基础设施画像不改变当前 advice。
 
 ## R5 能力保留
 

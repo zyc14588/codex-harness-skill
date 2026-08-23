@@ -240,7 +240,7 @@ test("infrastructure failures are recorded without shrinking split advice", asyn
   }
 });
 
-test("required-change empty diff is task-shape evidence and shrinks split advice", async () => {
+test("required-change empty diff is non-learnable infrastructure evidence", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "bridge-split-no-effect-"));
   try {
     const config = testConfig(root);
@@ -255,19 +255,19 @@ test("required-change empty diff is task-shape evidence and shrinks split advice
       inputTokens: 30, outputTokens: 5,
     });
     const learned = await recordTaskSplitOutcome(config, task, "execution");
-    assert.equal(learned?.schemaVersion, 4);
-    assert.equal(learned?.sampleCount, 1);
+    assert.equal(learned?.schemaVersion, 5);
+    assert.equal(learned?.sampleCount, 0);
     assert.equal(learned?.successCount, 0);
-    assert.equal(learned?.anomalyCount, 1);
-    assert.equal(learned?.infrastructureFailureCount, 0);
-    assert.equal(learned?.recommendedLeafScale, 0.65);
-    assert.ok((learned?.recommendedMaxInputTokens ?? budget.maxInputTokens) < budget.maxInputTokens);
-    assert.ok((learned?.recommendedMaxOutputTokens ?? budget.maxOutputTokens) < budget.maxOutputTokens);
+    assert.equal(learned?.anomalyCount, 0);
+    assert.equal(learned?.infrastructureFailureCount, 1);
+    assert.equal(learned?.recommendedLeafScale, 1);
+    assert.equal(learned?.recommendedMaxInputTokens, budget.maxInputTokens);
+    assert.equal(learned?.recommendedMaxOutputTokens, budget.maxOutputTokens);
     const next = await adviseSplit(config, root, descriptor("required-change-no-effect"));
-    assert.equal(next.decision.sampleCount, 1);
-    assert.equal(next.decision.recommendedLeafScale, 0.65);
-    assert.ok(next.decision.recommendedMaxInputTokens < budget.maxInputTokens);
-    assert.ok(next.decision.recommendedMaxOutputTokens < budget.maxOutputTokens);
+    assert.equal(next.decision.sampleCount, 0);
+    assert.equal(next.decision.recommendedLeafScale, 1);
+    assert.equal(next.decision.recommendedMaxInputTokens, budget.maxInputTokens);
+    assert.equal(next.decision.recommendedMaxOutputTokens, budget.maxOutputTokens);
   } finally {
     await rm(root, { recursive: true, force: true });
   }
@@ -296,7 +296,7 @@ test("completed_no_changes is non-learnable even without an infrastructure class
   }
 });
 
-test("schema-v3 split memory is quarantined so rc.1 protocol pollution cannot constrain schema v4", async () => {
+test("schema-v4 split memory is quarantined so zero-I/O startup pollution cannot constrain schema v5", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "bridge-split-legacy-"));
   try {
     const config = testConfig(root);
@@ -325,7 +325,7 @@ test("schema-v3 split memory is quarantined so rc.1 protocol pollution cannot co
     const profilePath = await locate(profileRoot);
     const fs = await import("node:fs/promises");
     const legacy = JSON.parse(await fs.readFile(profilePath, "utf8")) as Record<string, unknown>;
-    legacy.schemaVersion = 3;
+    legacy.schemaVersion = 4;
     legacy.sampleCount = 8;
     legacy.anomalyCount = 4;
     legacy.recommendedLeafScale = 0.25;
@@ -336,30 +336,30 @@ test("schema-v3 split memory is quarantined so rc.1 protocol pollution cannot co
 
     const next = await adviseSplit(config, root, descriptor("legacy-pollution"));
     assert.equal(next.profile, undefined);
-    assert.equal(next.decision.memorySchemaVersion, 4);
+    assert.equal(next.decision.memorySchemaVersion, 5);
     assert.equal(next.decision.sampleCount, 0);
     assert.equal(next.decision.ignoredLegacySampleCount, 8);
-    assert.equal(next.decision.ignoredLegacySchemaVersion, 3);
+    assert.equal(next.decision.ignoredLegacySchemaVersion, 4);
     assert.equal(next.decision.recommendedLeafScale, 1);
     assert.equal(next.decision.recommendedComplexity, "medium");
     assert.equal(next.decision.recommendedMaxInputTokens, budget.maxInputTokens);
     assert.equal(next.decision.recommendedMaxOutputTokens, budget.maxOutputTokens);
 
-    const cleanTask = record(root, "schema4-seed", "legacy-pollution", next.decision, "completed");
+    const cleanTask = record(root, "schema5-seed", "legacy-pollution", next.decision, "completed");
     await createTask(config, cleanTask);
     await appendUsageEvent(cleanTask, {
-      id: "schema4-usage",
+      id: "schema5-usage",
       kind: "request_completed",
       usageSource: "provider",
       inputTokens: 12,
       outputTokens: 3,
     });
     const migrated = await recordTaskSplitOutcome(config, cleanTask, "execution");
-    assert.equal(migrated?.schemaVersion, 4);
+    assert.equal(migrated?.schemaVersion, 5);
     assert.equal(migrated?.sampleCount, 1);
     assert.equal(migrated?.successCount, 1);
     assert.equal(migrated?.ignoredLegacySampleCount, 8);
-    const legacyArchive = path.join(config.stateRoot, "split-memory", migrated?.repoKey ?? "", "legacy", `${migrated?.memoryKey}.schema-v3.json`);
+    const legacyArchive = path.join(config.stateRoot, "split-memory", migrated?.repoKey ?? "", "legacy", `${migrated?.memoryKey}.schema-v4.json`);
     assert.equal(await fs.stat(legacyArchive).then(() => true, () => false), true);
   } finally {
     await rm(root, { recursive: true, force: true });

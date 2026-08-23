@@ -1,0 +1,647 @@
+{
+  "result": "PASS",
+  "version": "0.6.5",
+  "provider": "DeepSeek real API via authenticated local credential broker",
+  "credentialHandling": "parsed only in the parent trust domain; stored as a private 0600 broker key; Harness received only a per-task token",
+  "harnessNetworkBoundary": "mandatory Bubblewrap network namespace with only the task-authenticated Unix-socket relay",
+  "bubblewrapSha256": "0abea81db798ebf6b4742ac0664802d97521547a353c2a0dbdc21d76cbbfd2c0",
+  "harnessCommit": "141eb6fef83422698aef7a981029e843e8161534",
+  "harnessBuildSha256": "6a294d72c51e6570852acaf73458cda98f555bd53c9c7ff0b49c568e7cf88a38",
+  "flash": {
+    "id": "stable-real-flash-multiturn-task",
+    "model": "deepseek-v4-flash",
+    "status": "completed",
+    "exitCode": 0,
+    "changedPaths": [
+      "real-flash-multiturn.txt"
+    ],
+    "executionAttempts": [
+      {
+        "id": "48026b9c-2e90-4db5-a43f-a814ed1d905c",
+        "ordinal": 1,
+        "executor": "harness",
+        "startedAt": "2026-08-23T07:57:52.719Z",
+        "model": "deepseek-v4-flash",
+        "thinkingPolicy": {
+          "schemaVersion": 1,
+          "policyVersion": "attempt-thinking-policy-v1",
+          "model": "deepseek-v4-flash",
+          "thinkingType": "disabled",
+          "reasoningEffort": "off",
+          "frozenAt": "2026-08-23T07:57:52.719Z"
+        },
+        "completedAt": "2026-08-23T07:58:04.558Z",
+        "outcome": "completed"
+      }
+    ],
+    "providerRequestOrdinal": 4,
+    "thinkingRequestEvidence": [
+      {
+        "requestOrdinal": 1,
+        "attemptId": "48026b9c-2e90-4db5-a43f-a814ed1d905c",
+        "model": "deepseek-v4-flash",
+        "thinkingType": "disabled",
+        "toolChoicePresent": true,
+        "replayRequirementCount": 0,
+        "replayedRequirementOrdinals": [],
+        "providerSentAt": "2026-08-23T07:57:53.435Z"
+      },
+      {
+        "requestOrdinal": 2,
+        "attemptId": "48026b9c-2e90-4db5-a43f-a814ed1d905c",
+        "model": "deepseek-v4-flash",
+        "thinkingType": "disabled",
+        "toolChoicePresent": true,
+        "replayRequirementCount": 0,
+        "replayedRequirementOrdinals": [],
+        "providerSentAt": "2026-08-23T07:57:54.706Z"
+      },
+      {
+        "requestOrdinal": 3,
+        "attemptId": "48026b9c-2e90-4db5-a43f-a814ed1d905c",
+        "model": "deepseek-v4-flash",
+        "thinkingType": "disabled",
+        "toolChoicePresent": false,
+        "replayRequirementCount": 0,
+        "replayedRequirementOrdinals": [],
+        "providerSentAt": "2026-08-23T07:57:56.083Z"
+      },
+      {
+        "requestOrdinal": 4,
+        "attemptId": "48026b9c-2e90-4db5-a43f-a814ed1d905c",
+        "model": "deepseek-v4-flash",
+        "thinkingType": "disabled",
+        "toolChoicePresent": false,
+        "replayRequirementCount": 0,
+        "replayedRequirementOrdinals": [],
+        "providerSentAt": "2026-08-23T07:57:57.229Z"
+      }
+    ],
+    "reasoningReplayRequirements": [],
+    "minimalMutationForceCount": 2,
+    "minimalMutationForcedTools": [
+      "bash",
+      "str_replace_editor"
+    ],
+    "toolProtocolNativeCallCount": 3,
+    "toolProtocolNativeTools": [
+      "bash"
+    ],
+    "toolProtocolRecoveryCount": 0,
+    "toolProtocolRecoveredTools": [],
+    "minimalRequestEvidence": [
+      {
+        "requestOrdinal": 1,
+        "purpose": "primary_mutation",
+        "adapterToolNames": [
+          "bash",
+          "mcp__bridge__capability_catalog",
+          "mcp__bridge__capability_enable",
+          "str_replace_editor"
+        ],
+        "adapterObservedAt": "2026-08-23T07:57:53.362Z",
+        "adapterReasoningEffort": "off",
+        "endpoint": "/chat/completions",
+        "topLevelKeys": [
+          "max_tokens",
+          "messages",
+          "model",
+          "stream",
+          "thinking",
+          "tools"
+        ],
+        "toolSchemaCount": 4,
+        "wireToolNames": [
+          "bash",
+          "mcp__bridge__capability_catalog",
+          "mcp__bridge__capability_enable",
+          "str_replace_editor"
+        ],
+        "proxyParsedToolNames": [
+          "bash",
+          "mcp__bridge__capability_catalog",
+          "mcp__bridge__capability_enable",
+          "str_replace_editor"
+        ],
+        "messageRoles": [
+          "system",
+          "user"
+        ],
+        "maxTokens": 256000,
+        "thinkingType": "disabled",
+        "contractMarkerPresent": true,
+        "proxyObservedAt": "2026-08-23T07:57:53.371Z",
+        "policyApplied": true,
+        "providerThinkingType": "disabled",
+        "providerToolChoicePresent": true,
+        "providerSentAt": "2026-08-23T07:57:53.435Z"
+      },
+      {
+        "requestOrdinal": 2,
+        "purpose": "mutation_followup",
+        "adapterToolNames": [
+          "bash",
+          "mcp__bridge__capability_catalog",
+          "mcp__bridge__capability_enable",
+          "str_replace_editor"
+        ],
+        "adapterObservedAt": "2026-08-23T07:57:54.639Z",
+        "adapterReasoningEffort": "off",
+        "endpoint": "/chat/completions",
+        "topLevelKeys": [
+          "max_tokens",
+          "messages",
+          "model",
+          "stream",
+          "thinking",
+          "tools"
+        ],
+        "toolSchemaCount": 4,
+        "wireToolNames": [
+          "bash",
+          "mcp__bridge__capability_catalog",
+          "mcp__bridge__capability_enable",
+          "str_replace_editor"
+        ],
+        "proxyParsedToolNames": [
+          "bash",
+          "mcp__bridge__capability_catalog",
+          "mcp__bridge__capability_enable",
+          "str_replace_editor"
+        ],
+        "messageRoles": [
+          "assistant",
+          "system",
+          "tool",
+          "user"
+        ],
+        "maxTokens": 256000,
+        "thinkingType": "disabled",
+        "contractMarkerPresent": true,
+        "proxyObservedAt": "2026-08-23T07:57:54.644Z",
+        "policyApplied": true,
+        "providerThinkingType": "disabled",
+        "providerToolChoicePresent": true,
+        "providerSentAt": "2026-08-23T07:57:54.706Z"
+      },
+      {
+        "requestOrdinal": 3,
+        "purpose": "mutation_followup",
+        "adapterToolNames": [
+          "bash",
+          "mcp__bridge__capability_catalog",
+          "mcp__bridge__capability_enable",
+          "str_replace_editor"
+        ],
+        "adapterObservedAt": "2026-08-23T07:57:56.016Z",
+        "adapterReasoningEffort": "off",
+        "endpoint": "/chat/completions",
+        "topLevelKeys": [
+          "max_tokens",
+          "messages",
+          "model",
+          "stream",
+          "thinking",
+          "tools"
+        ],
+        "toolSchemaCount": 4,
+        "wireToolNames": [
+          "bash",
+          "mcp__bridge__capability_catalog",
+          "mcp__bridge__capability_enable",
+          "str_replace_editor"
+        ],
+        "proxyParsedToolNames": [
+          "bash",
+          "mcp__bridge__capability_catalog",
+          "mcp__bridge__capability_enable",
+          "str_replace_editor"
+        ],
+        "messageRoles": [
+          "assistant",
+          "system",
+          "tool",
+          "user"
+        ],
+        "maxTokens": 256000,
+        "thinkingType": "disabled",
+        "contractMarkerPresent": true,
+        "proxyObservedAt": "2026-08-23T07:57:56.021Z",
+        "providerThinkingType": "disabled",
+        "providerToolChoicePresent": false,
+        "providerSentAt": "2026-08-23T07:57:56.083Z"
+      },
+      {
+        "requestOrdinal": 4,
+        "purpose": "mutation_followup",
+        "adapterToolNames": [
+          "bash",
+          "mcp__bridge__capability_catalog",
+          "mcp__bridge__capability_enable",
+          "str_replace_editor"
+        ],
+        "adapterObservedAt": "2026-08-23T07:57:57.161Z",
+        "adapterReasoningEffort": "off",
+        "endpoint": "/chat/completions",
+        "topLevelKeys": [
+          "max_tokens",
+          "messages",
+          "model",
+          "stream",
+          "thinking",
+          "tools"
+        ],
+        "toolSchemaCount": 4,
+        "wireToolNames": [
+          "bash",
+          "mcp__bridge__capability_catalog",
+          "mcp__bridge__capability_enable",
+          "str_replace_editor"
+        ],
+        "proxyParsedToolNames": [
+          "bash",
+          "mcp__bridge__capability_catalog",
+          "mcp__bridge__capability_enable",
+          "str_replace_editor"
+        ],
+        "messageRoles": [
+          "assistant",
+          "system",
+          "tool",
+          "user"
+        ],
+        "maxTokens": 256000,
+        "thinkingType": "disabled",
+        "contractMarkerPresent": true,
+        "proxyObservedAt": "2026-08-23T07:57:57.165Z",
+        "providerThinkingType": "disabled",
+        "providerToolChoicePresent": false,
+        "providerSentAt": "2026-08-23T07:57:57.229Z"
+      }
+    ],
+    "reviewDecision": "approved",
+    "reviewedPaths": [
+      "real-flash-multiturn.txt"
+    ],
+    "reviewedFingerprint": "53512b7629e0566dd57b360e0eedea3d01a1ebdc5721fcff35b8cdc1fd5b3a63",
+    "verificationPassed": true,
+    "verifiedFingerprint": "53512b7629e0566dd57b360e0eedea3d01a1ebdc5721fcff35b8cdc1fd5b3a63",
+    "bridgeCommit": "1b31c78b64777dca85a3d1902b6f7d71ae333ada",
+    "worktreeRemoved": true,
+    "branchDeleted": true,
+    "requestCount": 4,
+    "toolCallCount": 3,
+    "currentFingerprint": "53512b7629e0566dd57b360e0eedea3d01a1ebdc5721fcff35b8cdc1fd5b3a63",
+    "localCommit": "1b31c78b64777dca85a3d1902b6f7d71ae333ada"
+  },
+  "pro": {
+    "id": "stable-real-pro-thinking-task",
+    "model": "deepseek-v4-pro",
+    "status": "completed",
+    "exitCode": 0,
+    "changedPaths": [
+      "real-pro-thinking.txt"
+    ],
+    "executionAttempts": [
+      {
+        "id": "f5d75eaa-ebc6-4725-bdd9-ae8bd112333f",
+        "ordinal": 1,
+        "executor": "harness",
+        "startedAt": "2026-08-23T07:58:07.367Z",
+        "model": "deepseek-v4-pro",
+        "thinkingPolicy": {
+          "schemaVersion": 1,
+          "policyVersion": "attempt-thinking-policy-v1",
+          "model": "deepseek-v4-pro",
+          "thinkingType": "enabled",
+          "reasoningEffort": "high",
+          "frozenAt": "2026-08-23T07:58:07.367Z"
+        },
+        "completedAt": "2026-08-23T07:58:30.491Z",
+        "outcome": "completed"
+      }
+    ],
+    "providerRequestOrdinal": 4,
+    "thinkingRequestEvidence": [
+      {
+        "requestOrdinal": 1,
+        "attemptId": "f5d75eaa-ebc6-4725-bdd9-ae8bd112333f",
+        "model": "deepseek-v4-pro",
+        "thinkingType": "enabled",
+        "reasoningEffort": "high",
+        "toolChoicePresent": false,
+        "replayRequirementCount": 0,
+        "replayedRequirementOrdinals": [],
+        "providerSentAt": "2026-08-23T07:58:08.017Z"
+      },
+      {
+        "requestOrdinal": 2,
+        "attemptId": "f5d75eaa-ebc6-4725-bdd9-ae8bd112333f",
+        "model": "deepseek-v4-pro",
+        "thinkingType": "enabled",
+        "reasoningEffort": "high",
+        "toolChoicePresent": false,
+        "replayRequirementCount": 1,
+        "replayedRequirementOrdinals": [
+          1
+        ],
+        "providerSentAt": "2026-08-23T07:58:16.365Z"
+      },
+      {
+        "requestOrdinal": 3,
+        "attemptId": "f5d75eaa-ebc6-4725-bdd9-ae8bd112333f",
+        "model": "deepseek-v4-pro",
+        "thinkingType": "enabled",
+        "reasoningEffort": "high",
+        "toolChoicePresent": false,
+        "replayRequirementCount": 2,
+        "replayedRequirementOrdinals": [
+          1,
+          2
+        ],
+        "providerSentAt": "2026-08-23T07:58:18.939Z"
+      },
+      {
+        "requestOrdinal": 4,
+        "attemptId": "f5d75eaa-ebc6-4725-bdd9-ae8bd112333f",
+        "model": "deepseek-v4-pro",
+        "thinkingType": "enabled",
+        "reasoningEffort": "high",
+        "toolChoicePresent": false,
+        "replayRequirementCount": 3,
+        "replayedRequirementOrdinals": [
+          1,
+          2,
+          3
+        ],
+        "providerSentAt": "2026-08-23T07:58:20.976Z"
+      }
+    ],
+    "reasoningReplayRequirements": [
+      {
+        "schemaVersion": 1,
+        "attemptId": "f5d75eaa-ebc6-4725-bdd9-ae8bd112333f",
+        "responseRequestOrdinal": 1,
+        "reasoningSha256": "84b1dac89e4c213c7347e201b4cdc046bf02c8e1318f8c16439fa527b2ac5c9c",
+        "reasoningUtf8Bytes": 1681,
+        "toolCallIds": [
+          "call_00_kg6UqsqcocO04HnS3D7Q1840"
+        ],
+        "recordedAt": "2026-08-23T07:58:15.994Z",
+        "replayCount": 3,
+        "lastReplayedAt": "2026-08-23T07:58:20.976Z",
+        "lastReplayRequestOrdinal": 4
+      },
+      {
+        "schemaVersion": 1,
+        "attemptId": "f5d75eaa-ebc6-4725-bdd9-ae8bd112333f",
+        "responseRequestOrdinal": 2,
+        "reasoningSha256": "90fe4206be547e69e9a8dfed090e2bc987548981105a9a37a0112275796fdb06",
+        "reasoningUtf8Bytes": 207,
+        "toolCallIds": [
+          "call_00_t6FRyuTDg4wKQ7YdfndI2474"
+        ],
+        "recordedAt": "2026-08-23T07:58:18.748Z",
+        "replayCount": 2,
+        "lastReplayedAt": "2026-08-23T07:58:20.976Z",
+        "lastReplayRequestOrdinal": 4
+      },
+      {
+        "schemaVersion": 1,
+        "attemptId": "f5d75eaa-ebc6-4725-bdd9-ae8bd112333f",
+        "responseRequestOrdinal": 3,
+        "reasoningSha256": "17d443c22feda1fc9951e3f56435ff747d724859ede11ef526090edee4cfacc1",
+        "reasoningUtf8Bytes": 56,
+        "toolCallIds": [
+          "call_00_YyBwDV5Id4J6ZluMlDeC4104"
+        ],
+        "recordedAt": "2026-08-23T07:58:20.783Z",
+        "replayCount": 1,
+        "lastReplayedAt": "2026-08-23T07:58:20.976Z",
+        "lastReplayRequestOrdinal": 4
+      }
+    ],
+    "minimalMutationForceCount": 0,
+    "minimalMutationForcedTools": [],
+    "toolProtocolNativeCallCount": 3,
+    "toolProtocolNativeTools": [
+      "bash"
+    ],
+    "toolProtocolRecoveryCount": 0,
+    "toolProtocolRecoveredTools": [],
+    "minimalRequestEvidence": [
+      {
+        "requestOrdinal": 1,
+        "purpose": "primary_mutation",
+        "adapterToolNames": [
+          "bash",
+          "mcp__bridge__capability_catalog",
+          "mcp__bridge__capability_enable",
+          "str_replace_editor"
+        ],
+        "adapterObservedAt": "2026-08-23T07:58:07.948Z",
+        "adapterReasoningEffort": "high",
+        "endpoint": "/chat/completions",
+        "topLevelKeys": [
+          "max_tokens",
+          "messages",
+          "model",
+          "reasoning_effort",
+          "stream",
+          "thinking",
+          "tools"
+        ],
+        "toolSchemaCount": 4,
+        "wireToolNames": [
+          "bash",
+          "mcp__bridge__capability_catalog",
+          "mcp__bridge__capability_enable",
+          "str_replace_editor"
+        ],
+        "proxyParsedToolNames": [
+          "bash",
+          "mcp__bridge__capability_catalog",
+          "mcp__bridge__capability_enable",
+          "str_replace_editor"
+        ],
+        "messageRoles": [
+          "system",
+          "user"
+        ],
+        "maxTokens": 256000,
+        "thinkingType": "enabled",
+        "contractMarkerPresent": true,
+        "proxyObservedAt": "2026-08-23T07:58:07.958Z",
+        "providerThinkingType": "enabled",
+        "providerReasoningEffort": "high",
+        "providerToolChoicePresent": false,
+        "providerSentAt": "2026-08-23T07:58:08.017Z"
+      },
+      {
+        "requestOrdinal": 2,
+        "purpose": "mutation_followup",
+        "adapterToolNames": [
+          "bash",
+          "mcp__bridge__capability_catalog",
+          "mcp__bridge__capability_enable",
+          "str_replace_editor"
+        ],
+        "adapterObservedAt": "2026-08-23T07:58:16.295Z",
+        "adapterReasoningEffort": "high",
+        "endpoint": "/chat/completions",
+        "topLevelKeys": [
+          "max_tokens",
+          "messages",
+          "model",
+          "reasoning_effort",
+          "stream",
+          "thinking",
+          "tools"
+        ],
+        "toolSchemaCount": 4,
+        "wireToolNames": [
+          "bash",
+          "mcp__bridge__capability_catalog",
+          "mcp__bridge__capability_enable",
+          "str_replace_editor"
+        ],
+        "proxyParsedToolNames": [
+          "bash",
+          "mcp__bridge__capability_catalog",
+          "mcp__bridge__capability_enable",
+          "str_replace_editor"
+        ],
+        "messageRoles": [
+          "assistant",
+          "system",
+          "tool",
+          "user"
+        ],
+        "maxTokens": 256000,
+        "thinkingType": "enabled",
+        "contractMarkerPresent": true,
+        "proxyObservedAt": "2026-08-23T07:58:16.300Z",
+        "providerThinkingType": "enabled",
+        "providerReasoningEffort": "high",
+        "providerToolChoicePresent": false,
+        "providerSentAt": "2026-08-23T07:58:16.365Z"
+      },
+      {
+        "requestOrdinal": 3,
+        "purpose": "mutation_followup",
+        "adapterToolNames": [
+          "bash",
+          "mcp__bridge__capability_catalog",
+          "mcp__bridge__capability_enable",
+          "str_replace_editor"
+        ],
+        "adapterObservedAt": "2026-08-23T07:58:18.868Z",
+        "adapterReasoningEffort": "high",
+        "endpoint": "/chat/completions",
+        "topLevelKeys": [
+          "max_tokens",
+          "messages",
+          "model",
+          "reasoning_effort",
+          "stream",
+          "thinking",
+          "tools"
+        ],
+        "toolSchemaCount": 4,
+        "wireToolNames": [
+          "bash",
+          "mcp__bridge__capability_catalog",
+          "mcp__bridge__capability_enable",
+          "str_replace_editor"
+        ],
+        "proxyParsedToolNames": [
+          "bash",
+          "mcp__bridge__capability_catalog",
+          "mcp__bridge__capability_enable",
+          "str_replace_editor"
+        ],
+        "messageRoles": [
+          "assistant",
+          "system",
+          "tool",
+          "user"
+        ],
+        "maxTokens": 256000,
+        "thinkingType": "enabled",
+        "contractMarkerPresent": true,
+        "proxyObservedAt": "2026-08-23T07:58:18.873Z",
+        "providerThinkingType": "enabled",
+        "providerReasoningEffort": "high",
+        "providerToolChoicePresent": false,
+        "providerSentAt": "2026-08-23T07:58:18.939Z"
+      },
+      {
+        "requestOrdinal": 4,
+        "purpose": "mutation_followup",
+        "adapterToolNames": [
+          "bash",
+          "mcp__bridge__capability_catalog",
+          "mcp__bridge__capability_enable",
+          "str_replace_editor"
+        ],
+        "adapterObservedAt": "2026-08-23T07:58:20.904Z",
+        "adapterReasoningEffort": "high",
+        "endpoint": "/chat/completions",
+        "topLevelKeys": [
+          "max_tokens",
+          "messages",
+          "model",
+          "reasoning_effort",
+          "stream",
+          "thinking",
+          "tools"
+        ],
+        "toolSchemaCount": 4,
+        "wireToolNames": [
+          "bash",
+          "mcp__bridge__capability_catalog",
+          "mcp__bridge__capability_enable",
+          "str_replace_editor"
+        ],
+        "proxyParsedToolNames": [
+          "bash",
+          "mcp__bridge__capability_catalog",
+          "mcp__bridge__capability_enable",
+          "str_replace_editor"
+        ],
+        "messageRoles": [
+          "assistant",
+          "system",
+          "tool",
+          "user"
+        ],
+        "maxTokens": 256000,
+        "thinkingType": "enabled",
+        "contractMarkerPresent": true,
+        "proxyObservedAt": "2026-08-23T07:58:20.910Z",
+        "providerThinkingType": "enabled",
+        "providerReasoningEffort": "high",
+        "providerToolChoicePresent": false,
+        "providerSentAt": "2026-08-23T07:58:20.976Z"
+      }
+    ],
+    "reviewDecision": "approved",
+    "reviewedPaths": [
+      "real-pro-thinking.txt"
+    ],
+    "reviewedFingerprint": "e9372447be0c18befe5360fae2f1caaa47440b2294b03c767a2ef4123dba757a",
+    "verificationPassed": true,
+    "verifiedFingerprint": "e9372447be0c18befe5360fae2f1caaa47440b2294b03c767a2ef4123dba757a",
+    "bridgeCommit": "d830f6e2be71ff792d33961842821a1df74a377d",
+    "worktreeRemoved": true,
+    "branchDeleted": true,
+    "requestCount": 4,
+    "toolCallCount": 3,
+    "currentFingerprint": "e9372447be0c18befe5360fae2f1caaa47440b2294b03c767a2ef4123dba757a",
+    "localCommit": "d830f6e2be71ff792d33961842821a1df74a377d"
+  },
+  "mainHeadBefore": "6437062adf9259e3455c13e653b8ac5e01673e92",
+  "mainHeadAfter": "6437062adf9259e3455c13e653b8ac5e01673e92",
+  "mainClean": true,
+  "pushed": false
+}

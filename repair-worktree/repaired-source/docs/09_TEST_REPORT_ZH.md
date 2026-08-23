@@ -1,5 +1,7 @@
 # 0.6.5 安全修复测试报告
 
+> 历史封印报告：以下结果绑定此前 0.6.5 stable，不是封印后 runtime hotfix candidate 的重资格结果。当前状态以 `release-status.json` 为准。
+
 报告状态：`DELIVERABLE_PASS / stable`。
 
 | 层级 | 结果 |
@@ -12,8 +14,8 @@
 | stdio MCP acceptance | PASS |
 | package acceptance | PASS，预封印与最终 ZIP 解压态 |
 | skill validation | PASS |
-| current repaired code + real DeepSeek Minimal | PASS，4 轮、3 次原生工具调用 |
-| current repaired code + real DeepSeek Pro | PASS，4 轮、replay 0/1/2/3 |
+| 当时封印代码 + real DeepSeek Minimal | PASS，4 轮、3 次原生工具调用 |
+| 当时封印代码 + real DeepSeek Pro | PASS，4 轮、replay 0/1/2/3 |
 | stable deterministic ZIP/unpacked gate | PASS |
 
 ## 关键覆盖
@@ -34,4 +36,4 @@
 
 ## 真实 Provider 边界
 
-`evidence/03_REAL_DEEPSEEK_0_6_5_STABLE_REDACTED.json` 是 2026-08-23 当前修订 PASS：Flash 全程 disabled；Pro 全程 enabled/high、无 tool choice，完整回放前三条非空 Provider reasoning requirement。证据不包含密钥、token、prompt 或 reasoning 正文。执行参数、隔离边界与请求级结论见 `docs/10_REAL_DEEPSEEK_SMOKE_ZH.md`。
+`evidence/03_REAL_DEEPSEEK_0_6_5_STABLE_REDACTED.json` 是 2026-08-23 当时封印修订的 PASS：Flash 全程 disabled；Pro 全程 enabled/high、无 tool choice，完整回放前三条非空 Provider reasoning requirement。证据不包含密钥、token、prompt 或 reasoning 正文。执行参数、隔离边界与请求级结论见 `docs/10_REAL_DEEPSEEK_SMOKE_ZH.md`。

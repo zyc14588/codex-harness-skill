@@ -7,12 +7,8 @@ import test from "node:test";
 import { verifyReleaseGate } from "./verify-release-gate.mjs";
 
 const evidencePaths = [
-  "evidence/01_DYNAMIC_PROFILE_FIXTURE_REDACTED.json",
-  "evidence/03_REAL_DEEPSEEK_0_6_5_STABLE_REDACTED.json",
-  "evidence/04_FAILURE_INJECTION_0_6_5_STABLE.json",
-  "evidence/05_PACKAGE_ACCEPTANCE_0_6_5_STABLE.json",
-  "evidence/06_SKILL_VALIDATION_0_6_5_STABLE.json",
-  "evidence/07_SECURITY_ACCEPTANCE_0_6_5_STABLE.json",
+  "evidence/08_RUNTIME_HOTFIX_CANDIDATE_LOCAL_VALIDATION.json",
+  "evidence/09_RUNTIME_HOTFIX_REAL_DEEPSEEK_REDACTED.json",
 ];
 
 const digest = (value) => createHash("sha256").update(value).digest("hex");
@@ -63,7 +59,7 @@ test("candidate releases require explicit audit acknowledgement", async () => {
 test("stable releases reject skipped tests and require current evidence bindings", async () => {
   const { root } = await fixture("stable");
   await assert.rejects(verifyReleaseGate({ root, auditCandidate: false, skipSelfTests: true }), /cannot skip/u);
-  assert.equal((await verifyReleaseGate({ root, auditCandidate: false, skipSelfTests: false })).evidenceBindings, 6);
+  assert.equal((await verifyReleaseGate({ root, auditCandidate: false, skipSelfTests: false })).evidenceBindings, 2);
   await writeFile(path.join(root, evidencePaths[0]), "tampered\n");
   await assert.rejects(verifyReleaseGate({ root, auditCandidate: false, skipSelfTests: false }), /SHA-256 mismatch/u);
 });

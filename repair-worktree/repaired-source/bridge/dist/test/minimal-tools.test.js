@@ -43,7 +43,7 @@ test("minimal MCP progressively discloses only contract-authorized read tools", 
             toolCapabilities: ["repository_read", "git_inspect"],
             taskFamily: "minimal-tool-test",
             splitDecision: {
-                memorySchemaVersion: 4,
+                memorySchemaVersion: 5,
                 memoryKey: "minimal",
                 taskFamily: "minimal-tool-test",
                 memoryRevision: 0,

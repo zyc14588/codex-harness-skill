@@ -44,7 +44,7 @@ test("runtime budget policy and group override are bounded, auditable, and immed
       schemaVersion: 6, id: "task-a", planId: "plan-a", leafId: "leaf-a", budgetGroupId: "group-a",
       requestedExecutor: "harness", executor: "harness", effectiveExecutor: "harness", complexity: "small", mode: "implementation",
       harnessMode: "minimal", dependsOn: [], toolCapabilities: ["repository_read", "verification", "git_inspect"], taskFamily: "unit-fixture",
-      splitDecision: { memorySchemaVersion: 4, memoryKey: "fixture", taskFamily: "unit-fixture", memoryRevision: 0, sampleCount: 0, ignoredLegacySampleCount: 0, confidence: 0,
+      splitDecision: { memorySchemaVersion: 5, memoryKey: "fixture", taskFamily: "unit-fixture", memoryRevision: 0, sampleCount: 0, ignoredLegacySampleCount: 0, confidence: 0,
         recommendedLeafScale: 1, recommendedComplexity: "small", recommendedMaxInputTokens: 180_000, recommendedMaxOutputTokens: 24_000,
         anomalyRate: 0, rationale: ["fixture"], chosenComplexity: "small", chosenMaxInputTokens: 180_000, chosenMaxOutputTokens: 24_000 },
       objective: "fixture", repoRoot: root, baseRef: "HEAD", baseCommit: "0".repeat(40), startingHeadCommit: "0".repeat(40),

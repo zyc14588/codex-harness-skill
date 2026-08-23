@@ -118,6 +118,10 @@ CONFIG_PATH="$(canonical "$CONFIG_PATH")"
 STATE_ROOT_DEFAULT="$(canonical "$STATE_ROOT_DEFAULT")"
 SKILL_ROOT="$(canonical "$SKILL_ROOT")"
 CODEX_CONFIG="$(canonical "$CODEX_CONFIG")"
+NODE_RUNTIME_BINARY="$(node -p 'process.execPath')"
+NODE_RUNTIME_BINARY="$(canonical "$NODE_RUNTIME_BINARY")"
+[[ "$NODE_RUNTIME_BINARY" == /* && -f "$NODE_RUNTIME_BINARY" && -x "$NODE_RUNTIME_BINARY" ]] \
+  || { echo "Cannot resolve the real Node runtime executable" >&2; exit 1; }
 DSH_HOME_TARGET="$(canonical "$DSH_HOME_TARGET")"
 if [[ -n "$PROVIDER_KEY_SOURCE" ]]; then PROVIDER_KEY_SOURCE="$(canonical "$PROVIDER_KEY_SOURCE")"; fi
 BWRAP_BINARY="$(canonical "$(command -v bwrap)")"
@@ -555,7 +559,7 @@ python3 "$INSTALL_ROOT/scripts/render-minimal-harness.py" install \
   --preset-dir "$MINIMAL_PRESET_DIR" \
   --runtime "$INSTALL_ROOT" \
   --config "$CONFIG_PATH" \
-  --node "$(command -v node)" >/dev/null
+  --node "$NODE_RUNTIME_BINARY" >/dev/null
 
 if ((SKIP_SELF_TESTS)); then
   echo "[5/14] Deterministic package self-tests skipped by explicit request"

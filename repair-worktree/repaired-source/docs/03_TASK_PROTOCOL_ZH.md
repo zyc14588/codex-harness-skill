@@ -88,7 +88,7 @@ Token 超限不会在 review/verification 阶段重复计数；review revise/rej
 - 不增加 task-shape `sampleCount` / `anomalyCount`；
 - 不缩小推荐规模、复杂度或 Token 门禁。
 
-split-memory schema v4 不使用 schema-v1/v2/v3 画像，并在后续写入时把旧文件归档到 `legacy/`。历史记录继续作为证据存在，但不能改变 schema 4 的规模、复杂度或 Token 建议。仅有基础设施事件且 sample 为零时，advice 必须保留当前候选提议。
+split-memory schema v5 不使用 schema-v1/v2/v3/v4 画像，并在后续写入时把旧文件归档到 `legacy/`。历史记录继续作为证据存在，但不能改变 schema 5 的规模、复杂度或 Token 建议。仅有基础设施事件且 sample 为零时，advice 必须保留当前候选提议。
 
 ## 5. 审查和验收
 

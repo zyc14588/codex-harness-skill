@@ -11,7 +11,7 @@
 - 检查所有发布版本字段严格等于 0.6.5；历史 rc.1 只能出现在明确标为 FAILED/WITHDRAWN 的历史证据中；
 - 确认 release-status 为 stable、controlledUseAllowed=true、deliverableStatus=DELIVERABLE_PASS；
 - 确认 bridge/src 与对应 dist/sourcemap 齐全，`bridge/package-lock.json` 存在且与 stable artifact binding 一致；不存在 bridge/node_modules、凭据、API key、reasoning_content 正文或临时 smoke 根目录；
-- 对照 evidence/03、04、05、06 与 docs/09、10、11、12，核对真实 Flash、真实 Pro、失败注入、package acceptance 和 skill validation 的数值一致；
+- 对照当前修订 evidence/08、09 与 docs/09、11、12、18，核对真实 Flash、真实 Pro、失败注入、package acceptance 和 skill validation 的数值一致；历史 evidence/03–07 只能作为旧 seal 证据；
 - 检查安装器不会自动 merge、push、tag 或创建 GitHub Release，harness_commit 只产生隔离本地提交；
 - 检查 MANIFEST 不包含自身且覆盖归档内除此文件外的所有普通文件。
 

@@ -78,12 +78,8 @@ export async function verifyReleaseGate(options) {
   await boundFile(options.root, "bridge/package-lock.json", String(bindings.packageLockSha256 ?? ""), "package lock");
   const evidence = object(bindings.requiredEvidenceSha256, "required evidence bindings");
   const required = [
-    "evidence/01_DYNAMIC_PROFILE_FIXTURE_REDACTED.json",
-    "evidence/03_REAL_DEEPSEEK_0_6_5_STABLE_REDACTED.json",
-    "evidence/04_FAILURE_INJECTION_0_6_5_STABLE.json",
-    "evidence/05_PACKAGE_ACCEPTANCE_0_6_5_STABLE.json",
-    "evidence/06_SKILL_VALIDATION_0_6_5_STABLE.json",
-    "evidence/07_SECURITY_ACCEPTANCE_0_6_5_STABLE.json"
+    "evidence/08_RUNTIME_HOTFIX_CANDIDATE_LOCAL_VALIDATION.json",
+    "evidence/09_RUNTIME_HOTFIX_REAL_DEEPSEEK_REDACTED.json"
   ];
   for (const relative of required) {
     if (!(relative in evidence)) throw new Error(`stable evidence binding is missing: ${relative}`);

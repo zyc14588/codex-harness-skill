@@ -226,7 +226,7 @@ export interface BridgeConfig {
     llamaCpp: LlamaCppConfig;
 }
 export interface SplitDecisionSnapshot {
-    memorySchemaVersion: 4;
+    memorySchemaVersion: 5;
     memoryKey: string;
     taskFamily: string;
     memoryRevision: number;
@@ -515,7 +515,7 @@ export interface ProcessResult {
 }
 export type SplitOutcomeStage = "execution" | "review" | "verification" | "finalization";
 export interface SplitOutcomeEvent {
-    schemaVersion: 4;
+    schemaVersion: 5;
     id: string;
     at: string;
     repoKey: string;
@@ -550,7 +550,7 @@ export interface SplitOutcomeEvent {
     reviewDecision?: ReviewDecision;
 }
 export interface SplitMemoryProfile {
-    schemaVersion: 4;
+    schemaVersion: 5;
     repoKey: string;
     memoryKey: string;
     taskFamily: string;

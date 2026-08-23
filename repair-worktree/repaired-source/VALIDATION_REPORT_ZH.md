@@ -1,4 +1,6 @@
-# 0.6.5 安全修复最终封印验证报告
+# 0.6.5 原 stable 封印验证报告（历史证据）
+
+> 当前工作树已产生封印后的 runtime hotfix，机器可读状态为 candidate。下列结果只绑定此前 stable 归档，不构成当前 candidate 的重资格证据；当前 candidate 的独立本地/动态验证见 `CANDIDATE_VALIDATION_REPORT_ZH.md` 与 `evidence/08_RUNTIME_HOTFIX_CANDIDATE_LOCAL_VALIDATION.json`。
 
 ```text
 DELIVERABLE_PASS: YES

@@ -5,7 +5,7 @@ import { failureAttribution, infrastructureAnomalyLabels } from "./infrastructur
 import { withNamedLock } from "./store.js";
 import { usageForBudgetGroup } from "./telemetry.js";
 import { atomicWriteJson, ensureDir, nowIso, pathExists, readJson } from "./util.js";
-export const SPLIT_MEMORY_SCHEMA_VERSION = 4;
+export const SPLIT_MEMORY_SCHEMA_VERSION = 5;
 const COMPLEXITIES = ["trivial", "small", "medium", "large"];
 function clamp(value, minimum, maximum) {
     return Math.max(minimum, Math.min(maximum, value));
@@ -99,7 +99,7 @@ export async function adviseSplit(config, repoRoot, descriptor) {
     if (!config.controller.splitMemory.enabled)
         rationale.push("adaptive split memory is disabled by operator configuration");
     else if (!profile) {
-        rationale.push("no matching schema-v4 historical profile; retain the proposed leaf size and token gates");
+        rationale.push("no matching schema-v5 historical profile; retain the proposed leaf size and token gates");
         if (loaded.ignoredLegacySampleCount > 0 || loaded.ignoredLegacySchemaVersion !== undefined) {
             rationale.push(`ignored legacy split-memory schema v${loaded.ignoredLegacySchemaVersion ?? "unknown"} with ${loaded.ignoredLegacySampleCount} sample(s)`);
         }

@@ -19,3 +19,11 @@ export interface NormalizedProviderHttpFailure {
 export declare function normalizeProviderHttpFailure(status: number, body: Buffer): NormalizedProviderHttpFailure;
 export declare function infrastructureAnomalyLabels(task: Pick<TaskRecord, "infrastructureFailureKind">): string[];
 export declare function failureAttribution(kind: InfrastructureFailureKind | undefined): SplitOutcomeAttribution | undefined;
+/**
+ * Normalize failures emitted before the managed minimal MCP tool plane can
+ * publish its first runner snapshot. DSH currently wraps child-spawn and MCP
+ * initialize/list failures in a generic preset-mount error, so relying only on
+ * Bridge-authored MINIMAL_TOOL_* markers misattributes a zero-I/O startup
+ * failure to the task shape.
+ */
+export declare function classifyMinimalToolPlaneFailure(task: Pick<TaskRecord, "executor" | "harnessMode">, details: string): Extract<InfrastructureFailureKind, "minimal_tool_plane_composition" | "minimal_tool_serialization_mismatch"> | undefined;

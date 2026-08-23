@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
   "version": "0.6.5",
-  "hotfixRevision": "security-audit-repair-r1",
+  "hotfixRevision": "known-runtime-errors-r2-candidate",
   "hotfixDate": "2026-08-23",
-  "releaseStatus": "stable",
-  "controlledUseAllowed": true,
-  "deliverableStatus": "DELIVERABLE_PASS",
-  "statusReason": "The post-audit repair passed all local, real DeepSeek, security, package, provenance, deterministic archive, and unpacked revalidation gates. Current evidence, package lock, and source provenance are SHA-256 bound. No merge, push, tag, or GitHub Release was performed.",
+  "releaseStatus": "candidate",
+  "controlledUseAllowed": false,
+  "deliverableStatus": "DELIVERABLE_PENDING",
+  "statusReason": "Known runtime defects were repaired after the sealed 0.6.5 artifact: dashboard bearer retry looping, wrapper-based Node paths hidden by Bubblewrap, managed MCP startup misclassification, and schema-v4 split-memory pollution. Local component, direct, package, security, skill, fixed real managed-Harness with loopback Provider, zero-I/O failure injection, and bounded real DeepSeek Flash/Pro gates pass. Ordinary source/provenance sealing and the final deterministic archive/unpacked revalidation remain pending. The previously sealed stable archive remains historical evidence and was not replaced.",
   "gates": {
     "unitAndComponentRegression": "PASS",
     "directAcceptance": "PASS",
@@ -18,27 +18,36 @@
     "packageAcceptance": "PASS",
     "skillValidation": "PASS",
     "securityAuditRepair": "PASS",
-    "ordinarySourceAuthority": "PASS",
+    "ordinarySourceAuthority": "PENDING",
     "strongHarnessIsolation": "PASS",
     "operatorControlAuthentication": "PASS",
-    "finalZipUnpackedRevalidation": "PASS"
+    "finalZipUnpackedRevalidation": "PENDING"
   },
   "currentValidation": {
-    "componentTests": 83,
+    "componentTests": 87,
+    "directAcceptance": "PASS",
+    "securityAcceptance": "PASS",
+    "skillValidation": "PASS",
+    "packageAcceptance": "PASS",
     "dynamicFlashRequests": 4,
     "dynamicProRequests": 3,
     "dynamicProReplayDepths": [0, 1, 2],
+    "dynamicLocalMockProviderRequests": 7,
+    "dynamicHarnessCommit": "141eb6fef83422698aef7a981029e843e8161534",
+    "dynamicHarnessBuildSha256": "6a294d72c51e6570852acaf73458cda98f555bd53c9c7ff0b49c568e7cf88a38",
     "realFlashRequests": 4,
     "realProRequests": 4,
     "realProReplayDepths": [0, 1, 2, 3],
     "failureInjectionProviderRequests": 0,
-    "packageMode": "stable-unpacked-revalidated",
-    "deterministicZipBuilds": 2,
+    "failureInjectionInputTokens": 0,
+    "failureInjectionOutputTokens": 0,
+    "packageMode": "working-tree-candidate-acceptance-pass",
+    "deterministicZipBuilds": 0,
     "externalNetworkUsed": true
   },
   "realSmokeAuthorizationBoundary": {
     "currentRepairExecuted": true,
-    "executedAt": "2026-08-23",
+    "executedAt": "2026-08-23T07:58:30.491Z",
     "payloadScope": "A synthetic temporary Git repository containing only a one-line README seed and bounded copy/read/write/verify instructions.",
     "models": ["deepseek-v4-flash", "deepseek-v4-pro"],
     "perLeafLimits": {
@@ -48,25 +57,32 @@
       "maxCostCnyReferenceAlert": 5
     },
     "credentialBoundary": "The parent broker read a private operator-owned credential; Bubblewrap-confined Harness received only a one-task proxy token.",
-    "currentEvidencePath": "evidence/03_REAL_DEEPSEEK_0_6_5_STABLE_REDACTED.json",
-    "currentEvidenceAccepted": true
+    "currentEvidencePath": "evidence/09_RUNTIME_HOTFIX_REAL_DEEPSEEK_REDACTED.json",
+    "currentEvidenceAccepted": true,
+    "historicalStableEvidencePath": "evidence/03_REAL_DEEPSEEK_0_6_5_STABLE_REDACTED.json"
+  },
+  "candidateValidationEvidence": {
+    "path": "evidence/08_RUNTIME_HOTFIX_CANDIDATE_LOCAL_VALIDATION.json",
+    "sha256": "2454ac625c35bb7fa2ada0531198c033804fab2a139f71aa70a5f22b48607d7f",
+    "scope": "local deterministic gates, fixed real managed Harness with loopback Provider, and zero-I/O failure injection"
+  },
+  "realProviderValidationEvidence": {
+    "path": "evidence/09_RUNTIME_HOTFIX_REAL_DEEPSEEK_REDACTED.json",
+    "sha256": "bb023ca725b56f55a0539f5bdbd245ec6accf75869ff11d199be1033b6bc54b0",
+    "scope": "bounded real DeepSeek Minimal Flash and Pro Thinking through the authenticated local credential broker"
   },
   "artifactBindings": {
     "sourceProvenanceSha256": "82558e61d2315c865429c1de47271cc38205f468d9f51ab5c51bc0ae638cc404",
     "packageLockSha256": "e84bcff962b6a8a743b9cb7b7c302b9c3783a314d1ee9af5b9b84b42e8e5922b",
     "requiredEvidenceSha256": {
-      "evidence/01_DYNAMIC_PROFILE_FIXTURE_REDACTED.json": "d25d7354376e001c4a00348b71d580ce87fb5b9fddd37f5e39580452606f75de",
-      "evidence/03_REAL_DEEPSEEK_0_6_5_STABLE_REDACTED.json": "c10c9dadeff49b555c599ef5c11b892e9768bb172bd9ea759082bbbe13549052",
-      "evidence/04_FAILURE_INJECTION_0_6_5_STABLE.json": "eaf55f924419943a2382caee13e317643cb1b41791e8df001b049dcebcb238f3",
-      "evidence/05_PACKAGE_ACCEPTANCE_0_6_5_STABLE.json": "2a32f899e6ccc36ff73db5c76b4ec52775e38c44563eb2a91316c3d65f927c45",
-      "evidence/06_SKILL_VALIDATION_0_6_5_STABLE.json": "724466086340ea85a0448b990a8d2a9dc5820db910c1ac3bc394c6039959a12e",
-      "evidence/07_SECURITY_ACCEPTANCE_0_6_5_STABLE.json": "989ad7f4189f75687528a5285d2b6786db84fa2c678fe4430520c3f38efcba46"
+      "evidence/08_RUNTIME_HOTFIX_CANDIDATE_LOCAL_VALIDATION.json": "2454ac625c35bb7fa2ada0531198c033804fab2a139f71aa70a5f22b48607d7f",
+      "evidence/09_RUNTIME_HOTFIX_REAL_DEEPSEEK_REDACTED.json": "bb023ca725b56f55a0539f5bdbd245ec6accf75869ff11d199be1033b6bc54b0"
     }
   },
   "finalArchive": {
-    "name": "CODEX_HARNESS_BRIDGE_0_6_5_STABLE.zip",
-    "sha256Sidecar": "CODEX_HARNESS_BRIDGE_0_6_5_STABLE.zip.sha256",
-    "validationSidecar": "CODEX_HARNESS_BRIDGE_0_6_5_STABLE.zip.validation.json"
+    "name": "CODEX_HARNESS_BRIDGE_0_6_5_HOTFIX_R2_STABLE.zip",
+    "sha256Sidecar": "CODEX_HARNESS_BRIDGE_0_6_5_HOTFIX_R2_STABLE.zip.sha256",
+    "validationSidecar": "CODEX_HARNESS_BRIDGE_0_6_5_HOTFIX_R2_STABLE.zip.validation.json"
   },
   "automaticMerge": false,
   "pushed": false,

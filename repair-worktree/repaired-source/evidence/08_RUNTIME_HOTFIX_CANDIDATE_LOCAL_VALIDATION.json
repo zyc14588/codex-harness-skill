@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "version": "0.6.5",
+  "hotfixRevision": "known-runtime-errors-r2-candidate",
+  "validatedAt": "2026-08-23T17:48:51+10:00",
+  "result": "PASS_WITH_EXTERNAL_GATES_PENDING",
+  "scope": "working-tree candidate local and dynamic qualification",
+  "deterministicValidation": {
+    "dependencyAuditVulnerabilities": 0,
+    "typescriptBuild": "PASS",
+    "unitAndComponentTests": {
+      "result": "PASS",
+      "passed": 87,
+      "failed": 0
+    },
+    "directAcceptance": "PASS",
+    "securityAcceptance": "PASS",
+    "skillValidation": "PASS",
+    "releaseGateTests": "PASS",
+    "packageAcceptance": "PASS",
+    "manifestValidation": "PASS"
+  },
+  "dynamicManagedHarness": {
+    "result": "PASS",
+    "provider": "loopback observable mock",
+    "externalProviderCalls": 0,
+    "localMockProviderRequests": 7,
+    "harnessCommit": "141eb6fef83422698aef7a981029e843e8161534",
+    "harnessBuildSha256": "6a294d72c51e6570852acaf73458cda98f555bd53c9c7ff0b49c568e7cf88a38",
+    "composition": {
+      "stockRunnerDisabled": true,
+      "bridgeRunnerMounted": true,
+      "sessionTitleDisabled": true,
+      "minimalPresetSelected": true,
+      "patchWarningFree": true
+    },
+    "minimalFlash": {
+      "result": "PASS",
+      "requests": 4,
+      "thinkingTypes": ["disabled", "disabled", "disabled", "disabled"],
+      "reasoningEffortPresent": false,
+      "minimalMutationForceCount": 2,
+      "nativeToolCalls": 3
+    },
+    "proThinking": {
+      "result": "PASS",
+      "requests": 3,
+      "thinkingTypes": ["enabled", "enabled", "enabled"],
+      "reasoningEffort": "high",
+      "toolChoicePresent": false,
+      "replayDepths": [0, 1, 2],
+      "reasoningRequirements": 2,
+      "nativeToolCalls": 2
+    }
+  },
+  "failureInjection": {
+    "result": "PASS",
+    "failureKind": "thinking_replay_state",
+    "responseStatus": 502,
+    "providerCalls": 0,
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "splitSampleCount": 0,
+    "recommendedLeafScale": 1
+  },
+  "knownDefectQualification": {
+    "dashboardBearerRetryLoop": "PASS",
+    "canonicalNodeRuntimeInManagedPreset": "PASS",
+    "managedMcpStartupInfrastructureClassification": "PASS",
+    "schema5LegacyPollutionQuarantine": "PASS"
+  },
+  "boundaries": {
+    "realProviderSmokeExecuted": false,
+    "externalNetworkUsed": false,
+    "operatorCredentialUsed": false,
+    "reasoningContentPersisted": false,
+    "currentRuntimeInstalled": false,
+    "deterministicZipBuilt": false
+  }
+}

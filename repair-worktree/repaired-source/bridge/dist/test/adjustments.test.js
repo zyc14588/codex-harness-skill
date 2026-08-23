@@ -26,7 +26,7 @@ function task(stateRoot, status = "completed") {
         dependsOn: [],
         toolCapabilities: ["repository_read", "verification", "git_inspect"],
         taskFamily: "unit-fixture",
-        splitDecision: { memorySchemaVersion: 4, memoryKey: "fixture", taskFamily: "unit-fixture", memoryRevision: 0, sampleCount: 0, ignoredLegacySampleCount: 0, confidence: 0,
+        splitDecision: { memorySchemaVersion: 5, memoryKey: "fixture", taskFamily: "unit-fixture", memoryRevision: 0, sampleCount: 0, ignoredLegacySampleCount: 0, confidence: 0,
             recommendedLeafScale: 1, recommendedComplexity: "small", recommendedMaxInputTokens: 1000, recommendedMaxOutputTokens: 1000,
             anomalyRate: 0, rationale: ["fixture"], chosenComplexity: "small", chosenMaxInputTokens: 1000, chosenMaxOutputTokens: 1000 },
         mode: "implementation",
