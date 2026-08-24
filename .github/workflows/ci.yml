@@ -37,9 +37,31 @@ jobs:
           node-version: 22.19.0
           cache: npm
           cache-dependency-path: current/bridge/package-lock.json
-      - name: Install Bubblewrap
+      - name: Install and validate Bubblewrap
         working-directory: .
-        run: sudo apt-get update && sudo apt-get install -y bubblewrap
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bubblewrap
+          bwrap_probe() {
+            bwrap \
+              --die-with-parent --new-session \
+              --unshare-all --unshare-user --disable-userns --assert-userns-disabled \
+              --cap-drop ALL --clearenv \
+              --dir /usr --ro-bind /usr /usr \
+              --symlink usr/bin /bin --symlink usr/sbin /sbin \
+              --symlink usr/lib /lib --symlink usr/lib64 /lib64 \
+              --proc /proc --dev /dev \
+              -- /bin/true
+          }
+          if ! bwrap_probe; then
+            # Ubuntu 24 hosted runners can install bwrap 0.9 without an
+            # AppArmor user-namespace profile. Limit the compatibility change
+            # to this disposable CI VM, then require the exact probe to pass.
+            test -e /proc/sys/kernel/apparmor_restrict_unprivileged_userns
+            sudo sysctl -w kernel.unprivileged_userns_clone=1
+            sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          fi
+          bwrap_probe
       - name: Validate root governance and candidate gate
         run: |
           test "$(jq -r .canonicalSource ../release-status.json)" = current/
