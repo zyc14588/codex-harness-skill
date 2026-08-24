@@ -1,24 +1,71 @@
 {
-  "schemaVersion": 1,
-  "result": "BLOCKED_EXTERNAL",
-  "generatedAt": "2026-08-24T04:02:12+10:00",
+  "schemaVersion": 2,
+  "result": "ACTIONS_PASS_BRANCH_PROTECTION_BLOCKED",
+  "generatedAt": "2026-08-24T10:41:43+10:00",
   "repository": "zyc14588/codex-harness-skill",
   "defaultBranch": "main",
   "targetBranch": "repair/0.6.6-provider-capability-and-release-integrity",
-  "targetCommit": "adcd07a6ee7904cd70b3cdc8a57c896dc1f12628",
+  "implementationCommit": "adcd07a6ee7904cd70b3cdc8a57c896dc1f12628",
+  "targetCommit": "c8f73753aab70524cb42f3984563c6ae74980fba",
+  "targetTree": "8e705c780c230cf7a43defa02179dcc248131523",
   "readOnlyQueries": {
-    "actionsRunsReturned": 0,
-    "targetBranchPresentOnRemote": false,
-    "targetCommitPresentOnRemote": false,
+    "actionsRunsReturned": 3,
+    "targetBranchPresentOnRemote": true,
+    "targetCommitPresentOnRemote": true,
     "branchProtectionHttpStatus": 403,
     "branchProtectionMessage": "Upgrade to GitHub Pro or make this repository public to enable this feature."
   },
+  "actionsRun": {
+    "workflow": "strict-ci",
+    "runId": 32677107669,
+    "event": "push",
+    "headSha": "c8f73753aab70524cb42f3984563c6ae74980fba",
+    "status": "completed",
+    "conclusion": "success",
+    "createdAt": "2026-08-24T00:34:42Z",
+    "updatedAt": "2026-08-24T00:40:40Z",
+    "url": "https://github.com/zyc14588/codex-harness-skill/actions/runs/32677107669",
+    "strictLocalGates": {
+      "jobId": 97287150299,
+      "conclusion": "success",
+      "startedAt": "2026-08-24T00:34:45Z",
+      "completedAt": "2026-08-24T00:40:39Z",
+      "requiredGateStepsPassed": 15
+    },
+    "protectedRealProviderSmoke": {
+      "jobId": 97287960997,
+      "conclusion": "skipped",
+      "reason": "expected for a push event; the protected job is restricted to workflow_dispatch with real_provider_smoke=true"
+    }
+  },
+  "repairRunHistory": [
+    {
+      "runId": 32673777411,
+      "headSha": "19a6eb9884618d7af905d99fa542cc5653df3853",
+      "conclusion": "failure",
+      "failure": "Harness build provenance hash differed because the workflow did not fix the mode-sensitive build umask"
+    },
+    {
+      "runId": 32676697208,
+      "headSha": "d5c794b65c74c79adbba5e255517fe937b9dc910",
+      "conclusion": "failure",
+      "failure": "Ubuntu 24 Bubblewrap 0.9 lacked permission to create the required user/network namespace under the hosted-runner AppArmor policy"
+    },
+    {
+      "runId": 32677107669,
+      "headSha": "c8f73753aab70524cb42f3984563c6ae74980fba",
+      "conclusion": "success"
+    }
+  ],
   "conclusion": {
-    "actualTargetSealActionsPass": false,
+    "actualTargetSealActionsPass": true,
     "branchProtectionRequiredChecksConfigured": false,
     "stablePromotionAllowed": false
   },
-  "mutationsPerformed": false,
-  "pushed": false,
-  "workflowTriggered": false
+  "mutationsPerformed": true,
+  "mutationAuthorization": "The user explicitly requested that the code be pushed to the remote repository.",
+  "pushed": true,
+  "workflowTriggered": true,
+  "tagged": false,
+  "githubReleaseCreated": false
 }

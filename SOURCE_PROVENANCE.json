@@ -12,14 +12,22 @@
   "implementationTree": "0011222e61d2f6aaf9d0e1024a9f869013f85fca",
   "implementationCommittedAt": "2026-08-24T03:54:43+10:00",
   "historicalArchive": "archive/",
-  "generatedAt": "2026-08-24T04:03:34+10:00",
-  "qualificationResult": "LOCAL_AND_REAL_PASS_EXTERNAL_GATES_PENDING",
+  "generatedAt": "2026-08-24T10:41:43+10:00",
+  "qualificationResult": "LOCAL_REAL_AND_ACTIONS_PASS_EXTERNAL_GATES_PENDING",
   "canonicalEvidence": {
     "current/evidence/01_CURRENT_REVISION_LOCAL_QUALIFICATION.json": "2d0328b23a0184a451d0f113ff7e8cba0e71608e32a7fb14d624f3969263f576",
     "current/evidence/02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json": "b912f39ab628dea7659dd33a8e237c4dca6db79f786afafbe57dc24e45b4b03e",
     "current/evidence/03_CURRENT_REVISION_NEGATIVE_SMOKE.json": "b9e86926ed7728c90c8df04e5637ee4af196b2588f08d829135636d1a65736b0",
-    "current/evidence/04_GITHUB_EXTERNAL_GATES_2026-08-24.json": "eb28c4e08e40b52e54a00dac8a744100b8b108b2f7aab1784daade1bcf1d08b5"
+    "current/evidence/04_GITHUB_EXTERNAL_GATES_2026-08-24.json": "8c5a3675ac80704590643bc6cd66a237b84730e1e616f3acfa41e817faabbdbd"
   },
-  "pushed": false,
+  "remoteQualification": {
+    "headCommit": "c8f73753aab70524cb42f3984563c6ae74980fba",
+    "headTree": "8e705c780c230cf7a43defa02179dcc248131523",
+    "workflow": "strict-ci",
+    "runId": 32677107669,
+    "conclusion": "success",
+    "completedAt": "2026-08-24T00:40:40Z"
+  },
+  "pushed": true,
   "tagged": false
 }

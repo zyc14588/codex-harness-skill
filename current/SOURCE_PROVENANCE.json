@@ -3,7 +3,7 @@
   "version": "0.6.6",
   "repository": "git@github.com:zyc14588/codex-harness-skill.git",
   "canonicalSource": "current/",
-  "generatedAt": "2026-08-24T04:03:34+10:00",
+  "generatedAt": "2026-08-24T10:41:43+10:00",
   "auditedBaseline": {
     "branch": "release/0.6.5-hotfix-r4",
     "head": "10a70fc0e59ad93fce387c6a1660596d9f01ad7f",
@@ -18,7 +18,7 @@
     "implementationCommit": "adcd07a6ee7904cd70b3cdc8a57c896dc1f12628",
     "implementationTree": "0011222e61d2f6aaf9d0e1024a9f869013f85fca",
     "implementationCommittedAt": "2026-08-24T03:54:43+10:00",
-    "status": "CURRENT_REVISION_LOCAL_AND_REAL_QUALIFIED_EXTERNAL_GATES_PENDING"
+    "status": "CURRENT_REVISION_LOCAL_REAL_AND_ACTIONS_QUALIFIED_EXTERNAL_GATES_PENDING"
   },
   "sourceRecovery": {
     "selectedSource": "the audited repaired-source tree promoted to current/",
@@ -39,7 +39,7 @@
     "stablePromotionAllowedBeforeActualCiAndBranchProtectionPass": false
   },
   "qualification": {
-    "result": "LOCAL_AND_REAL_PASS",
+    "result": "LOCAL_REAL_AND_ACTIONS_PASS",
     "sourceTreeSha256": "8fbc146f96f0509400eddf80ce44b458a41d684ae5b5b5e97e96e1f2fca9d76d",
     "criticalSetSha256": "796b91bd3340c0659fce7f3c833d6ad9440f5a608bc249ba0aa4da840e58c9c8",
     "evidence": {
@@ -49,16 +49,23 @@
     },
     "externalGateEvidence": {
       "path": "evidence/04_GITHUB_EXTERNAL_GATES_2026-08-24.json",
-      "sha256": "eb28c4e08e40b52e54a00dac8a744100b8b108b2f7aab1784daade1bcf1d08b5",
-      "result": "BLOCKED_EXTERNAL"
+      "sha256": "8c5a3675ac80704590643bc6cd66a237b84730e1e616f3acfa41e817faabbdbd",
+      "result": "ACTIONS_PASS_BRANCH_PROTECTION_BLOCKED"
+    },
+    "remoteQualification": {
+      "headCommit": "c8f73753aab70524cb42f3984563c6ae74980fba",
+      "headTree": "8e705c780c230cf7a43defa02179dcc248131523",
+      "workflow": "strict-ci",
+      "runId": 32677107669,
+      "conclusion": "success",
+      "completedAt": "2026-08-24T00:40:40Z"
     },
     "remainingReleaseGates": [
-      "actual GitHub Actions run on the target seal",
       "branch protection required-check configuration",
       "deterministic final archive and unpacked revalidation"
     ]
   },
   "automaticMerge": false,
-  "pushed": false,
+  "pushed": true,
   "tagged": false
 }

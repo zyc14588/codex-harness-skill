@@ -10,8 +10,8 @@
   "implementationCommit": "adcd07a6ee7904cd70b3cdc8a57c896dc1f12628",
   "implementationTree": "0011222e61d2f6aaf9d0e1024a9f869013f85fca",
   "realProviderSmoke": "pass",
-  "externalReleaseGates": "blocked: target absent/no Actions runs; branch protection plan restriction HTTP 403",
+  "externalReleaseGates": "partial pass: strict-ci run 32677107669 succeeded on c8f73753aab70524cb42f3984563c6ae74980fba; branch protection plan restriction HTTP 403; final archive pending",
   "finalArchive": null,
-  "pushed": false,
+  "pushed": true,
   "tagged": false
 }
