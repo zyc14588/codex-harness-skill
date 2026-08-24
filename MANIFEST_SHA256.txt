@@ -1,5 +1,5 @@
 e64c76929f4367092ade0dbc139c253f6b965e09ce8058a6e0c9f9835efeb887  .github/BRANCH_PROTECTION_REQUIRED_CHECKS.md
-c9cf32cd94878c9b72fa2413aa53108215c603be5b9264b1e47a53b8c6622bac  .github/workflows/ci.yml
+ef08e474df223e63e47fa1e35363d033ca11676eeaacc784f54d58ac2021899a  .github/workflows/ci.yml
 7f8493824f65bb103316edda020a09c62435bcbed5b19637e8cb55a7914c67e1  .gitignore
 55ee6c695c650abf1040d9310c8c16cd3559299837a0d3b27a9b9cf28b2de7db  archive/fixtures/rc1-real-smoke-repo/README.md
 20f316b41b539fc8a0267541dc23ec54710ee501f70e3b0f719d8b4bdfc39700  archive/r6.4-failure-handoff/.repair/evidence/round2-default-flash-split-key-failure.json

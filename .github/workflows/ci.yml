@@ -65,6 +65,9 @@ jobs:
       - name: Prepare exact pinned Harness for managed-profile fixture
         working-directory: .
         run: |
+          # The provenance hash includes Unix mode bits. Fix the build umask so
+          # identical source does not hash differently across runner defaults.
+          umask 0002
           HARNESS_ROOT="$RUNNER_TEMP/deepseek-harness"
           PROFILE_MODULES="$RUNNER_TEMP/profile-modules"
           HARNESS_COMMIT="$(jq -r .pinnedHarnessCommit current/config/config.example.json)"
@@ -76,7 +79,12 @@ jobs:
           corepack prepare pnpm@11.7.0 --activate
           pnpm --dir "$HARNESS_ROOT" install --frozen-lockfile
           pnpm --dir "$HARNESS_ROOT" run build
-          test "$(node current/scripts/hash-tree.mjs "$HARNESS_ROOT/apps/cli/lib")" = "$(jq -r .pinnedHarnessBuildSha256 current/config/config.example.json)"
+          ACTUAL_HARNESS_BUILD_SHA256="$(node current/scripts/hash-tree.mjs "$HARNESS_ROOT/apps/cli/lib")"
+          EXPECTED_HARNESS_BUILD_SHA256="$(jq -r .pinnedHarnessBuildSha256 current/config/config.example.json)"
+          if [[ "$ACTUAL_HARNESS_BUILD_SHA256" != "$EXPECTED_HARNESS_BUILD_SHA256" ]]; then
+            echo "::error::Pinned Harness build hash mismatch: expected=$EXPECTED_HARNESS_BUILD_SHA256 actual=$ACTUAL_HARNESS_BUILD_SHA256"
+            exit 1
+          fi
           mkdir -p "$PROFILE_MODULES/@deepseek-ai"
           ln -s "$HARNESS_ROOT/apps/cli/node_modules/@deepseek-ai/cordis-plugin-hmr/node_modules/@deepseek-ai/schemastery" "$PROFILE_MODULES/@deepseek-ai/schemastery"
           ln -s "$HARNESS_ROOT/apps/cli/node_modules/@deepseek-ai/dsh-agent-tool-presentation/node_modules/@deepseek-ai/dsh-tools" "$PROFILE_MODULES/@deepseek-ai/dsh-tools"
