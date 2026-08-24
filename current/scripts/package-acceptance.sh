@@ -148,7 +148,19 @@ PY
 INSTALL_RELEASE_ARGS=()
 if [[ "$RELEASE_STATUS" == "candidate" ]]; then
   INSTALL_RELEASE_ARGS=(--audit-candidate --skip-self-tests)
-elif [[ "$RELEASE_STATUS" != "stable" ]]; then
+elif [[ "$RELEASE_STATUS" == "stable" ]]; then
+  if [[ "${CODEX_HARNESS_PACKAGE_STAGING_AUDIT:-0}" == "1" ]]; then
+    INSTALL_RELEASE_ARGS=(--audit-package-staging)
+  else
+    [[ -n "${CODEX_HARNESS_ARCHIVE:-}" && -n "${CODEX_HARNESS_ARCHIVE_SIDECAR:-}" && -n "${CODEX_HARNESS_ARCHIVE_VALIDATION:-}" ]] \
+      || { echo "Stable package acceptance requires exact archive, sidecar, and validation paths" >&2; exit 1; }
+    INSTALL_RELEASE_ARGS=(
+      --archive "$CODEX_HARNESS_ARCHIVE"
+      --archive-sidecar "$CODEX_HARNESS_ARCHIVE_SIDECAR"
+      --archive-validation "$CODEX_HARNESS_ARCHIVE_VALIDATION"
+    )
+  fi
+else
   echo "Package acceptance refuses releaseStatus=$RELEASE_STATUS" >&2
   exit 1
 fi
@@ -177,10 +189,17 @@ assert ctl["maximumHarnessBudget"]["ceilingPolicy"]=="operator_bounded"
 assert ctl["defaultProComplexBudget"]["ceilingPolicy"]=="unbounded"
 assert c["monitor"]["currency"]["primary"]=="CNY"
 assert c["monitor"]["currency"]["showUsd"] is False
+auth_audit=c["monitor"]["operatorAuthAudit"]
+assert auth_audit=={"maxBytes":1048576,"maxFiles":4,"retentionDays":30,"blockedSummaryIntervalSeconds":60}
 assert c["provider"]["baseUrl"].startswith("https://")
 assert c["provider"]["apiKeyFile"].endswith("/secrets/provider.key")
 assert c["harnessIsolation"]["rejectEnvFiles"] is True
 assert len(c["harnessIsolation"]["bubblewrapSha256"])==64
+rp=c["harnessIsolation"]["resourceProfile"]
+assert rp["enforcement"] in ("audit_only","required")
+assert len(rp["systemdRunSha256"])==64 and len(rp["prlimitSha256"])==64
+assert rp["memoryMaxBytes"]>0 and rp["cpuQuotaPercent"]>0 and rp["tasksMax"]>0 and rp["ioWeight"]>0
+assert rp["worktreeMaxBytes"]>0 and rp["rlimitNoFile"]>0 and rp["rlimitNproc"]>0 and rp["rlimitFsizeBytes"]>0 and rp["commandTimeoutSeconds"]>0
 assert c["passEnvironment"]==["PATH","LANG","LC_ALL","TERM","COLORTERM","NO_COLOR","NODE_EXTRA_CA_CERTS","SSL_CERT_FILE"]
 assert "{{PROMPT_FILE}}" in c["llamaCpp"]["cliArgs"]
 assert all("{{PROMPT}}" not in value for value in c["llamaCpp"]["cliArgs"])

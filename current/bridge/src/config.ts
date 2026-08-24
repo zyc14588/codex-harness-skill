@@ -255,6 +255,7 @@ function monitorConfig(value: unknown): MonitorConfig {
   const host = stringValue(raw.host, "127.0.0.1", "monitor.host");
   assertLoopbackHost(host, "monitor.host");
   const currencyRaw = record(raw.currency);
+  const authAuditRaw = record(raw.operatorAuthAudit);
   return {
     enabled: bool(raw.enabled, true),
     host,
@@ -269,6 +270,12 @@ function monitorConfig(value: unknown): MonitorConfig {
       usdToCnyRate: nullablePositiveNumber(currencyRaw.usdToCnyRate, null, "monitor.currency.usdToCnyRate"),
       fxAsOf: stringValue(currencyRaw.fxAsOf, "not-configured", "monitor.currency.fxAsOf"),
       fxSource: stringValue(currencyRaw.fxSource, "manual", "monitor.currency.fxSource"),
+    },
+    operatorAuthAudit: {
+      maxBytes: integer(authAuditRaw.maxBytes, 1_048_576, "monitor.operatorAuthAudit.maxBytes", 65_536, 104_857_600),
+      maxFiles: integer(authAuditRaw.maxFiles, 4, "monitor.operatorAuthAudit.maxFiles", 1, 32),
+      retentionDays: integer(authAuditRaw.retentionDays, 30, "monitor.operatorAuthAudit.retentionDays", 1, 3_650),
+      blockedSummaryIntervalSeconds: integer(authAuditRaw.blockedSummaryIntervalSeconds, 60, "monitor.operatorAuthAudit.blockedSummaryIntervalSeconds", 1, 3_600),
     },
   };
 }
@@ -382,6 +389,11 @@ export async function loadConfig(explicitPath?: string): Promise<BridgeConfig> {
   const bubblewrapBinary = path.resolve(expandHome(stringValue(isolationRaw.bubblewrapBinary, "/usr/bin/bwrap", "harnessIsolation.bubblewrapBinary")));
   const bubblewrapSha256 = sha256Digest(isolationRaw.bubblewrapSha256, "harnessIsolation.bubblewrapSha256", true)!;
   if (isolationRaw.rejectEnvFiles === false) throw new Error("harnessIsolation.rejectEnvFiles is immutable and must remain true");
+  const resourceRaw = record(isolationRaw.resourceProfile);
+  const resourceEnforcement = resourceRaw.enforcement ?? "required";
+  if (resourceEnforcement !== "required" && resourceEnforcement !== "audit_only") {
+    throw new Error("harnessIsolation.resourceProfile.enforcement must be required or audit_only");
+  }
   const config: BridgeConfig = {
     schemaVersion: 7,
     harnessRoot: path.resolve(expandHome(stringValue(parsed.harnessRoot, "/home/zyc14588/deepseek-harness", "harnessRoot"))),
@@ -408,6 +420,22 @@ export async function loadConfig(explicitPath?: string): Promise<BridgeConfig> {
       bubblewrapSha256,
       relayPort: integer(isolationRaw.relayPort, 43_128, "harnessIsolation.relayPort", 1_024, 65_535),
       rejectEnvFiles: true,
+      resourceProfile: {
+        enforcement: resourceEnforcement,
+        systemdRunBinary: path.resolve(expandHome(stringValue(resourceRaw.systemdRunBinary, "/usr/bin/systemd-run", "harnessIsolation.resourceProfile.systemdRunBinary"))),
+        systemdRunSha256: sha256Digest(resourceRaw.systemdRunSha256, "harnessIsolation.resourceProfile.systemdRunSha256", true)!,
+        prlimitBinary: path.resolve(expandHome(stringValue(resourceRaw.prlimitBinary, "/usr/bin/prlimit", "harnessIsolation.resourceProfile.prlimitBinary"))),
+        prlimitSha256: sha256Digest(resourceRaw.prlimitSha256, "harnessIsolation.resourceProfile.prlimitSha256", true)!,
+        memoryMaxBytes: integer(resourceRaw.memoryMaxBytes, 4_294_967_296, "harnessIsolation.resourceProfile.memoryMaxBytes", 67_108_864, 1_099_511_627_776),
+        cpuQuotaPercent: integer(resourceRaw.cpuQuotaPercent, 200, "harnessIsolation.resourceProfile.cpuQuotaPercent", 10, 800),
+        tasksMax: integer(resourceRaw.tasksMax, 256, "harnessIsolation.resourceProfile.tasksMax", 16, 32_768),
+        ioWeight: integer(resourceRaw.ioWeight, 100, "harnessIsolation.resourceProfile.ioWeight", 1, 10_000),
+        worktreeMaxBytes: integer(resourceRaw.worktreeMaxBytes, 4_294_967_296, "harnessIsolation.resourceProfile.worktreeMaxBytes", 16_777_216, 1_099_511_627_776),
+        rlimitNoFile: integer(resourceRaw.rlimitNoFile, 4_096, "harnessIsolation.resourceProfile.rlimitNoFile", 64, 1_048_576),
+        rlimitNproc: integer(resourceRaw.rlimitNproc, 4_096, "harnessIsolation.resourceProfile.rlimitNproc", 16, 32_768),
+        rlimitFsizeBytes: integer(resourceRaw.rlimitFsizeBytes, 1_073_741_824, "harnessIsolation.resourceProfile.rlimitFsizeBytes", 1_048_576, 1_099_511_627_776),
+        commandTimeoutSeconds: integer(resourceRaw.commandTimeoutSeconds, 1_800, "harnessIsolation.resourceProfile.commandTimeoutSeconds", 1, 7_200),
+      },
     },
     llamaCpp: normalizeLlamaConfig(parsed.llamaCpp),
   };

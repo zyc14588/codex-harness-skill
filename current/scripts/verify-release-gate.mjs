@@ -9,29 +9,77 @@ import {
   CANDIDATE_VERSION,
   CRITICAL_PATHS,
   STABLE_VERSION,
+  implementationScopeBinding,
   releaseIntegrity,
   sha256File,
 } from "./release-integrity.mjs";
 
+export const REQUIRED_STABLE_SOURCE_GATES = Object.freeze([
+  "branchProtectionRequiredChecks",
+  "brokeredToolCancellationNegatives",
+  "cleanReviewedPatchVerification",
+  "currentRevisionFlashSmoke",
+  "currentRevisionProThinkingSmoke",
+  "directAcceptance",
+  "dynamicManagedProfile",
+  "githubActionsExactTip",
+  "ignoredPoisoningVerification",
+  "modelReadOutputBounds",
+  "negativeSmokeSuite",
+  "operatorAuditRetention",
+  "operatorAuthenticationHardening",
+  "processE2E",
+  "protectedProviderEvidenceAttestation",
+  "providerCapabilityIsolation",
+  "reasoningReplayFailureInjection",
+  "repositoryHistoryReadBoundaryDecision",
+  "resourceControlEnforcement",
+  "resourceExhaustionNegatives",
+  "securityAcceptance",
+  "skillValidation",
+  "stdioMcpAcceptance",
+  "transactionalPackageAcceptance",
+  "unitAndComponentRegression",
+].sort());
+
+export const REQUIRED_ARCHIVE_CHECKS = Object.freeze([
+  "deterministicDoubleBuild",
+  "freshInstallLifecycle",
+  "releaseGate",
+  "symlinkAndNodeModulesHygiene",
+  "unpackedBuildAndTests",
+  "unpackedManifest",
+  "unpackedPackageAcceptance",
+  "unpackedSourceGate",
+].sort());
+
+const EXPECTED_ARCHIVE_NAME = "CODEX_HARNESS_BRIDGE_0_6_6_STABLE.zip";
+const EXPECTED_PACKAGE_ORIGIN_KIND = "codex-harness-stable-package-origin";
+
 function usage() {
-  process.stderr.write("Usage: verify-release-gate.mjs --root PATH [--audit-candidate] [--skip-self-tests] [--require-archive --archive ZIP --sidecar FILE --validation FILE]\n");
+  process.stderr.write("Usage: verify-release-gate.mjs --root PATH [--audit-candidate|--seal-ready --external-evidence FILE|--audit-package-staging] [--skip-self-tests] [--require-archive --archive ZIP --sidecar FILE --validation FILE]\n");
 }
 
 function parseArgs(argv) {
-  const result = { auditCandidate: false, skipSelfTests: false, requireArchive: false };
+  const result = { auditCandidate: false, sealReady: false, auditPackageStaging: false, skipSelfTests: false, requireArchive: false };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
-    if (["--root", "--archive", "--sidecar", "--validation"].includes(arg)) {
+    if (["--root", "--archive", "--sidecar", "--validation", "--external-evidence"].includes(arg)) {
       const value = argv[++index];
       if (!value) throw new Error(`${arg} requires a value`);
-      result[arg.slice(2)] = path.resolve(value);
+      result[arg === "--external-evidence" ? "externalEvidence" : arg.slice(2)] = path.resolve(value);
     } else if (arg === "--audit-candidate") result.auditCandidate = true;
+    else if (arg === "--seal-ready") result.sealReady = true;
+    else if (arg === "--audit-package-staging") result.auditPackageStaging = true;
     else if (arg === "--skip-self-tests") result.skipSelfTests = true;
     else if (arg === "--require-archive") result.requireArchive = true;
     else if (arg === "-h" || arg === "--help") { usage(); process.exit(0); }
     else throw new Error(`unknown argument: ${arg}`);
   }
   if (!result.root) throw new Error("--root is required");
+  if ([result.auditCandidate, result.sealReady, result.auditPackageStaging].filter(Boolean).length > 1) {
+    throw new Error("release gate modes are mutually exclusive");
+  }
   return result;
 }
 
@@ -42,6 +90,23 @@ function object(value, label) {
 
 function sha256Text(value) {
   return createHash("sha256").update(value).digest("hex");
+}
+
+function exactKeys(value, required, label) {
+  const actual = Object.keys(object(value, label)).sort();
+  if (JSON.stringify(actual) !== JSON.stringify(required)) {
+    throw new Error(`${label} keys must exactly equal the required set; expected=${required.join(",")} actual=${actual.join(",")}`);
+  }
+}
+
+function sha256(value, label) {
+  if (!/^[0-9a-f]{64}$/u.test(String(value ?? ""))) throw new Error(`${label} must be a lowercase SHA-256 digest`);
+  return String(value);
+}
+
+function gitObjectId(value, label) {
+  if (!/^[0-9a-f]{40,64}$/u.test(String(value ?? ""))) throw new Error(`${label} must be a Git object id`);
+  return String(value);
 }
 
 async function jsonFile(target, label) {
@@ -139,22 +204,274 @@ function assertSmokeQualification(smoke, status, integrity) {
   }
 }
 
-async function validateArchive(options, status) {
+function assertStableSourceGates(status) {
+  const gates = object(status.gates, "release gates");
+  exactKeys(gates, REQUIRED_STABLE_SOURCE_GATES, "release gates");
+  if (REQUIRED_STABLE_SOURCE_GATES.some((key) => gates[key] !== "PASS")) {
+    throw new Error("every required stable source gate must be exactly PASS");
+  }
+}
+
+async function assertOwnerDecisions(root, config) {
+  const document = await jsonFile(path.join(root, "docs/OWNER_DECISIONS.json"), "owner decisions");
+  if (document.schemaVersion !== 1 || document.version !== STABLE_VERSION) throw new Error("owner decisions schema/version is invalid");
+  const decisions = object(document.decisions, "owner decisions map");
+  const required = ["DEC-001", "DEC-002", "DEC-003", "DEC-004"].sort();
+  exactKeys(decisions, required, "owner decisions map");
+  for (const id of required) {
+    const decision = object(decisions[id], `owner decision ${id}`);
+    if (decision.status !== "APPROVED" || typeof decision.selected !== "string"
+      || !Array.isArray(decision.options) || !decision.options.includes(decision.selected)
+      || typeof decision.decidedBy !== "string" || decision.decidedBy.trim().length === 0
+      || !Number.isFinite(Date.parse(String(decision.decidedAt ?? "")))) {
+      throw new Error(`owner decision ${id} is not explicitly approved and attributable`);
+    }
+  }
+  if (decisions["DEC-002"].implementationVerified !== true) {
+    throw new Error("repository/history read-boundary owner decision is not implementation-verified");
+  }
+  const runtimeProfile = object(config.harnessIsolation, "config Harness isolation").resourceProfile;
+  const profile = object(runtimeProfile, "config controlled resource profile");
+  if (profile.enforcement !== "required") throw new Error("stable controlled resource profile must use required enforcement");
+  const approvedProfile = object(decisions["DEC-003"].approvedProfile, "approved controlled resource profile");
+  const fields = [
+    "memoryMaxBytes", "cpuQuotaPercent", "tasksMax", "ioWeight", "worktreeMaxBytes",
+    "rlimitNoFile", "rlimitNproc", "rlimitFsizeBytes", "commandTimeoutSeconds",
+  ];
+  if (fields.some((field) => approvedProfile[field] !== profile[field])) {
+    throw new Error("runtime controlled resource profile differs from the owner-approved defaults");
+  }
+}
+
+async function assertExternalEvidence(evidence, status, integrity) {
+  if (Number(evidence.schemaVersion) < 3 || evidence.result !== "PASS") {
+    throw new Error("GitHub external evidence must be a schema-v3 PASS attestation");
+  }
+  const target = object(status.releaseTarget, "release target binding");
+  const repository = String(target.repository ?? "");
+  const branch = String(target.branch ?? "");
+  const sealCommit = integrity.git.available
+    ? gitObjectId(integrity.git.commit, "checked-out seal commit")
+    : gitObjectId(target.sealCommit, "release target seal commit");
+  const sealTree = integrity.git.available
+    ? gitObjectId(integrity.git.repositoryTree, "checked-out repository seal tree")
+    : gitObjectId(target.sealTree, "release target seal tree");
+  const workflow = object(target.workflow, "release workflow binding");
+  if (repository !== "zyc14588/codex-harness-skill" || !branch.startsWith("repair/0.6.6-")) {
+    throw new Error("release target repository/branch binding is invalid");
+  }
+  if (workflow.path !== ".github/workflows/ci.yml") throw new Error("release workflow path binding is invalid");
+  let workflowSha256 = sha256(workflow.sha256, "release workflow SHA-256");
+  if (integrity.git.available) {
+    const workflowPath = path.join(integrity.git.top, workflow.path);
+    const checkedOutWorkflowSha256 = await sha256File(workflowPath);
+    if (checkedOutWorkflowSha256 !== workflowSha256) throw new Error("checked-out workflow SHA-256 mismatch");
+    workflowSha256 = checkedOutWorkflowSha256;
+  }
+  if (evidence.repository !== repository || evidence.targetBranch !== branch
+    || evidence.targetCommit !== sealCommit || evidence.targetTree !== sealTree) {
+    throw new Error("GitHub external evidence repository/branch/exact head/tree mismatch");
+  }
+  const evidenceWorkflow = object(evidence.workflow, "GitHub workflow evidence");
+  if (evidenceWorkflow.path !== workflow.path || evidenceWorkflow.sha256 !== workflowSha256) {
+    throw new Error("GitHub workflow path/SHA-256 mismatch");
+  }
+  const run = object(evidence.actionsRun, "GitHub Actions run evidence");
+  const expectedWorkflowRef = `${repository}/.github/workflows/ci.yml@refs/heads/${branch}`;
+  if (!Number.isSafeInteger(run.runId) || run.runId <= 0
+    || !Number.isSafeInteger(run.runAttempt) || run.runAttempt <= 0
+    || run.headSha !== sealCommit || run.workflowRef !== expectedWorkflowRef
+    || run.status !== "completed" || run.conclusion !== "success") {
+    throw new Error("GitHub Actions run does not bind a successful exact seal head");
+  }
+  const strict = object(run.strictLocalGates, "strict-local-gates job evidence");
+  if (!Number.isSafeInteger(strict.jobId) || strict.jobId <= 0 || strict.conclusion !== "success") {
+    throw new Error("strict-local-gates job did not conclude success");
+  }
+  const protectedSmoke = object(run.protectedRealProviderSmoke, "protected Provider smoke evidence");
+  if (!Number.isSafeInteger(protectedSmoke.jobId) || protectedSmoke.jobId <= 0
+    || protectedSmoke.conclusion !== "success" || protectedSmoke.environment !== "deepseek-provider-smoke") {
+    throw new Error("protected Provider smoke was skipped or did not conclude success in the protected environment");
+  }
+  const artifact = object(protectedSmoke.artifact, "protected Provider evidence artifact");
+  const expectedArtifactName = `codex-harness-provider-evidence-${sealCommit}.tar`;
+  const expectedArtifactUrl = `https://github.com/${repository}/actions/runs/${String(run.runId)}/artifacts/${String(artifact.id)}`;
+  if (!Number.isSafeInteger(artifact.id) || artifact.id <= 0 || artifact.name !== expectedArtifactName
+    || artifact.url !== expectedArtifactUrl) {
+    throw new Error("protected Provider evidence artifact identity is invalid");
+  }
+  const artifactSha256 = sha256(artifact.sha256, "protected Provider evidence artifact SHA-256");
+  const attestation = object(artifact.attestation, "protected Provider artifact attestation");
+  const expectedAttestationUrl = `https://github.com/${repository}/attestations/${String(attestation.id)}`;
+  if (attestation.type !== "github-artifact-attestation" || attestation.verified !== true
+    || !Number.isSafeInteger(attestation.id) || attestation.id <= 0
+    || attestation.url !== expectedAttestationUrl || attestation.repository !== repository
+    || attestation.workflowRef !== expectedWorkflowRef || attestation.subjectSha256 !== artifactSha256) {
+    throw new Error("protected Provider evidence artifact lacks a verified digest attestation");
+  }
+  const protection = object(evidence.branchProtection, "branch protection/ruleset evidence");
+  if (protection.status !== "PASS" || protection.httpStatus !== 200
+    || protection.requiredChecksConfigured !== true
+    || protection.strictLocalGatesRequired !== true
+    || protection.protectedProviderSmokeRequired !== true) {
+    throw new Error("branch protection/ruleset required checks are not proven active");
+  }
+}
+
+async function assertSourceAndEvidence(root, status, { requireGit, externalEvidence: externalEvidencePath }) {
+  assertStableSourceGates(status);
+  const implementation = object(status.implementation, "implementation binding");
+  gitObjectId(implementation.commit, "implementation commit");
+  gitObjectId(implementation.tree, "implementation tree");
+  if (!Number.isFinite(Date.parse(String(implementation.committedAt ?? "")))) {
+    throw new Error("stable implementation timestamp binding is invalid");
+  }
+  const integrity = await releaseIntegrity(root);
+  if (requireGit && !integrity.git.available) throw new Error("seal-ready source verification requires a Git checkout");
+  if (integrity.git.available) {
+    if (integrity.git.repositoryClean !== true) {
+      throw new Error(`release seal requires a clean repository worktree and index${integrity.git.repositoryStatus ? `: ${integrity.git.repositoryStatus}` : ""}`);
+    }
+    const sourceBinding = implementationScopeBinding(root, implementation.commit);
+    if (sourceBinding.exact !== true) {
+      throw new Error(`current source differs from the implementation commit: ${sourceBinding.changedPaths.join(",")}`);
+    }
+    if (sourceBinding.allowedMetadataOnly !== true) {
+      throw new Error(`unauthorized post-implementation metadata changed: ${sourceBinding.unauthorizedMetadataChanges.join(",")}`);
+    }
+    const sourceTreeAtImplementation = git(root, ["rev-parse", `${implementation.commit}:${integrity.git.relative}`]);
+    if (sourceTreeAtImplementation.status !== 0 || sourceTreeAtImplementation.stdout.trim() !== implementation.tree) {
+      throw new Error("implementation source Git tree binding is invalid");
+    }
+  }
+  const bindings = object(status.artifactBindings, "artifact bindings");
+  if (bindings.sourceTreeSha256 !== integrity.source.sha256) throw new Error("canonical source-tree SHA-256 mismatch");
+  if (bindings.packageLockSha256 !== await sha256File(path.join(root, "bridge/package-lock.json"))) throw new Error("package-lock SHA-256 mismatch");
+  if (bindings.sourceProvenanceSha256 !== await sha256File(path.join(root, "SOURCE_PROVENANCE.json"))) throw new Error("source provenance SHA-256 mismatch");
+  const critical = object(bindings.criticalPathSha256, "critical path bindings");
+  if (JSON.stringify(Object.keys(critical)) !== JSON.stringify(CRITICAL_PATHS)
+    || JSON.stringify(critical) !== JSON.stringify(integrity.critical.entries)
+    || bindings.criticalSetSha256 !== integrity.critical.setSha256) {
+    throw new Error("critical-path hash set mismatch");
+  }
+  const config = await jsonFile(path.join(root, "config/config.example.json"), "config example");
+  await assertOwnerDecisions(root, config);
+  const harness = object(bindings.harness, "Harness binding");
+  if (harness.commit !== config.pinnedHarnessCommit || harness.buildSha256 !== config.pinnedHarnessBuildSha256) {
+    throw new Error("Harness commit/build binding differs from runtime config");
+  }
+  const provenance = await jsonFile(path.join(root, "SOURCE_PROVENANCE.json"), "source provenance");
+  if (provenance.repairLine?.implementationCommit !== implementation.commit
+    || provenance.repairLine?.implementationTree !== implementation.tree) {
+    throw new Error("source provenance does not bind the implementation commit/tree");
+  }
+  const evidenceBindings = object(bindings.requiredEvidenceSha256, "required evidence bindings");
+  const localEvidence = [
+    status.localQualificationEvidencePath,
+    status.realProviderEvidencePath,
+    status.negativeSmokeEvidencePath,
+  ];
+  const requiredEvidence = [...localEvidence, status.externalGateEvidencePath];
+  if (requiredEvidence.some((value) => typeof value !== "string" || value.length === 0)) {
+    throw new Error("stable release lacks an explicit required evidence path");
+  }
+  exactKeys(evidenceBindings, [...(requireGit ? localEvidence : requiredEvidence)].sort(), "required evidence bindings");
+  if (bindings.observationalEvidenceSha256?.[status.externalGateEvidencePath] !== undefined) {
+    throw new Error("GitHub external evidence cannot be observational");
+  }
+  const implementationTime = Date.parse(implementation.committedAt);
+  let smoke;
+  let external;
+  for (const relative of (requireGit ? localEvidence : requiredEvidence)) {
+    const target = await boundFile(root, relative, String(evidenceBindings[relative]), `release evidence ${relative}`);
+    const evidence = await jsonFile(target, `release evidence ${relative}`);
+    if (!Number.isFinite(Date.parse(String(evidence.generatedAt ?? ""))) || Date.parse(evidence.generatedAt) <= implementationTime) {
+      throw new Error(`release evidence predates or lacks the implementation timestamp: ${relative}`);
+    }
+    if (relative === status.externalGateEvidencePath) {
+      external = evidence;
+      continue;
+    }
+    if (evidence.sourceCommit !== implementation.commit || evidence.sourceTree !== implementation.tree
+      || evidence.sourceTreeSha256 !== integrity.source.sha256 || evidence.criticalSetSha256 !== integrity.critical.setSha256) {
+      throw new Error(`release evidence is not bound to current source/critical paths: ${relative}`);
+    }
+    if (relative === status.realProviderEvidencePath) smoke = evidence;
+  }
+  if (requireGit) {
+    if (!externalEvidencePath) throw new Error("seal-ready source requires repository-external GitHub evidence input");
+    const canonicalEvidence = await realpath(externalEvidencePath);
+    const relativeToRepository = path.relative(integrity.git.top, canonicalEvidence);
+    if (relativeToRepository === "" || (!relativeToRepository.startsWith("..") && !path.isAbsolute(relativeToRepository))) {
+      throw new Error("seal-ready GitHub evidence must remain outside the clean repository checkout");
+    }
+    external = await jsonFile(canonicalEvidence, "repository-external GitHub evidence");
+    if (!Number.isFinite(Date.parse(String(external.generatedAt ?? ""))) || Date.parse(external.generatedAt) <= implementationTime) {
+      throw new Error("repository-external GitHub evidence predates or lacks the implementation timestamp");
+    }
+  }
+  assertSmokeQualification(smoke, status, integrity);
+  await assertExternalEvidence(external, status, integrity);
+  return { integrity, requiredEvidenceCount: requiredEvidence.length };
+}
+
+async function assertPackageOrigin(root, status, integrity) {
+  const originPath = path.join(root, "package-origin.json");
+  const origin = await jsonFile(originPath, "package-origin.json");
+  if (origin.schemaVersion !== 1 || origin.kind !== EXPECTED_PACKAGE_ORIGIN_KIND
+    || origin.version !== STABLE_VERSION || origin.releaseStatus !== "stable") {
+    throw new Error("stable installation requires a packaging-stage package-origin marker");
+  }
+  const target = object(status.releaseTarget, "release target binding");
+  if (origin.repository !== target.repository || origin.branch !== target.branch
+    || origin.sealCommit !== target.sealCommit || origin.sealTree !== target.sealTree
+    || origin.implementationCommit !== status.implementation.commit
+    || origin.implementationTree !== status.implementation.tree
+    || origin.sourceTreeSha256 !== integrity.source.sha256
+    || origin.workflowSha256 !== target.workflow?.sha256
+    || origin.archiveName !== EXPECTED_ARCHIVE_NAME) {
+    throw new Error("package-origin marker does not bind the exact source/seal/workflow/archive identity");
+  }
+  return { origin, sha256: await sha256File(originPath) };
+}
+
+async function validateArchive(options, status, packageOriginSha256) {
   if (!options.archive && !options.sidecar && !options.validation) {
     if (options.requireArchive) throw new Error("final archive validation requires --archive, --sidecar and --validation");
     return false;
   }
   if (!options.archive || !options.sidecar || !options.validation) throw new Error("archive validation arguments must be supplied together");
-  const expectedName = "CODEX_HARNESS_BRIDGE_0_6_6_STABLE.zip";
-  if (path.basename(options.archive) !== expectedName || status.finalArchive?.name !== expectedName) {
-    throw new Error(`stable archive name must be ${expectedName}`);
+  if (path.basename(options.archive) !== EXPECTED_ARCHIVE_NAME || status.finalArchive?.name !== EXPECTED_ARCHIVE_NAME) {
+    throw new Error(`stable archive name must be ${EXPECTED_ARCHIVE_NAME}`);
   }
   const archiveSha256 = await sha256File(options.archive);
   const sidecar = (await readFile(options.sidecar, "utf8")).trim();
-  if (sidecar !== `${archiveSha256}  ${expectedName}`) throw new Error("archive SHA-256 sidecar does not bind the final archive");
+  if (sidecar !== `${archiveSha256}  ${EXPECTED_ARCHIVE_NAME}`) throw new Error("archive SHA-256 sidecar does not bind the final archive");
   const validation = await jsonFile(options.validation, "archive validation sidecar");
-  if (validation.result !== "PASS" || validation.archive !== expectedName || validation.archiveSha256 !== archiveSha256) {
+  if (validation.schemaVersion !== 2 || validation.result !== "PASS"
+    || validation.archive !== EXPECTED_ARCHIVE_NAME || validation.archiveSha256 !== archiveSha256
+    || validation.packageOriginSha256 !== packageOriginSha256) {
     throw new Error("archive validation sidecar is inconsistent");
+  }
+  exactKeys(validation.checks, REQUIRED_ARCHIVE_CHECKS, "archive validation checks");
+  if (REQUIRED_ARCHIVE_CHECKS.some((key) => validation.checks[key] !== "PASS")) {
+    throw new Error("every required archive validation check must be exactly PASS");
+  }
+  const target = object(status.releaseTarget, "release target binding");
+  if (validation.sealCommit !== target.sealCommit || validation.sealTree !== target.sealTree
+    || validation.implementationCommit !== status.implementation.commit) {
+    throw new Error("archive validation does not bind the exact seal and implementation");
+  }
+  const attestation = object(validation.attestation, "archive validation attestation");
+  const expectedChain = sha256Text([
+    archiveSha256,
+    packageOriginSha256,
+    target.sealCommit,
+    target.sealTree,
+    status.implementation.commit,
+  ].join("\n"));
+  if (attestation.type !== "sha256-chain-v1" || attestation.verified !== true || attestation.chainSha256 !== expectedChain) {
+    throw new Error("archive validation attestation hash chain is invalid");
   }
   return true;
 }
@@ -185,84 +502,59 @@ export async function verifyReleaseGate(options) {
       criticalSetSha256: integrity.critical.setSha256,
     };
   }
+  if (status.releaseStatus === "seal_ready") {
+    if (!options.sealReady) throw new Error("seal-ready source requires explicit --seal-ready verification");
+    if (status.version !== STABLE_VERSION || status.controlledUseAllowed !== false
+      || status.deliverableStatus !== "SEAL_READY" || status.realProviderSmoke !== "pass") {
+      throw new Error("seal-ready source must remain non-controlled and fully source-qualified");
+    }
+    if (status.finalArchive !== null) throw new Error("seal-ready source must not declare an archive before packaging");
+    if (options.skipSelfTests || options.requireArchive) throw new Error("seal-ready source verification cannot skip tests or claim archive validation");
+    await assertVersionSurfaces(root, STABLE_VERSION);
+    const source = await assertSourceAndEvidence(root, status, {
+      requireGit: true,
+      externalEvidence: options.externalEvidence,
+    });
+    return {
+      releaseStatus: "seal_ready",
+      installMode: "not-installable",
+      sourceTreeSha256: source.integrity.source.sha256,
+      criticalSetSha256: source.integrity.critical.setSha256,
+      evidenceBindings: source.requiredEvidenceCount,
+      archiveValidated: false,
+    };
+  }
   if (status.releaseStatus !== "stable") throw new Error(`unsupported releaseStatus: ${String(status.releaseStatus)}`);
   if (status.version !== STABLE_VERSION) throw new Error(`stable version must be ${STABLE_VERSION}`);
-  if (options.auditCandidate) throw new Error("stable release must not use candidate acknowledgement");
+  if (options.auditCandidate || options.sealReady) throw new Error("stable release must not use a source-checkout acknowledgement");
   if (options.skipSelfTests) throw new Error("stable release installation cannot skip deterministic self-tests");
   if (status.controlledUseAllowed !== true || status.deliverableStatus !== "DELIVERABLE_PASS" || status.realProviderSmoke !== "pass") {
     throw new Error("stable release requires controlled use, deliverable PASS, and current real Provider PASS");
   }
   await assertVersionSurfaces(root, STABLE_VERSION);
-  const gates = object(status.gates, "release gates");
-  if (Object.keys(gates).length === 0 || Object.values(gates).some((value) => value !== "PASS")) {
-    throw new Error("every stable release gate must be exactly PASS");
-  }
-  const implementation = object(status.implementation, "implementation binding");
-  if (!/^[0-9a-f]{40,64}$/u.test(String(implementation.commit ?? ""))
-    || !/^[0-9a-f]{40,64}$/u.test(String(implementation.tree ?? ""))
-    || !Number.isFinite(Date.parse(String(implementation.committedAt ?? "")))) {
-    throw new Error("stable implementation commit/tree/timestamp binding is invalid");
-  }
-  const integrity = await releaseIntegrity(root);
-  if (integrity.git.available && integrity.git.sourceClean !== true) {
-    throw new Error("stable canonical source scope differs from the checked-out release seal");
-  }
-  const bindings = object(status.artifactBindings, "artifact bindings");
-  if (bindings.sourceTreeSha256 !== integrity.source.sha256) throw new Error("canonical source-tree SHA-256 mismatch");
-  if (bindings.packageLockSha256 !== await sha256File(path.join(root, "bridge/package-lock.json"))) throw new Error("package-lock SHA-256 mismatch");
-  if (bindings.sourceProvenanceSha256 !== await sha256File(path.join(root, "SOURCE_PROVENANCE.json"))) throw new Error("source provenance SHA-256 mismatch");
-  const critical = object(bindings.criticalPathSha256, "critical path bindings");
-  if (JSON.stringify(Object.keys(critical)) !== JSON.stringify(CRITICAL_PATHS)
-    || JSON.stringify(critical) !== JSON.stringify(integrity.critical.entries)
-    || bindings.criticalSetSha256 !== integrity.critical.setSha256) {
-    throw new Error("critical-path hash set mismatch");
-  }
-  const config = await jsonFile(path.join(root, "config/config.example.json"), "config example");
-  const harness = object(bindings.harness, "Harness binding");
-  if (harness.commit !== config.pinnedHarnessCommit || harness.buildSha256 !== config.pinnedHarnessBuildSha256) {
-    throw new Error("Harness commit/build binding differs from runtime config");
-  }
-  const provenance = await jsonFile(path.join(root, "SOURCE_PROVENANCE.json"), "source provenance");
-  if (provenance.repairLine?.implementationCommit !== implementation.commit
-    || provenance.repairLine?.implementationTree !== implementation.tree) {
-    throw new Error("source provenance does not bind the stable implementation commit/tree");
-  }
-  if (integrity.git.available) {
-    const ancestor = git(root, ["merge-base", "--is-ancestor", implementation.commit, "HEAD"]);
-    if (ancestor.status !== 0) throw new Error("implementation commit is not an ancestor of the checked-out release seal");
-    const sourceTreeAtImplementation = git(root, ["rev-parse", `${implementation.commit}:${integrity.git.relative}`]);
-    if (sourceTreeAtImplementation.status !== 0 || sourceTreeAtImplementation.stdout.trim() !== implementation.tree) {
-      throw new Error("implementation source Git tree binding is invalid");
+  const source = await assertSourceAndEvidence(root, status, { requireGit: false });
+  const packageOrigin = await assertPackageOrigin(root, status, source.integrity);
+  if (options.auditPackageStaging) {
+    if (options.requireArchive || options.archive || options.sidecar || options.validation) {
+      throw new Error("package-staging audit cannot claim external archive validation");
     }
+    return {
+      releaseStatus: "stable",
+      installMode: "packaging-audit-only",
+      sourceTreeSha256: source.integrity.source.sha256,
+      criticalSetSha256: source.integrity.critical.setSha256,
+      evidenceBindings: source.requiredEvidenceCount,
+      archiveValidated: false,
+    };
   }
-  const evidenceBindings = object(bindings.requiredEvidenceSha256, "required evidence bindings");
-  const requiredEvidence = Object.keys(evidenceBindings);
-  if (requiredEvidence.length < 3 || !requiredEvidence.includes(status.realProviderEvidencePath)
-    || !requiredEvidence.includes(status.negativeSmokeEvidencePath)) {
-    throw new Error("stable release lacks current local, real Provider, and negative evidence bindings");
-  }
-  const implementationTime = Date.parse(implementation.committedAt);
-  let smoke;
-  for (const relative of requiredEvidence) {
-    const target = await boundFile(root, relative, String(evidenceBindings[relative]), `release evidence ${relative}`);
-    const evidence = await jsonFile(target, `release evidence ${relative}`);
-    if (!Number.isFinite(Date.parse(String(evidence.generatedAt ?? ""))) || Date.parse(evidence.generatedAt) <= implementationTime) {
-      throw new Error(`release evidence predates or lacks the implementation timestamp: ${relative}`);
-    }
-    if (evidence.sourceCommit !== implementation.commit || evidence.sourceTree !== implementation.tree
-      || evidence.sourceTreeSha256 !== integrity.source.sha256 || evidence.criticalSetSha256 !== integrity.critical.setSha256) {
-      throw new Error(`release evidence is not bound to current source/critical paths: ${relative}`);
-    }
-    if (relative === status.realProviderEvidencePath) smoke = evidence;
-  }
-  assertSmokeQualification(smoke, status, integrity);
-  const archiveValidated = await validateArchive(options, status);
+  if (!options.requireArchive) throw new Error("stable release always requires exact external archive validation");
+  const archiveValidated = await validateArchive(options, status, packageOrigin.sha256);
   return {
     releaseStatus: "stable",
     installMode: "controlled",
-    sourceTreeSha256: integrity.source.sha256,
-    criticalSetSha256: integrity.critical.setSha256,
-    evidenceBindings: requiredEvidence.length,
+    sourceTreeSha256: source.integrity.source.sha256,
+    criticalSetSha256: source.integrity.critical.setSha256,
+    evidenceBindings: source.requiredEvidenceCount,
     archiveValidated,
   };
 }

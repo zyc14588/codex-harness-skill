@@ -18,6 +18,14 @@ Dashboard API 要求 private bearer；mutation 另要求同源 Origin、CSRF 与
 
 Harness、Bubblewrap 与 llama binaries/build trees 使用 realpath、owner/mode、commit/SHA-256 与 Linux process identity 门禁。PID/PGID 重用或 executable hash 不匹配时不发送信号。
 
+task/attempt registry 是 broker 执行的终止权威：取消、attempt rollover、超时与 Monitor shutdown 都撤销 lease 并触发端到端 AbortSignal。子进程使用独立进程组，只有身份复验通过才发送 TERM/KILL；取消后不得有延迟工作树写入。
+
+受控执行不接受“尽力而为”资源限制。固定哈希 launcher 必须创建实际 cgroup v2 scope，并动态证明 memory、CPU、tasks、I/O weight、runtime 和 RLIMIT 上限；工作树 allocated bytes 也有硬限。缺少 I/O controller 等任一能力时，doctor 必须令 `controlledUseAllowed=false`。`audit_only` 只能用于审计候选。
+
+模型可见文件/目录/repository 输出有固定 49,152-byte UTF-8 页上限和显式分页元数据。operator 认证审计以幂次/时间/最终摘要聚合，不记录 bearer，并同时限制来源状态数量、文件段数、总字节和保留期，避免攻击者用未认证请求放大磁盘占用。
+
 ## 发布
 
-稳定状态不能靠文档声明。release gate 必须从当前树重算 source/lock/critical/evidence/archive bindings，确认 evidence 晚于 implementation commit 且 smoke generation commit/tree 正是当前 critical path。根 workflow 以 full SHA pin actions。未取得实际 CI run 与 branch protection 证据时保持 candidate；禁止自动 push、merge、tag 或 GitHub Release。
+稳定状态不能靠文档声明。release gate 必须从当前树重算 source/lock/critical/evidence/archive bindings，确认 evidence 晚于 implementation commit 且 smoke generation commit/tree 正是当前 critical path。根 workflow 以 full SHA pin actions，并把受保护 Provider evidence 的 artifact digest、run identity、workflow hash 和 GitHub attestation 绑定到精确 seal commit。先完成干净 canonical `seal-ready`，再在隔离 staging 构建归档；canonical checkout 不写打包来源文件。
+
+DEC-001 至 DEC-004 是不可代签的 owner 决策；未批准或批准后未重新纳入实现提交并资格化时，stable gate 必须失败。未取得实际 CI run、protected Provider attestation、branch protection required checks、全 controller 资源证据和最终 archive 证据时保持 candidate；禁止自动 push、merge、tag 或 GitHub Release。

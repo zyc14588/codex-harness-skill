@@ -33,6 +33,12 @@ Harness 外层 Bubblewrap 拥有独立 user/PID/network/mount namespace，只挂
 
 模型工具永远拿不到 Provider/Adapter/tool bearer。最终 lease 与 diff 门禁仍 fail closed。
 
+所有 broker 调用都绑定 task/attempt registry lease。attempt 替换、AbortSignal、超时或 Monitor 排空会先撤销 lease，再终止已验证身份的独立进程组；TERM 后仍存活才 KILL。旧 attempt 的延迟回调不能再写工作树或返回成功。Harness 本体、relay 与每个 broker sibling 均被同一宿主资源 profile 包裹。
+
+受控资源 profile 使用固定 realpath/SHA-256 的 `systemd-run --user --scope` 和 `prlimit`。动态探针必须从实际 cgroup v2 与 `/proc` 同时读回 MemoryMax、CPUQuota、TasksMax、IOWeight、RuntimeMaxSec 和 RLIMIT；任一 controller 未委派、值不一致或探针缺失都禁止 controlled use。工作树另按实际 allocated bytes 监控。`audit_only` 仅供候选诊断，不是降级后的受控模式。
+
+editor、目录列表与 repository read 的模型可见输出统一按 UTF-8 字节分页，单页硬上限 49,152 bytes（估算 12,288 tokens），并返回 `offset_bytes`、`max_bytes` 与截断元数据。operator 认证失败审计按来源聚合，采用有界来源状态、最多四段/总计 1 MiB/30 天保留，防止未认证流量造成日志磁盘放大。
+
 ## 请求状态与 Thinking Policy
 
 runner visible、assembled、Adapter 与 wire tool snapshot 必须相关一致。Minimal Flash attempt 固定 `thinking=disabled/off`；初次有界变更请求在无 diff 时只强制已披露的核心原生工具。Pro attempt 固定 enabled/high、禁止 `tool_choice`，并要求每轮真实 `reasoning_content` 按 hash/长度/tool-call ID 完整回放。任何遗漏在 Provider I/O、Token 计量与 split-memory 写入之前失败。
@@ -57,4 +63,4 @@ Agent worktree 的 ignored/untracked residue 不进入验证树。验证证据�
 
 ## 发布边界
 
-`current/` 是唯一活动源码。`archive/` 只保存 withdrawn/historical material。candidate 不可受控安装，stable gate 必须绑定当前 commit/tree、lockfile、Harness pin、critical hashes、当前 revision smoke 与最终 archive sidecar；任何 critical hash 改变都会使旧 smoke 失效。
+`current/` 是唯一活动源码。`archive/` 只保存 withdrawn/historical material。candidate 不可受控安装。源码封印先在干净 canonical checkout 上验证实现 commit/tree、精确源码门禁、仓库外 GitHub 证据与仅允许的 seal metadata；归档随后只在隔离 staging 中生成 `package-origin.json`。stable 安装还必须验证归档、sidecar、validation JSON 与 attestation chain。任何源码、critical hash、workflow 或未经许可的后实现元数据改变都会使旧证据失效。

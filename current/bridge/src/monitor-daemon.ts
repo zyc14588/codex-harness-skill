@@ -90,6 +90,7 @@ import {
   type ThinkingRequestPreflight,
 } from "./thinking-policy.js";
 import { executeBrokeredTool } from "./brokered-tool-host.js";
+import { brokeredToolProcessRegistry } from "./brokered-tool-registry.js";
 
 const VERSION = "0.6.6";
 const MAX_REQUEST_BYTES = 16_000_000;
@@ -1181,6 +1182,21 @@ async function brokeredToolRequest(
   taskId: string,
   attemptId: string,
 ): Promise<void> {
+  const controller = new AbortController();
+  const abort = (reason: string): void => {
+    if (!controller.signal.aborted) controller.abort(reason);
+  };
+  const onAborted = (): void => abort("brokered tool HTTP request aborted");
+  const onRequestClose = (): void => {
+    if (request.aborted || !request.complete) abort("brokered tool HTTP request closed before completion");
+  };
+  const onResponseClose = (): void => {
+    if (!response.writableEnded) abort("brokered tool HTTP client connection closed");
+  };
+  request.once("aborted", onAborted);
+  request.once("close", onRequestClose);
+  response.once("close", onResponseClose);
+  try {
   if (request.method !== "POST") return json(response, 405, { error: "brokered tools require POST" });
   if (!isJsonRequest(request)) return json(response, 415, { error: "brokered tools require application/json" });
   let task: TaskRecord;
@@ -1191,10 +1207,20 @@ async function brokeredToolRequest(
     throw new HttpRequestError(403, "invalid or inactive tool capability");
   }
   const body = parseBody(await readBody(request));
+  if (controller.signal.aborted) return;
   if (body.taskId !== task.id) throw new HttpRequestError(400, "brokered tool body taskId does not match its route");
   if (typeof body.tool !== "string" || !/^[a-z_]{1,80}$/u.test(body.tool)) throw new HttpRequestError(400, "brokered tool name is invalid");
-  const result = await executeBrokeredTool(config, task, body.tool, body.arguments ?? {});
+  const result = await executeBrokeredTool(config, task, body.tool, body.arguments ?? {}, {
+    attemptId,
+    signal: controller.signal,
+  });
+  if (controller.signal.aborted || response.destroyed) return;
   return json(response, 200, { result });
+  } finally {
+    request.off("aborted", onAborted);
+    request.off("close", onRequestClose);
+    response.off("close", onResponseClose);
+  }
 }
 
 const internalServer = http.createServer(async (request, response) => {
@@ -1234,20 +1260,59 @@ server.listen(config.monitor.port, config.monitor.host, () => {
     });
 });
 
-const timer = setInterval(() => { scheduleBroadcast(config, "monitor periodic snapshot"); }, 2_000);
+let brokeredReconcileRunning = false;
+async function reconcileBrokeredToolProcesses(): Promise<void> {
+  if (brokeredReconcileRunning) return;
+  brokeredReconcileRunning = true;
+  try {
+    const taskIds = [...new Set(brokeredToolProcessRegistry.snapshot().map((entry) => entry.taskId))];
+    for (const taskId of taskIds) {
+      let task: TaskRecord;
+      try { task = await loadTask(config, taskId); }
+      catch {
+        brokeredToolProcessRegistry.abortTask(taskId, "brokered tool task record disappeared");
+        continue;
+      }
+      if ((task.status !== "queued" && task.status !== "running")
+        || (task.effectiveExecutor ?? task.executor) !== "harness" || task.harnessMode !== "minimal") {
+        brokeredToolProcessRegistry.abortTask(taskId, `brokered tool task became ${task.status}`);
+        continue;
+      }
+      const attempt = task.executionAttempts?.at(-1);
+      const activeAttemptId = attempt !== undefined && attempt.completedAt === undefined && attempt.executor === "harness" ? attempt.id : undefined;
+      brokeredToolProcessRegistry.abortAttemptMismatch(taskId, activeAttemptId);
+    }
+  } finally {
+    brokeredReconcileRunning = false;
+  }
+}
+
+const snapshotTimer = setInterval(() => { scheduleBroadcast(config, "monitor periodic snapshot"); }, 2_000);
+const brokeredToolTimer = setInterval(() => {
+  void reconcileBrokeredToolProcesses().catch((error: unknown) => reportBackgroundFailure("brokered tool lifecycle reconciliation", error));
+}, 100);
 afterSignal("SIGTERM", 0);
 afterSignal("SIGINT", 130);
+let shuttingDown = false;
 function afterSignal(signal: NodeJS.Signals, code: number): void {
   process.on(signal, () => {
-    clearInterval(timer);
+    if (shuttingDown) return;
+    shuttingDown = true;
+    clearInterval(snapshotTimer);
+    clearInterval(brokeredToolTimer);
     for (const client of sseClients) try { client.end(); } catch { /* ignore */ }
-    let pending = 2;
-    const closed = (): void => {
-      pending -= 1;
-      if (pending === 0) void rm(socketPath, { force: true }).finally(() => process.exit(code));
-    };
-    server.close(closed);
-    internalServer.close(closed);
-    setTimeout(() => process.exit(code), 2_000).unref();
+    brokeredToolProcessRegistry.abortAll(`Monitor ${signal}`);
+    const hardStop = setTimeout(() => process.exit(code), 8_000);
+    hardStop.unref();
+    void (async () => {
+      await brokeredToolProcessRegistry.waitForEmpty(6_000);
+      await Promise.all([
+        new Promise<void>((resolve) => server.close(() => resolve())),
+        new Promise<void>((resolve) => internalServer.close(() => resolve())),
+      ]);
+      await rm(socketPath, { force: true });
+      clearTimeout(hardStop);
+      process.exit(code);
+    })();
   });
 }

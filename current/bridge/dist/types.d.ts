@@ -150,6 +150,15 @@ export interface MonitorConfig {
     pricingAsOf: string;
     pricing: Record<string, PricingEntry>;
     currency: MonitorCurrencyConfig;
+    operatorAuthAudit: OperatorAuthAuditPolicy;
+}
+export interface OperatorAuthAuditPolicy {
+    /** Hard total bound across the active log and all rotated segments. */
+    maxBytes: number;
+    /** Total segment count including the active log. */
+    maxFiles: number;
+    retentionDays: number;
+    blockedSummaryIntervalSeconds: number;
 }
 /** Provider credentials remain in the monitor/proxy trust domain. */
 export interface ProviderConfig {
@@ -158,11 +167,28 @@ export interface ProviderConfig {
     apiKeyFile: string;
 }
 /** Mandatory Linux isolation boundary for every Harness execution attempt. */
+export interface HostResourceProfile {
+    enforcement: "required" | "audit_only";
+    systemdRunBinary: string;
+    systemdRunSha256: string;
+    prlimitBinary: string;
+    prlimitSha256: string;
+    memoryMaxBytes: number;
+    cpuQuotaPercent: number;
+    tasksMax: number;
+    ioWeight: number;
+    worktreeMaxBytes: number;
+    rlimitNoFile: number;
+    rlimitNproc: number;
+    rlimitFsizeBytes: number;
+    commandTimeoutSeconds: number;
+}
 export interface HarnessIsolationConfig {
     bubblewrapBinary: string;
     bubblewrapSha256: string;
     relayPort: number;
     rejectEnvFiles: true;
+    resourceProfile: HostResourceProfile;
 }
 /** Identity captured from /proc and bound to one concrete process lifetime. */
 export interface ProcessIdentity {
@@ -521,6 +547,7 @@ export interface ProcessResult {
     stdout: string;
     stderr: string;
     timedOut: boolean;
+    aborted: boolean;
     signal: NodeJS.Signals | null;
     stdoutTruncated: boolean;
     stderrTruncated: boolean;

@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import { parseToolPayload, StdioMcpClient } from "./stdio-client.js";
 import { runProcess, sleep } from "./util.js";
 import { sha256Executable } from "./process-identity.js";
+import { createPinnedHostResourceProfile } from "./resource-controls.js";
 async function git(repo, args) {
     const result = await runProcess("git", args, { cwd: repo, timeoutMs: 20_000, maxCaptureChars: 200_000 });
     assert.equal(result.code, 0, result.stderr || result.stdout);
@@ -64,6 +65,7 @@ try {
     const configPath = path.join(temp, "config.json");
     const providerKeyPath = path.join(state, "secrets", "provider.key");
     const bwrap = await sha256Executable("/usr/bin/bwrap");
+    const resourceProfile = await createPinnedHostResourceProfile("audit_only");
     const monitorPort = await reserveLoopbackPort();
     await mkdir(path.join(dshHome, "profiles", "node_modules"), { recursive: true });
     await mkdir(path.join(dshHome, "profiles", "headless"), { recursive: true });
@@ -117,6 +119,7 @@ try {
             bubblewrapSha256: bwrap.sha256,
             relayPort: 43_128,
             rejectEnvFiles: true,
+            resourceProfile,
         },
         llamaCpp: {
             enabled: false,
@@ -167,6 +170,8 @@ try {
             assert.equal(toolNames.has(required), true, `missing MCP tool ${required}`);
         const doctor = await call(client, "bridge_doctor", { probeHarness: true });
         assert.equal(doctor.ok, true, JSON.stringify(doctor));
+        assert.equal(doctor.controlledUseAllowed, false, "audit fixture must never claim controlled use");
+        assert.equal(doctor.executionMode, "audit_only");
         const legacy = await expectToolError(client, "harness_start", {
             repoRoot: repo,
             objective: "legacy free-form task must be rejected",

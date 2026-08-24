@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import { parseToolPayload, StdioMcpClient, type McpToolResult } from "./stdio-client.js";
 import { runProcess, sleep } from "./util.js";
 import { sha256Executable } from "./process-identity.js";
+import { createPinnedHostResourceProfile } from "./resource-controls.js";
 
 interface Payload { [key: string]: unknown }
 
@@ -72,6 +73,7 @@ try {
   const configPath = path.join(temp, "config.json");
   const providerKeyPath = path.join(state, "secrets", "provider.key");
   const bwrap = await sha256Executable("/usr/bin/bwrap");
+  const resourceProfile = await createPinnedHostResourceProfile("audit_only");
   const monitorPort = await reserveLoopbackPort();
   await mkdir(path.join(dshHome, "profiles", "node_modules"), { recursive: true });
   await mkdir(path.join(dshHome, "profiles", "headless"), { recursive: true });
@@ -125,6 +127,7 @@ try {
       bubblewrapSha256: bwrap.sha256,
       relayPort: 43_128,
       rejectEnvFiles: true,
+      resourceProfile,
     },
     llamaCpp: {
       enabled: false,
@@ -177,6 +180,8 @@ try {
 
     const doctor = await call(client, "bridge_doctor", { probeHarness: true });
     assert.equal(doctor.ok, true, JSON.stringify(doctor));
+    assert.equal(doctor.controlledUseAllowed, false, "audit fixture must never claim controlled use");
+    assert.equal(doctor.executionMode, "audit_only");
 
     const legacy = await expectToolError(client, "harness_start", {
       repoRoot: repo,

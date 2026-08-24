@@ -4,7 +4,7 @@ umask 077
 
 SOURCE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VERSION="$(node -e 'const p=require(process.argv[1]); process.stdout.write(p.version)' "$SOURCE_ROOT/bridge/package.json")"
-for command in node git jq bwrap; do
+for command in node git jq bwrap systemd-run prlimit; do
   command -v "$command" >/dev/null 2>&1 || { echo "Missing required command: $command" >&2; exit 1; }
 done
 
@@ -18,6 +18,19 @@ jq -e '
   .provider.apiKeyFile != null and
   .harnessIsolation.rejectEnvFiles == true and
   (.harnessIsolation.bubblewrapSha256 | test("^[0-9a-f]{64}$")) and
+  .harnessIsolation.resourceProfile.enforcement == "required" and
+  (.harnessIsolation.resourceProfile.systemdRunSha256 | test("^[0-9a-f]{64}$")) and
+  (.harnessIsolation.resourceProfile.prlimitSha256 | test("^[0-9a-f]{64}$")) and
+  (.harnessIsolation.resourceProfile.memoryMaxBytes > 0) and
+  (.harnessIsolation.resourceProfile.cpuQuotaPercent > 0) and
+  (.harnessIsolation.resourceProfile.tasksMax > 0) and
+  (.harnessIsolation.resourceProfile.ioWeight > 0) and
+  (.harnessIsolation.resourceProfile.worktreeMaxBytes > 0) and
+  (.harnessIsolation.resourceProfile.commandTimeoutSeconds > 0) and
+  .monitor.operatorAuthAudit.maxBytes == 1048576 and
+  .monitor.operatorAuthAudit.maxFiles == 4 and
+  .monitor.operatorAuthAudit.retentionDays == 30 and
+  .monitor.operatorAuthAudit.blockedSummaryIntervalSeconds == 60 and
   (.passEnvironment | all(. != "DEEPSEEK_API_KEY" and . != "GITHUB_TOKEN" and . != "LLAMA_CPP_API_KEY")) and
   (.llamaCpp.cliArgs | any(contains("{{PROMPT_FILE}}"))) and
   (.llamaCpp.cliArgs | all(contains("{{PROMPT}}") | not))
@@ -26,6 +39,9 @@ jq -e '
 node "$SOURCE_ROOT/scripts/release-gate.test.mjs" >/dev/null
 (cd "$SOURCE_ROOT/bridge" && node --test \
   dist/test/harness-isolation.test.js \
+  dist/test/brokered-tool-registry.test.js \
+  dist/test/resource-controls.test.js \
+  dist/test/model-visible-output.test.js \
   dist/test/process-group.test.js \
   dist/test/process-identity.test.js \
   dist/test/monitor-lifecycle.test.js \
@@ -48,11 +64,15 @@ cat <<JSON
     "llamaBinaryAndRuntimeControlPinning": "PASS",
     "promptFileOnlyTransport": "PASS",
     "strongProcessIdentityAndGroupCleanup": "PASS",
+    "brokeredToolCancellationRegistry": "PASS",
+    "hostResourceControlNegatives": "PASS",
+    "modelVisibleReadPaginationBounds": "PASS",
     "candidateStableWithdrawnReleaseGates": "PASS",
     "providerCapabilityNegativeMatrix": "PASS",
     "reasoningReplayPreProviderFailFast": "PASS",
     "ignoredArtifactPoisoningIsolation": "PASS",
-    "operatorAuthenticationBackoffAndAudit": "PASS"
+    "operatorAuthenticationBackoffAndAudit": "PASS",
+    "operatorAuditAggregationRotationRetention": "PASS"
   }
 }
 JSON

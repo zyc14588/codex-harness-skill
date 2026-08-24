@@ -22,6 +22,7 @@ import { loadTask } from "./store.js";
 import type { TaskRecord } from "./types.js";
 import { runProcess, sha256PathTree, sleep } from "./util.js";
 import { sha256Executable } from "./process-identity.js";
+import { createPinnedHostResourceProfile, probeHostResourceProfile } from "./resource-controls.js";
 import { usageForBudgetGroup } from "./telemetry.js";
 
 type Payload = Record<string, unknown>;
@@ -327,6 +328,7 @@ try {
   const harnessBuildRoot = path.dirname(harnessCli);
   const harnessBuildSha256 = await sha256PathTree(harnessBuildRoot);
   const bwrapIdentity = await sha256Executable("/usr/bin/bwrap");
+  const resourceProfile = await createPinnedHostResourceProfile("required");
   const monitorPort = await reserveLoopbackPort();
 
   await mkdir(repo, { recursive: true });
@@ -379,6 +381,7 @@ try {
       bubblewrapSha256: bwrapIdentity.sha256,
       relayPort: 43_128,
       rejectEnvFiles: true,
+      resourceProfile,
     },
     llamaCpp: { enabled: false, fallbackEnabled: false },
   }, null, 2)}\n`, { mode: 0o600 });
@@ -399,6 +402,8 @@ try {
   delete process.env.DEEPSEEK_BASE_URL;
   process.env.DEEPSEEK_API_KEY = "parent-provider-secret-must-not-reach-harness";
   process.env.GITHUB_TOKEN = "parent-github-secret-must-not-reach-harness";
+  const resourceProbe = await probeHostResourceProfile(await loadConfig());
+  assert.equal(resourceProbe.controlledUseAllowed, true, `real Provider qualification requires controlled host resources: ${JSON.stringify(resourceProbe)}`);
   monitorStarted = true;
   const flash = await runLeaf(repo, seed, {
     planId: "stable-real-flash-multiturn-plan",
@@ -443,6 +448,7 @@ try {
     bubblewrapSha256: bwrapIdentity.sha256,
     harnessCommit,
     harnessBuildSha256,
+    hostResourceProfile: resourceProbe,
     flash,
     pro,
     mainHeadBefore,

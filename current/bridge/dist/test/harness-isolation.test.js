@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import http from "node:http";
-import { chmod, mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { chmod, mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -9,7 +9,7 @@ import test from "node:test";
 import { prepareHarnessSandbox, cleanupHarnessSandbox } from "../harness-isolation.js";
 import { sha256Executable } from "../process-identity.js";
 import { ensureOperatorToken, monitorSocketPath } from "../security.js";
-import { createTask, taskDirectory } from "../store.js";
+import { createTask, taskDirectory, updateTask } from "../store.js";
 import { createExecutionAttempt } from "../thinking-policy.js";
 import { runProcess, sleep } from "../util.js";
 import { testConfig } from "./test-config.js";
@@ -89,6 +89,40 @@ async function socketRaw(socketPath, requestPath, token, body, options = {}) {
         request.once("error", reject);
         request.end(body);
     });
+}
+async function processIdsContaining(marker) {
+    const values = [];
+    for (const entry of await readdir("/proc")) {
+        if (!/^\d+$/u.test(entry))
+            continue;
+        try {
+            const commandLine = await readFile(`/proc/${entry}/cmdline`, "utf8");
+            if (commandLine.includes(marker))
+                values.push(Number(entry));
+        }
+        catch { /* process exited while scanning */ }
+    }
+    return values;
+}
+async function waitUntil(label, predicate, timeoutMs = 5_000) {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+        if (await predicate())
+            return;
+        await sleep(25);
+    }
+    throw new Error(`timed out waiting for ${label}`);
+}
+async function fileExists(target) {
+    try {
+        await stat(target);
+        return true;
+    }
+    catch (error) {
+        if (error.code === "ENOENT")
+            return false;
+        throw error;
+    }
 }
 test("Bubblewrap confines Harness read/network/process access while the one-task proxy remains usable", { skip: process.platform !== "linux" }, async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), "bridge-harness-isolation-"));
@@ -219,6 +253,7 @@ await writeFile(${JSON.stringify(path.join(worktree, "isolation-report.json"))},
 `, { mode: 0o700 });
         await chmod(fakeHarness, 0o700);
         const bwrap = await sha256Executable("/usr/bin/bwrap");
+        const prlimit = await sha256Executable("/usr/bin/prlimit");
         const base = testConfig(stateRoot);
         const monitorPort = await reservePort();
         const config = {
@@ -232,7 +267,18 @@ await writeFile(${JSON.stringify(path.join(worktree, "isolation-report.json"))},
             passEnvironment: ["PATH"],
             monitor: { ...base.monitor, enabled: true, autoStart: false, port: monitorPort },
             provider: { baseUrl: `http://127.0.0.1:${providerPort}`, apiKeyFile: path.join(stateRoot, "secrets", "provider.key") },
-            harnessIsolation: { bubblewrapBinary: bwrap.realpath, bubblewrapSha256: bwrap.sha256, relayPort: 49_152, rejectEnvFiles: true },
+            harnessIsolation: {
+                bubblewrapBinary: bwrap.realpath,
+                bubblewrapSha256: bwrap.sha256,
+                relayPort: 49_152,
+                rejectEnvFiles: true,
+                resourceProfile: {
+                    ...base.harnessIsolation.resourceProfile,
+                    enforcement: "audit_only",
+                    prlimitBinary: prlimit.realpath,
+                    prlimitSha256: prlimit.sha256,
+                },
+            },
             llamaCpp: { ...base.llamaCpp, enabled: false, fallbackEnabled: false },
         };
         await mkdir(path.dirname(config.provider.apiKeyFile), { recursive: true, mode: 0o700 });
@@ -427,6 +473,77 @@ await writeFile(${JSON.stringify(path.join(worktree, "isolation-report.json"))},
         assert.equal(providerCalls, 1);
         assert.equal(providerAuthorized, true, "proxy failed to replace the task Authorization header with the real Provider credential");
         assert.equal(providerMaxTokens, 384_000, "single-request output was not clamped to the model capability");
+        const auditFile = path.join(toolTaskDir, "brokered-tools-audit.ndjson");
+        const completedBefore = (await readFile(auditFile, "utf8")).split("\n").filter((line) => line.includes('"result":"completed"')).length;
+        const cancelledWrite = path.join(worktree, "cancelled-tool-wrote.txt");
+        const cancelMarker = `codex-broker-cancel-${process.pid}-${Date.now()}`;
+        const cancelBody = Buffer.from(JSON.stringify({
+            taskId: toolTaskId,
+            tool: "bash",
+            arguments: {
+                command: `sleep 7200 & sleep 2; printf 'late write\\n' > ${JSON.stringify(cancelledWrite)}; wait # ${cancelMarker}`,
+                timeout_seconds: 7200,
+            },
+        }));
+        const cancelledRequest = socketRaw(monitorSocketPath(config), toolRoute, toolTask.toolToken, cancelBody).catch(() => 0);
+        await waitUntil("brokered cancellation process", async () => (await processIdsContaining(cancelMarker)).length > 0);
+        await updateTask(config, toolTaskId, (current) => {
+            current.status = "cancelled";
+            current.completedAt = new Date().toISOString();
+            current.error = "cancelled by lifecycle fixture";
+        });
+        await Promise.race([
+            cancelledRequest,
+            sleep(5_000).then(() => { throw new Error("cancelled brokered request did not settle"); }),
+        ]);
+        await waitUntil("cancelled brokered process-group quiescence", async () => (await processIdsContaining(cancelMarker)).length === 0);
+        await sleep(2_200);
+        assert.equal(await fileExists(cancelledWrite), false, "brokered command wrote after task cancellation");
+        const nextAttempt = createExecutionAttempt("harness", "deepseek-v4-flash", 2, new Date().toISOString());
+        assert.ok(nextAttempt.id);
+        await updateTask(config, toolTaskId, (current) => {
+            current.status = "running";
+            delete current.completedAt;
+            delete current.error;
+            current.executionAttempts = [nextAttempt];
+        });
+        const attemptRoute = `/tool-exec/${toolTaskId}/${nextAttempt.id}`;
+        const attemptMarker = `codex-broker-attempt-${process.pid}-${Date.now()}`;
+        const attemptBody = Buffer.from(JSON.stringify({
+            taskId: toolTaskId,
+            tool: "bash",
+            arguments: { command: `sleep 7200 # ${attemptMarker}`, timeout_seconds: 7200 },
+        }));
+        const staleAttemptRequest = socketRaw(monitorSocketPath(config), attemptRoute, toolTask.toolToken, attemptBody).catch(() => 0);
+        await waitUntil("brokered stale-attempt process", async () => (await processIdsContaining(attemptMarker)).length > 0);
+        const replacementAttempt = createExecutionAttempt("harness", "deepseek-v4-flash", 3, new Date().toISOString());
+        assert.ok(replacementAttempt.id);
+        await updateTask(config, toolTaskId, (current) => { current.executionAttempts = [nextAttempt, replacementAttempt]; });
+        await Promise.race([
+            staleAttemptRequest,
+            sleep(5_000).then(() => { throw new Error("stale-attempt brokered request did not settle"); }),
+        ]);
+        await waitUntil("stale-attempt process-group quiescence", async () => (await processIdsContaining(attemptMarker)).length === 0);
+        const shutdownRoute = `/tool-exec/${toolTaskId}/${replacementAttempt.id}`;
+        const shutdownMarker = `codex-broker-shutdown-${process.pid}-${Date.now()}`;
+        const shutdownBody = Buffer.from(JSON.stringify({
+            taskId: toolTaskId,
+            tool: "bash",
+            arguments: { command: `sleep 7200 # ${shutdownMarker}`, timeout_seconds: 7200 },
+        }));
+        const shutdownRequest = socketRaw(monitorSocketPath(config), shutdownRoute, toolTask.toolToken, shutdownBody).catch(() => 0);
+        await waitUntil("brokered Monitor-shutdown process", async () => (await processIdsContaining(shutdownMarker)).length > 0);
+        const monitorClosed = new Promise((resolve) => monitor.once("close", () => resolve()));
+        monitor.kill("SIGTERM");
+        await Promise.race([
+            monitorClosed,
+            sleep(8_000).then(() => { throw new Error("Monitor did not shut down after reclaiming brokered tools"); }),
+        ]);
+        await shutdownRequest;
+        await waitUntil("Monitor-shutdown brokered process-group quiescence", async () => (await processIdsContaining(shutdownMarker)).length === 0);
+        monitor = undefined;
+        const completedAfter = (await readFile(auditFile, "utf8")).split("\n").filter((line) => line.includes('"result":"completed"')).length;
+        assert.equal(completedAfter, completedBefore, "cancelled or stale brokered attempt wrote a completed audit event");
     }
     finally {
         delete process.env.AUDIT_SECRET_SENTINEL;

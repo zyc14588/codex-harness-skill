@@ -111,6 +111,12 @@
       "usdToCnyRate": null,
       "fxAsOf": "not-configured",
       "fxSource": "manual compatibility conversion; hidden by default"
+    },
+    "operatorAuthAudit": {
+      "maxBytes": 1048576,
+      "maxFiles": 4,
+      "retentionDays": 30,
+      "blockedSummaryIntervalSeconds": 60
     }
   },
   "provider": {
@@ -121,7 +127,23 @@
     "bubblewrapBinary": "/usr/bin/bwrap",
     "bubblewrapSha256": "0abea81db798ebf6b4742ac0664802d97521547a353c2a0dbdc21d76cbbfd2c0",
     "relayPort": 43128,
-    "rejectEnvFiles": true
+    "rejectEnvFiles": true,
+    "resourceProfile": {
+      "enforcement": "required",
+      "systemdRunBinary": "/usr/bin/systemd-run",
+      "systemdRunSha256": "03a68bafb0ebc0f5eff41cbdf3cbbdf126a3bb87e21140f9147bf78edce36d88",
+      "prlimitBinary": "/usr/bin/prlimit",
+      "prlimitSha256": "00be18793391b9222a041277a088022cc58088690cb0e851383bd8ec73f0fefb",
+      "memoryMaxBytes": 4294967296,
+      "cpuQuotaPercent": 200,
+      "tasksMax": 256,
+      "ioWeight": 100,
+      "worktreeMaxBytes": 4294967296,
+      "rlimitNoFile": 4096,
+      "rlimitNproc": 4096,
+      "rlimitFsizeBytes": 1073741824,
+      "commandTimeoutSeconds": 1800
+    }
   },
   "llamaCpp": {
     "enabled": false,

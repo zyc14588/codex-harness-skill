@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import { cleanupTask, collectTask, commitTask, createControllerPlan, controllerSplitAdvice, controllerSplitMemory, doctor, finalizeControllerPlan, monitorSnapshot, monitorStatus, monitorStop, readChangedFile, repairTask, reviewTask, startTask, taskStatus, verifyTask, } from "./service.js";
 import { runProcess, sleep } from "./util.js";
 import { sha256Executable } from "./process-identity.js";
+import { createPinnedHostResourceProfile } from "./resource-controls.js";
 import { ensureOperatorToken } from "./security.js";
 let operatorToken = "";
 function acceptanceTrace(message) {
@@ -356,6 +357,7 @@ try {
     const configPath = path.join(temp, "config.json");
     const providerKeyPath = path.join(stateRoot, "secrets", "provider.key");
     const bwrapIdentity = await sha256Executable("/usr/bin/bwrap");
+    const resourceProfile = await createPinnedHostResourceProfile("audit_only");
     const cliIdentity = await sha256Executable(fakeLlamaCliLauncher);
     const serverIdentity = await sha256Executable(fakeManagedServerLauncher);
     await mkdir(path.join(dshHome, "profiles", "node_modules"), { recursive: true });
@@ -422,6 +424,7 @@ try {
             bubblewrapSha256: bwrapIdentity.sha256,
             relayPort: 43_128,
             rejectEnvFiles: true,
+            resourceProfile,
         },
         llamaCpp: {
             enabled: true,
@@ -464,6 +467,8 @@ try {
     operatorToken = await ensureOperatorToken(await (await import("./config.js")).loadConfig());
     const doctorResult = payload(await doctor(true));
     assert.equal(doctorResult.ok, true, JSON.stringify(doctorResult));
+    assert.equal(doctorResult.controlledUseAllowed, false, "audit fixture must never claim controlled use");
+    assert.equal(doctorResult.executionMode, "audit_only");
     const monitorHealth = payload(await monitorStatus());
     assert.equal(monitorHealth.ok, true, JSON.stringify(monitorHealth));
     const dashboardBase = `http://127.0.0.1:${monitorPort}`;

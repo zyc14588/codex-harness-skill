@@ -1,10 +1,12 @@
 import { randomBytes } from "node:crypto";
 import { appendFile, lstat, readFile, readdir, realpath, rename, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
-import type { BridgeConfig, ProgressiveToolCapability, TaskRecord } from "./types.js";
+import type { BridgeConfig, ProcessIdentity, ProgressiveToolCapability, TaskRecord } from "./types.js";
+import { brokeredToolProcessRegistry } from "./brokered-tool-registry.js";
 import { findOutOfScope } from "./git.js";
 import { sha256Executable } from "./process-identity.js";
-import { taskDirectory, withNamedLock } from "./store.js";
+import { assertControlledResourceProfile, directoryAllocatedBytes, resourceWrappedCommand } from "./resource-controls.js";
+import { loadTask, taskDirectory, withNamedLock } from "./store.js";
 import {
   atomicWriteJson,
   boundedText,
@@ -14,6 +16,7 @@ import {
   nowIso,
   pathExists,
   runProcess,
+  sleep,
 } from "./util.js";
 
 interface BrokeredToolState {
@@ -55,13 +58,13 @@ async function readState(config: BridgeConfig, task: TaskRecord): Promise<Broker
   return { schemaVersion: 1, taskId: task.id, enabled: [...new Set(enabled)], updatedAt: raw.updatedAt ?? nowIso() };
 }
 
-async function audit(config: BridgeConfig, task: TaskRecord, tool: string, result: "completed" | "failed", reason?: string): Promise<void> {
+async function audit(config: BridgeConfig, task: TaskRecord, attemptId: string, tool: string, result: "completed" | "failed", reason?: string): Promise<void> {
   await ensureDir(taskDirectory(config, task.id));
   await appendFile(auditPath(config, task), `${JSON.stringify({
     schemaVersion: 1,
     at: nowIso(),
     taskId: task.id,
-    attemptId: task.executionAttempts?.at(-1)?.id,
+    attemptId,
     tool,
     result,
     ...(reason === undefined ? {} : { reason: reason.slice(0, 2_000) }),
@@ -73,6 +76,18 @@ function assertActiveMinimalTask(task: TaskRecord): void {
   if ((task.effectiveExecutor ?? task.executor) !== "harness" || task.harnessMode !== "minimal") {
     throw new Error("brokered tools require an active minimal Harness task");
   }
+}
+
+function assertAttempt(task: TaskRecord, attemptId: string): void {
+  assertActiveMinimalTask(task);
+  const attempt = task.executionAttempts?.at(-1);
+  if (attempt?.id !== attemptId || attempt.completedAt !== undefined || attempt.executor !== "harness") {
+    throw new Error("brokered tool attempt is no longer active");
+  }
+}
+
+function throwIfAborted(signal: AbortSignal): void {
+  if (signal.aborted) throw new Error(`brokered tool request aborted: ${String(signal.reason ?? "aborted")}`);
 }
 
 function asObject(value: unknown): Record<string, unknown> {
@@ -94,10 +109,71 @@ function optionalInteger(input: Record<string, unknown>, name: string, fallback:
   return Number(value);
 }
 
-async function gitCommonDirectory(worktree: string): Promise<string> {
+export const MODEL_VISIBLE_TEXT_MAX_BYTES = 49_152;
+export const MODEL_VISIBLE_ESTIMATED_TOKEN_MAX = 12_288;
+
+export interface ModelVisibleTextPage {
+  text: string;
+  truncation: {
+    encoding: "utf-8";
+    sourceBytes: number;
+    requestedOffsetBytes: number;
+    offsetBytes: number;
+    returnedBytes: number;
+    estimatedTokens: number;
+    maxBytes: number;
+    maxEstimatedTokens: number;
+    truncated: boolean;
+    hasPrevious: boolean;
+    nextOffsetBytes: number | null;
+  };
+}
+
+/** Byte-accurate, UTF-8-safe model output page with explicit token estimation. */
+export function modelVisibleTextPage(text: string, requestedOffsetBytes = 0, requestedMaxBytes = MODEL_VISIBLE_TEXT_MAX_BYTES): ModelVisibleTextPage {
+  if (!Number.isSafeInteger(requestedOffsetBytes) || requestedOffsetBytes < 0) throw new Error("offset_bytes must be a non-negative integer");
+  if (!Number.isSafeInteger(requestedMaxBytes) || requestedMaxBytes < 256 || requestedMaxBytes > MODEL_VISIBLE_TEXT_MAX_BYTES) {
+    throw new Error(`max_bytes must be an integer from 256 to ${MODEL_VISIBLE_TEXT_MAX_BYTES}`);
+  }
+  const source = Buffer.from(text, "utf8");
+  let start = Math.min(requestedOffsetBytes, source.length);
+  while (start < source.length && (source[start]! & 0xc0) === 0x80) start += 1;
+  let end = Math.min(source.length, start + requestedMaxBytes);
+  while (end > start && end < source.length && (source[end]! & 0xc0) === 0x80) end -= 1;
+  const selected = source.subarray(start, end);
+  const returned = selected.toString("utf8");
+  const returnedBytes = selected.length;
+  return {
+    text: returned,
+    truncation: {
+      encoding: "utf-8",
+      sourceBytes: source.length,
+      requestedOffsetBytes,
+      offsetBytes: start,
+      returnedBytes,
+      estimatedTokens: Math.ceil(returnedBytes / 4),
+      maxBytes: requestedMaxBytes,
+      maxEstimatedTokens: Math.ceil(requestedMaxBytes / 4),
+      truncated: start > 0 || end < source.length,
+      hasPrevious: start > 0,
+      nextOffsetBytes: end < source.length ? end : null,
+    },
+  };
+}
+
+function requestedModelPage(input: Record<string, unknown>, text: string): ModelVisibleTextPage {
+  return modelVisibleTextPage(
+    text,
+    optionalInteger(input, "offset_bytes", 0, 0, 5_000_000),
+    optionalInteger(input, "max_bytes", MODEL_VISIBLE_TEXT_MAX_BYTES, 256, MODEL_VISIBLE_TEXT_MAX_BYTES),
+  );
+}
+
+async function gitCommonDirectory(worktree: string, signal: AbortSignal): Promise<string> {
   const result = await runProcess("/usr/bin/git", ["-C", worktree, "rev-parse", "--path-format=absolute", "--git-common-dir"], {
     timeoutMs: 10_000,
     maxCaptureChars: 16_000,
+    signal,
   });
   if (result.code !== 0 || !result.stdout.trim()) throw new Error(`cannot resolve tool Git common directory: ${result.stderr.trim()}`);
   return await realpath(result.stdout.trim());
@@ -121,12 +197,16 @@ async function isolatedCommand(
   command: string,
   args: string[],
   timeoutMs: number,
+  signal: AbortSignal,
+  onProcessIdentity: (identity: ProcessIdentity) => void | Promise<void>,
   maxCaptureChars = 500_000,
 ): Promise<Record<string, unknown>> {
+  throwIfAborted(signal);
+  await assertControlledResourceProfile(config);
   const bwrap = await sha256Executable(config.harnessIsolation.bubblewrapBinary);
   if (bwrap.sha256 !== config.harnessIsolation.bubblewrapSha256) throw new Error(`Bubblewrap SHA-256 mismatch for ${bwrap.realpath}`);
   const worktree = await realpath(task.worktreePath);
-  const gitCommon = await gitCommonDirectory(worktree);
+  const gitCommon = await gitCommonDirectory(worktree, signal);
   const nodeExecutable = await realpath(process.execPath);
   const nodeRoot = path.dirname(path.dirname(nodeExecutable));
   const mountNodeRoot = !isWithin(nodeRoot, "/usr");
@@ -165,13 +245,45 @@ async function isolatedCommand(
     "--chdir", worktree,
     "--", command, ...args,
   );
-  const result = await runProcess(bwrap.realpath, sandboxArgs, {
-    cwd: worktree,
-    env: {},
-    timeoutMs,
-    maxCaptureChars,
-    killProcessGroup: true,
-  });
+  const profile = config.harnessIsolation.resourceProfile;
+  const initialBytes = await directoryAllocatedBytes(worktree);
+  if (initialBytes > profile.worktreeMaxBytes) {
+    throw new Error(`task worktree already exceeds ${profile.worktreeMaxBytes} byte resource ceiling`);
+  }
+  const quotaController = new AbortController();
+  const commandSignal = AbortSignal.any([signal, quotaController.signal]);
+  let stopQuotaWatch = false;
+  let quotaFailure: string | undefined;
+  const quotaWatch = (async () => {
+    while (!stopQuotaWatch && !commandSignal.aborted) {
+      const bytes = await directoryAllocatedBytes(worktree);
+      if (bytes > profile.worktreeMaxBytes) {
+        quotaFailure = `task worktree exceeded ${profile.worktreeMaxBytes} byte resource ceiling (${bytes})`;
+        quotaController.abort(quotaFailure);
+        return;
+      }
+      await sleep(250);
+    }
+  })();
+  const wrapped = await resourceWrappedCommand(config, `tool-${task.id}`, bwrap.realpath, sandboxArgs);
+  let result: Awaited<ReturnType<typeof runProcess>>;
+  try {
+    result = await runProcess(wrapped.command, wrapped.args, {
+      cwd: worktree,
+      env: wrapped.env,
+      timeoutMs: Math.min(timeoutMs, profile.commandTimeoutSeconds * 1_000),
+      maxCaptureChars,
+      killProcessGroup: true,
+      signal: commandSignal,
+      abortGraceMs: 1_000,
+      onProcessIdentity,
+    });
+  } finally {
+    stopQuotaWatch = true;
+    await quotaWatch;
+  }
+  if (quotaFailure) throw new Error(quotaFailure);
+  if (result.aborted || signal.aborted) throw new Error(`brokered tool process aborted: ${String(signal.reason ?? "aborted")}`);
   return {
     code: result.code,
     signal: result.signal,
@@ -213,7 +325,8 @@ async function editor(task: TaskRecord, input: Record<string, unknown>): Promise
     if (info.isSymbolicLink()) throw new Error("editor refuses symbolic links");
     if (info.isDirectory()) {
       const entries = (await readdir(target.absolute, { withFileTypes: true })).slice(0, 1_000);
-      return { path: target.relative, kind: "directory", entries: entries.map((entry) => `${entry.isDirectory() ? "d" : "f"} ${entry.name}`) };
+      const page = requestedModelPage(input, entries.map((entry) => JSON.stringify(`${entry.isDirectory() ? "d" : "f"} ${entry.name}`)).join("\n"));
+      return { path: target.relative, kind: "directory", totalEntries: entries.length, text: page.text, truncation: page.truncation };
     }
     if (!info.isFile() || info.size > 5_000_000) throw new Error("editor view requires a regular file no larger than 5 MB");
     const canonical = await realpath(target.absolute);
@@ -225,7 +338,8 @@ async function editor(task: TaskRecord, input: Record<string, unknown>): Promise
     const start = Array.isArray(range) && Number.isSafeInteger(range[0]) ? Math.max(1, Number(range[0])) : 1;
     const rawEnd = Array.isArray(range) && Number.isSafeInteger(range[1]) ? Number(range[1]) : Math.min(lines.length, start + 399);
     const end = rawEnd === -1 ? lines.length : Math.min(lines.length, Math.max(start, rawEnd));
-    return { path: target.relative, startLine: start, endLine: end, totalLines: lines.length, text: lines.slice(start - 1, end).join("\n") };
+    const page = requestedModelPage(input, lines.slice(start - 1, end).join("\n"));
+    return { path: target.relative, startLine: start, endLine: end, totalLines: lines.length, text: page.text, truncation: page.truncation };
   }
   const parent = await realpath(path.dirname(target.absolute));
   if (!isWithin(parent, target.root)) throw new Error("editor parent resolves outside the worktree");
@@ -271,7 +385,15 @@ function capabilityArg(input: Record<string, unknown>): ProgressiveToolCapabilit
   return value;
 }
 
-async function invoke(config: BridgeConfig, task: TaskRecord, tool: string, input: Record<string, unknown>): Promise<unknown> {
+async function invoke(
+  config: BridgeConfig,
+  task: TaskRecord,
+  tool: string,
+  input: Record<string, unknown>,
+  signal: AbortSignal,
+  onProcessIdentity: (identity: ProcessIdentity) => void | Promise<void>,
+): Promise<unknown> {
+  throwIfAborted(signal);
   if (tool === "capability_catalog") {
     const state = await readState(config, task);
     return {
@@ -283,6 +405,7 @@ async function invoke(config: BridgeConfig, task: TaskRecord, tool: string, inpu
     const capability = capabilityArg(input);
     const reason = stringArg(input, "reason", 2_000);
     return await withNamedLock(config, `brokered-tools:${task.id}`, 30_000, async () => {
+      throwIfAborted(signal);
       if (!task.toolCapabilities.includes(capability)) throw new Error(`capability is not authorized by the leaf contract: ${capability}`);
       const state = await readState(config, task);
       const changed = !state.enabled.includes(capability);
@@ -292,12 +415,16 @@ async function invoke(config: BridgeConfig, task: TaskRecord, tool: string, inpu
     });
   }
   if (tool === "bash") {
-    return await isolatedCommand(config, task, "/bin/bash", ["-lc", stringArg(input, "command")], optionalInteger(input, "timeout_seconds", 300, 1, 7_200) * 1_000);
+    return await isolatedCommand(config, task, "/bin/bash", ["-lc", stringArg(input, "command")], optionalInteger(input, "timeout_seconds", 300, 1, 7_200) * 1_000, signal, onProcessIdentity);
   }
   if (tool === "pwsh") {
-    return await isolatedCommand(config, task, "/usr/bin/pwsh", ["-NoLogo", "-NoProfile", "-Command", stringArg(input, "command")], optionalInteger(input, "timeout_seconds", 300, 1, 7_200) * 1_000);
+    return await isolatedCommand(config, task, "/usr/bin/pwsh", ["-NoLogo", "-NoProfile", "-Command", stringArg(input, "command")], optionalInteger(input, "timeout_seconds", 300, 1, 7_200) * 1_000, signal, onProcessIdentity);
   }
-  if (tool === "str_replace_editor") return await editor(task, input);
+  if (tool === "str_replace_editor") {
+    const result = await editor(task, input);
+    throwIfAborted(signal);
+    return result;
+  }
 
   const capability = TOOL_CAPABILITY.get(tool);
   if (capability === undefined) throw new Error(`unknown brokered tool: ${tool}`);
@@ -316,25 +443,38 @@ async function invoke(config: BridgeConfig, task: TaskRecord, tool: string, inpu
     const lines = text.split(/\r?\n/u);
     const start = optionalInteger(input, "start_line", 1, 1, 10_000_000);
     const end = optionalInteger(input, "end_line", Math.min(start + 399, 10_000_000), start, Math.min(start + 1_999, 10_000_000));
-    return { path: target.relative, startLine: start, endLine: Math.min(end, lines.length), totalLines: lines.length, text: lines.slice(start - 1, end).join("\n") };
+    const page = requestedModelPage(input, lines.slice(start - 1, end).join("\n"));
+    return {
+      path: target.relative,
+      startLine: start,
+      endLine: Math.min(end, lines.length),
+      totalLines: lines.length,
+      text: page.text,
+      truncation: page.truncation,
+    };
   }
   if (tool === "repo_search") {
     const pattern = stringArg(input, "pattern", 1_000);
     const rawPaths = input.paths ?? [];
     if (!Array.isArray(rawPaths) || rawPaths.length > 20 || !rawPaths.every((value) => typeof value === "string")) throw new Error("paths must be a bounded string array");
     const paths = rawPaths.map((value) => normalizeRepoRelative(String(value)));
-    return await isolatedCommand(config, task, "/usr/bin/git", ["grep", "-n", "--no-color", "-I", "-e", pattern, "--", ...(paths.length ? paths : ["."])], 60_000, 200_000);
+    return await isolatedCommand(config, task, "/usr/bin/git", ["grep", "-n", "--no-color", "-I", "-e", pattern, "--", ...(paths.length ? paths : ["."])], 60_000, signal, onProcessIdentity, 200_000);
   }
   if (tool === "run_verification") {
     const index = optionalInteger(input, "command_index", -1, 0, 99);
     const command = task.verificationCommands[index];
     if (command === undefined) throw new Error(`verification command index out of range: ${index}`);
-    return await isolatedCommand(config, task, "/bin/bash", ["-lc", command], optionalInteger(input, "timeout_seconds", 1_800, 1, 7_200) * 1_000);
+    return await isolatedCommand(config, task, "/bin/bash", ["-lc", command], optionalInteger(input, "timeout_seconds", 1_800, 1, 7_200) * 1_000, signal, onProcessIdentity);
   }
-  if (tool === "git_status") return await isolatedCommand(config, task, "/usr/bin/git", ["status", "--short", "--branch"], 60_000, 100_000);
+  if (tool === "git_status") return await isolatedCommand(config, task, "/usr/bin/git", ["status", "--short", "--branch"], 60_000, signal, onProcessIdentity, 100_000);
   const selected = typeof input.file_path === "string" ? normalizeRepoRelative(input.file_path) : undefined;
   const args = ["diff", "--no-ext-diff", "--no-color", ...(input.stat_only === true ? ["--stat"] : []), "--", ...(selected ? [selected] : [])];
-  return await isolatedCommand(config, task, "/usr/bin/git", args, 60_000, 500_000);
+  return await isolatedCommand(config, task, "/usr/bin/git", args, 60_000, signal, onProcessIdentity, 500_000);
+}
+
+export interface BrokeredToolExecutionOptions {
+  attemptId: string;
+  signal: AbortSignal;
 }
 
 export async function executeBrokeredTool(
@@ -342,15 +482,25 @@ export async function executeBrokeredTool(
   task: TaskRecord,
   tool: string,
   rawArguments: unknown,
+  options: BrokeredToolExecutionOptions,
 ): Promise<unknown> {
-  assertActiveMinimalTask(task);
+  assertAttempt(task, options.attemptId);
   if (!/^[a-z_]{1,80}$/u.test(tool)) throw new Error("tool name is invalid");
+  const lease = brokeredToolProcessRegistry.open(task.id, options.attemptId, options.signal);
   try {
-    const result = await invoke(config, task, tool, asObject(rawArguments));
-    await audit(config, task, tool, "completed");
+    const current = await loadTask(config, task.id);
+    assertAttempt(current, options.attemptId);
+    throwIfAborted(lease.signal);
+    const result = await invoke(config, current, tool, asObject(rawArguments), lease.signal, (identity) => lease.bindProcess(identity));
+    throwIfAborted(lease.signal);
+    const finalTask = await loadTask(config, task.id);
+    assertAttempt(finalTask, options.attemptId);
+    await audit(config, finalTask, options.attemptId, tool, "completed");
     return result;
   } catch (error) {
-    await audit(config, task, tool, "failed", error instanceof Error ? error.message : String(error));
+    await audit(config, task, options.attemptId, tool, "failed", error instanceof Error ? error.message : String(error));
     throw error;
+  } finally {
+    lease.close();
   }
 }

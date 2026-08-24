@@ -12,6 +12,7 @@ import { usageForBudgetGroup } from "./telemetry.js";
 import { captureReasoningRequirement, createExecutionAttempt } from "./thinking-policy.js";
 import { runProcess, sha256PathTree, sleep } from "./util.js";
 import { sha256Executable } from "./process-identity.js";
+import { createPinnedHostResourceProfile } from "./resource-controls.js";
 import { monitorSocketPath } from "./security.js";
 const EXPECTED_HARNESS_COMMIT = process.env.CODEX_HARNESS_FIXTURE_EXPECTED_COMMIT
     ?? "141eb6fef83422698aef7a981029e843e8161534";
@@ -278,6 +279,7 @@ try {
     const monitorPort = await listen(monitorProbe);
     await closeServer(monitorProbe);
     const providerKeyPath = path.join(stateRoot, "secrets", "provider.key");
+    const resourceProfile = await createPinnedHostResourceProfile("audit_only");
     await mkdir(path.dirname(providerKeyPath), { recursive: true });
     await writeFile(providerKeyPath, `${providerKey}\n`, { mode: 0o600 });
     await mkdir(path.join(dshHome, "profiles"), { recursive: true });
@@ -323,6 +325,7 @@ try {
             bubblewrapSha256: bwrapIdentity.sha256,
             relayPort: 43_128,
             rejectEnvFiles: true,
+            resourceProfile,
         },
         llamaCpp: { enabled: false, fallbackEnabled: false },
     }, null, 2)}\n`, { mode: 0o600 });

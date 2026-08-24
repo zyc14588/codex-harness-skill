@@ -357,7 +357,8 @@
         "charsPerEstimatedToken",
         "pricingAsOf",
         "pricing",
-        "currency"
+        "currency",
+        "operatorAuthAudit"
       ],
       "properties": {
         "enabled": {
@@ -426,6 +427,38 @@
             }
           },
           "additionalProperties": false
+        },
+        "operatorAuthAudit": {
+          "type": "object",
+          "required": [
+            "maxBytes",
+            "maxFiles",
+            "retentionDays",
+            "blockedSummaryIntervalSeconds"
+          ],
+          "properties": {
+            "maxBytes": {
+              "type": "integer",
+              "minimum": 65536,
+              "maximum": 104857600
+            },
+            "maxFiles": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 32
+            },
+            "retentionDays": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 3650
+            },
+            "blockedSummaryIntervalSeconds": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 3600
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -454,7 +487,8 @@
         "bubblewrapBinary",
         "bubblewrapSha256",
         "relayPort",
-        "rejectEnvFiles"
+        "rejectEnvFiles",
+        "resourceProfile"
       ],
       "properties": {
         "bubblewrapBinary": {
@@ -472,6 +506,92 @@
         },
         "rejectEnvFiles": {
           "const": true
+        },
+        "resourceProfile": {
+          "type": "object",
+          "required": [
+            "enforcement",
+            "systemdRunBinary",
+            "systemdRunSha256",
+            "prlimitBinary",
+            "prlimitSha256",
+            "memoryMaxBytes",
+            "cpuQuotaPercent",
+            "tasksMax",
+            "ioWeight",
+            "worktreeMaxBytes",
+            "rlimitNoFile",
+            "rlimitNproc",
+            "rlimitFsizeBytes",
+            "commandTimeoutSeconds"
+          ],
+          "properties": {
+            "enforcement": {
+              "enum": ["required", "audit_only"]
+            },
+            "systemdRunBinary": {
+              "type": "string",
+              "pattern": "^/"
+            },
+            "systemdRunSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "prlimitBinary": {
+              "type": "string",
+              "pattern": "^/"
+            },
+            "prlimitSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "memoryMaxBytes": {
+              "type": "integer",
+              "minimum": 67108864,
+              "maximum": 1099511627776
+            },
+            "cpuQuotaPercent": {
+              "type": "integer",
+              "minimum": 10,
+              "maximum": 800
+            },
+            "tasksMax": {
+              "type": "integer",
+              "minimum": 16,
+              "maximum": 32768
+            },
+            "ioWeight": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000
+            },
+            "worktreeMaxBytes": {
+              "type": "integer",
+              "minimum": 16777216,
+              "maximum": 1099511627776
+            },
+            "rlimitNoFile": {
+              "type": "integer",
+              "minimum": 64,
+              "maximum": 1048576
+            },
+            "rlimitNproc": {
+              "type": "integer",
+              "minimum": 16,
+              "maximum": 32768
+            },
+            "rlimitFsizeBytes": {
+              "type": "integer",
+              "minimum": 1048576,
+              "maximum": 1099511627776
+            },
+            "commandTimeoutSeconds": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 7200
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false

@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import test from "node:test";
 import { inspectMinimalPresetBrokerComposition } from "../harness-isolation.js";
 import { inspectMinimalProfileComposition } from "../service.js";
@@ -71,4 +72,11 @@ test("managed minimal preset must exactly match the in-process Bridge broker com
   } finally {
     await rm(root, { recursive: true, force: true });
   }
+});
+
+test("managed broker tools propagate Harness execution cancellation into fetch", async () => {
+  const source = await readFile(fileURLToPath(new URL("../../../harness/minimal/profile/bridge-brokered-tools.mjs", import.meta.url)), "utf8");
+  assert.match(source, /async execute\(args, exec\)/u);
+  assert.match(source, /AbortSignal\.any\(\[signal, timeout\]\)/u);
+  assert.match(source, /execute\(args, exec\?\.signal\)/u);
 });

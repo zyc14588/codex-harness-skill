@@ -1,5 +1,6 @@
-import type { BridgeConfig } from "./types.js";
+import type { BridgeConfig, OperatorAuthAuditPolicy } from "./types.js";
 export declare const OPERATOR_PASSWORD_MIN_CHARACTERS = 12;
+export declare const DEFAULT_OPERATOR_AUTH_AUDIT_POLICY: OperatorAuthAuditPolicy;
 export declare function bearerToken(requestAuthorization: string | string[] | undefined): string | undefined;
 export declare function authorizeBearer(requestAuthorization: string | string[] | undefined, expected: string): boolean;
 export declare function authorizeExactSecret(candidate: string | undefined, expected: string): boolean;
@@ -8,7 +9,7 @@ export interface OperatorAuthDecision {
     status: 200 | 401 | 429;
     retryAfterMs: number;
 }
-/** Per-monitor in-memory exponential backoff with a credential-free append-only audit. */
+/** Per-monitor backoff with credential-free, aggregated, bounded, rotated audit records. */
 export declare class OperatorAuthGuard {
     #private;
     constructor(config: BridgeConfig);

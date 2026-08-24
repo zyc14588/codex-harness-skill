@@ -146,6 +146,17 @@ jobs:
     runs-on: [self-hosted, linux, codex-harness-provider]
     timeout-minutes: 45
     environment: deepseek-provider-smoke
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    outputs:
+      artifact-id: ${{ steps.upload-provider-evidence.outputs.artifact-id }}
+      artifact-url: ${{ steps.upload-provider-evidence.outputs.artifact-url }}
+      artifact-digest: ${{ steps.upload-provider-evidence.outputs.artifact-digest }}
+      attestation-id: ${{ steps.attest-provider-evidence.outputs.attestation-id }}
+      attestation-url: ${{ steps.attest-provider-evidence.outputs.attestation-url }}
     defaults:
       run:
         working-directory: current
@@ -163,6 +174,11 @@ jobs:
       - name: Build exact revision
         working-directory: current/bridge
         run: npm ci && npm run build
+      - name: Prove controlled host resource ceilings
+        working-directory: current/bridge
+        env:
+          CODEX_HARNESS_REQUIRE_CONTROLLED_RESOURCES: "1"
+        run: node --test dist/test/resource-controls.test.js
       - name: Prepare protected credential file
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
@@ -181,8 +197,60 @@ jobs:
           test -n "$CODEX_REAL_SMOKE_PROFILE_MODULES"
           test "$(jq -r .version bridge/package.json)" = 0.6.6
           node bridge/dist/real-provider-smoke.js
-          jq -e '.result == "PASS" and .version == "0.6.6" and .currentRevision == true' evidence/02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json >/dev/null
+          jq -e '.result == "PASS" and .version == "0.6.6" and .currentRevision == true and .hostResourceProfile.controlledUseAllowed == true' evidence/02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json >/dev/null
+      - name: Build deterministic redacted Provider evidence subject
+        env:
+          CREDENTIAL_FILE: ${{ runner.temp }}/codex-harness-deepseek-credentials.yaml
+          EVIDENCE_FILE: ${{ github.workspace }}/current/evidence/02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json
+          EVIDENCE_BUNDLE: ${{ runner.temp }}/codex-harness-provider-evidence
+          EVIDENCE_SUBJECT: ${{ runner.temp }}/codex-harness-provider-evidence-${{ github.sha }}.tar
+        run: |
+          rm -rf "$EVIDENCE_BUNDLE"
+          mkdir -p "$EVIDENCE_BUNDLE"
+          HEAD_TREE="$(git -C .. rev-parse 'HEAD^{tree}')"
+          python3 - "$EVIDENCE_FILE" "$CREDENTIAL_FILE" "$EVIDENCE_BUNDLE/provider-smoke.json" "$EVIDENCE_BUNDLE/run-binding.json" "${{ github.repository }}" "${{ github.sha }}" "$HEAD_TREE" "${{ github.run_id }}" "${{ github.run_attempt }}" "${{ github.workflow_ref }}" <<'PY'
+          import hashlib,json,os,sys
+          evidence_path,credential_path,copy_path,binding_path,repository,head_sha,head_tree,run_id,run_attempt,workflow_ref=sys.argv[1:]
+          raw=open(evidence_path,'rb').read()
+          credential=open(credential_path,encoding='utf-8').read().partition(':')[2].strip().encode()
+          if len(credential)<24 or credential in raw:
+              raise SystemExit('Provider evidence redaction validation failed')
+          evidence=json.loads(raw)
+          if evidence.get('result')!='PASS' or evidence.get('sourceCommit')!=head_sha or evidence.get('hostResourceProfile',{}).get('controlledUseAllowed') is not True:
+              raise SystemExit('Provider evidence exact-revision/resource binding failed')
+          open(copy_path,'wb').write(raw)
+          workflow_path=os.path.realpath('../.github/workflows/ci.yml')
+          binding={
+              'schemaVersion':1,'result':'PASS','repository':repository,'headSha':head_sha,'headTree':head_tree,
+              'runId':int(run_id),'runAttempt':int(run_attempt),'workflowRef':workflow_ref,
+              'workflowPath':'.github/workflows/ci.yml',
+              'workflowSha256':hashlib.sha256(open(workflow_path,'rb').read()).hexdigest(),
+              'environment':'deepseek-provider-smoke','job':'protected-real-provider-smoke',
+              'providerEvidenceSha256':hashlib.sha256(raw).hexdigest(),
+          }
+          open(binding_path,'w',encoding='utf-8').write(json.dumps(binding,indent=2,sort_keys=True)+'\n')
+          PY
+          tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner -C "$EVIDENCE_BUNDLE" -cf "$EVIDENCE_SUBJECT" .
+          sha256sum "$EVIDENCE_SUBJECT" > "$EVIDENCE_SUBJECT.sha256"
       - name: Remove protected credential material
         if: always()
         working-directory: .
         run: rm -f "$RUNNER_TEMP/codex-harness-deepseek-credentials.yaml"
+      - name: Upload immutable Provider evidence subject
+        id: upload-provider-evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          path: ${{ runner.temp }}/codex-harness-provider-evidence-${{ github.sha }}.tar
+          archive: false
+          if-no-files-found: error
+          retention-days: 90
+      - name: Verify uploaded artifact digest
+        env:
+          UPLOADED_DIGEST: ${{ steps.upload-provider-evidence.outputs.artifact-digest }}
+          EVIDENCE_SUBJECT: ${{ runner.temp }}/codex-harness-provider-evidence-${{ github.sha }}.tar
+        run: test "$UPLOADED_DIGEST" = "$(sha256sum "$EVIDENCE_SUBJECT" | awk '{print $1}')"
+      - name: Attest Provider evidence subject with GitHub OIDC
+        id: attest-provider-evidence
+        uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4.2.1
+        with:
+          subject-path: ${{ runner.temp }}/codex-harness-provider-evidence-${{ github.sha }}.tar

@@ -52,6 +52,11 @@ const before = await releaseIntegrity(options.root);
 const binding = sourceProof(before);
 const testFiles = [
   "dist/test/harness-isolation.test.js",
+  "dist/test/brokered-tool-registry.test.js",
+  "dist/test/process-group.test.js",
+  "dist/test/resource-controls.test.js",
+  "dist/test/model-visible-output.test.js",
+  "dist/test/security.test.js",
   "dist/test/provider-protocol-fail-fast.test.js",
   "dist/test/verification-isolation.test.js",
 ];
@@ -105,6 +110,12 @@ const evidence = {
     reasoningReplayOmissionSplitMemoryChanged: false,
     ignoredArtifactCanCauseAuthoritativeFalsePass: false,
     verificationWorktreeRemoved: passed,
+    brokeredToolTaskAttemptAndShutdownCancellation: passed,
+    brokeredToolRegistryEventuallyEmpty: passed,
+    forkMemoryDiskAndTimeoutHostNegatives: passed,
+    modelVisibleReadByteAndEstimatedTokenBounds: passed,
+    operatorAuditFloodAggregationRotationAndRetention: passed,
+    controlledUseRequiresAllCgroupControllers: "PROTECTED_HOST_GATE_REQUIRED",
   },
 };
 await mkdir(path.dirname(options.evidence), { recursive: true });

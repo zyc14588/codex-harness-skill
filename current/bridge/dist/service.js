@@ -18,6 +18,7 @@ import { assertDisjointLeases, boundedStringList, boundedText, ensureDir, isWith
 import { captureProcessIdentity, processIdentityMatches, signalVerifiedProcessGroup } from "./process-identity.js";
 import { ensureOperatorToken, readProviderApiKey } from "./security.js";
 import { inspectMinimalPresetBrokerComposition } from "./harness-isolation.js";
+import { probeHostResourceProfile } from "./resource-controls.js";
 const ACCEPTABLE_FOR_ADOPTION = new Set(["completed", "completed_no_changes"]);
 const MAX_TASK_PROMPT_BYTES = 96_000;
 const WORKER_ORPHAN_GRACE_MS = 2_000;
@@ -916,11 +917,19 @@ export async function doctor(probeHarness) {
     }
     const llama = await probeLlamaCpp(config);
     checks.llamaCppProbe = llama;
+    const resourceProbe = await probeHostResourceProfile(config);
+    checks.hostResourceProfile = resourceProbe;
     const llamaOk = llama.ok === true;
+    const resourceModeOk = config.harnessIsolation.resourceProfile.enforcement === "audit_only" || resourceProbe.controlledUseAllowed;
     const ok = node.code === 0 && nodeSupported && git.code === 0 && launcherOk && probeOk && monitorOk && llamaOk
-        && minimalPresetBroker.ok &&
+        && minimalPresetBroker.ok && resourceModeOk &&
         rootChecks.every((item) => item.ok === true) && (!config.enforceHarnessPin || revision.matches);
-    return { ok, checks };
+    return {
+        ok,
+        controlledUseAllowed: resourceProbe.controlledUseAllowed,
+        executionMode: resourceProbe.controlledUseAllowed ? "controlled" : "audit_only",
+        checks,
+    };
 }
 export async function startTask(input) {
     const config = await loadConfig();

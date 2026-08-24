@@ -59,17 +59,27 @@ function relay(socketPath: string, capability: CapabilityInput, request: Incomin
     headers: { ...request.headers, host: "codex-harness-internal" },
   }, (incoming) => {
     response.writeHead(incoming.statusCode ?? 502, incoming.headers);
+    incoming.once("aborted", () => response.destroy(new Error("internal monitor response aborted")));
     incoming.pipe(response);
   });
+  const abortUpstream = (reason: string): void => {
+    if (!upstream.destroyed) upstream.destroy(new Error(reason));
+  };
   let observed = 0;
   request.on("data", (chunk: Buffer) => {
     observed += chunk.length;
     if (observed > MAX_RELAY_BODY_BYTES) {
       request.destroy(new Error("isolated relay body is too large"));
-      upstream.destroy();
+      abortUpstream("isolated relay body is too large");
     }
   });
-  request.once("aborted", () => upstream.destroy());
+  request.once("aborted", () => abortUpstream("isolated relay client aborted"));
+  request.once("close", () => {
+    if (request.aborted || !request.complete) abortUpstream("isolated relay client request closed early");
+  });
+  response.once("close", () => {
+    if (!response.writableEnded) abortUpstream("isolated relay client response closed early");
+  });
   upstream.once("error", (error) => {
     if (!response.headersSent) fail(response, 502, `internal monitor relay failed: ${error.message}`);
     else response.destroy(error);

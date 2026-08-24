@@ -12,6 +12,8 @@ const progressiveDefinitions = {
       file_path: { type: 'string', required: true },
       start_line: { type: 'integer' },
       end_line: { type: 'integer' },
+      offset_bytes: { type: 'integer', description: 'UTF-8 byte offset within the selected line range; use truncation.nextOffsetBytes to continue.' },
+      max_bytes: { type: 'integer', description: 'Maximum returned text bytes (256-49152).' },
     },
   },
   repo_search: {
@@ -55,13 +57,14 @@ function settings() {
   return { baseUrl, token, taskId }
 }
 
-async function invoke(tool, args) {
+async function invoke(tool, args, signal) {
   const { baseUrl, token, taskId } = settings()
+  const timeout = AbortSignal.timeout(7_300_000)
   const response = await fetch(baseUrl, {
     method: 'POST',
     headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
     body: JSON.stringify({ taskId, tool, arguments: args }),
-    signal: AbortSignal.timeout(7_300_000),
+    signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
   })
   const text = await response.text()
   let value
@@ -83,14 +86,14 @@ function definition(name, description, parameters, execute) {
       schema: { type: 'string' },
       render: (_args, value) => [{ type: 'text', text: value }],
     },
-    async execute(args) { return rendered(await execute(args)) },
+    async execute(args, exec) { return rendered(await execute(args, exec?.signal)) },
   })
 }
 
 export function apply(ctx) {
   settings()
   const disposers = new Map()
-  const register = (name, description, parameters, execute = args => invoke(name, args)) => {
+  const register = (name, description, parameters, execute = (args, signal) => invoke(name, args, signal)) => {
     if (disposers.has(name)) return
     disposers.set(name, ctx.tools.register(definition(name, description, parameters, execute)))
   }
@@ -108,13 +111,15 @@ export function apply(ctx) {
     new_str: { type: 'string' },
     old_str: { type: 'string' },
     view_range: { type: 'array', items: { type: 'integer' } },
+    offset_bytes: { type: 'integer', description: 'UTF-8 byte offset within the selected view; use truncation.nextOffsetBytes to continue.' },
+    max_bytes: { type: 'integer', description: 'Maximum returned text bytes (256-49152).' },
   })
-  register('capability_catalog', 'List progressive capabilities authorized by the frozen leaf contract.', {}, args => invoke('capability_catalog', args))
+  register('capability_catalog', 'List progressive capabilities authorized by the frozen leaf contract.', {}, (args, signal) => invoke('capability_catalog', args, signal))
   register('capability_enable', 'Enable one progressive capability already authorized by the frozen leaf contract.', {
     capability: { type: 'string', required: true, enum: ['repository_read', 'verification', 'git_inspect'] },
     reason: { type: 'string', required: true },
-  }, async args => {
-    const result = await invoke('capability_enable', args)
+  }, async (args, signal) => {
+    const result = await invoke('capability_enable', args, signal)
     for (const name of result?.tools || []) {
       const selected = progressiveDefinitions[name]
       if (selected) register(name, selected.description, selected.parameters)

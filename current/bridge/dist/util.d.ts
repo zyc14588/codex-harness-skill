@@ -1,4 +1,4 @@
-import type { ProcessResult } from "./types.js";
+import type { ProcessIdentity, ProcessResult } from "./types.js";
 export declare function nowIso(): string;
 export declare function expandHome(input: string): string;
 export declare function pathExists(target: string): Promise<boolean>;
@@ -25,6 +25,9 @@ export declare function runProcess(command: string, args: string[], options?: {
     input?: string;
     maxCaptureChars?: number;
     killProcessGroup?: boolean;
+    signal?: AbortSignal;
+    abortGraceMs?: number;
+    onProcessIdentity?: (identity: ProcessIdentity) => void | Promise<void>;
 }): Promise<ProcessResult>;
 export declare function jsonToolResult(value: unknown, isError?: boolean): {
     content: Array<{

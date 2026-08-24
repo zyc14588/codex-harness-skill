@@ -7,6 +7,7 @@ import type { BridgeConfig, TaskRecord } from "./types.js";
 import { taskDirectory } from "./store.js";
 import { atomicWriteJson, isWithin, pathExists, runProcess } from "./util.js";
 import { sha256Executable } from "./process-identity.js";
+import { assertControlledResourceProfile, resourceWrappedCommand } from "./resource-controls.js";
 
 export interface HarnessLauncherIdentity {
   command: string;
@@ -164,6 +165,7 @@ export async function prepareHarnessSandbox(
     throw new Error("Harness task has no active route-safe execution attempt");
   }
   if (!PROFILE_NAME.test(profile)) throw new Error(`unsafe Harness profile name: ${profile}`);
+  await assertControlledResourceProfile(config);
 
   const bwrap = await sha256Executable(config.harnessIsolation.bubblewrapBinary);
   if (bwrap.sha256 !== config.harnessIsolation.bubblewrapSha256) {
@@ -325,6 +327,7 @@ export async function prepareHarnessSandbox(
   });
   args.push("--chdir", canonicalWorktree, "--", nodeExecutable, path.join(bridgeDist, "harness-sandbox-entry.js"));
 
+  const wrapped = await resourceWrappedCommand(config, `harness-${task.id}`, bwrap.realpath, args);
   const evidencePath = path.join(taskDirectory(config, task.id), "harness-isolation.json");
   await atomicWriteJson(evidencePath, {
     schemaVersion: 1,
@@ -355,6 +358,12 @@ export async function prepareHarnessSandbox(
     adapterStateCapability: "separate_one_attempt_64_hex_bearer",
     modelVisibleLocalSubprocessTools: false,
     brokeredToolExecution: "host_launches_independent_bubblewrap_sibling_without_monitor_socket_or_secret_mounts",
+    hostResourceProfile: {
+      ...config.harnessIsolation.resourceProfile,
+      cgroupEnforced: wrapped.cgroupEnforced,
+      rlimitsEnforced: wrapped.rlimitsEnforced,
+      unit: wrapped.unit,
+    },
     harnessInnerPermissionMode: "danger_full_access_within_mandatory_outer_bubblewrap_boundary",
   });
   const capabilityInput = `${JSON.stringify({
@@ -365,7 +374,7 @@ export async function prepareHarnessSandbox(
     adapterToken: task.adapterToken,
     toolToken: task.toolToken,
   })}\n`;
-  return { command: bwrap.realpath, args, env: {}, capabilityInput, sandboxRoot, evidencePath };
+  return { command: wrapped.command, args: wrapped.args, env: wrapped.env, capabilityInput, sandboxRoot, evidencePath };
 }
 
 export async function cleanupHarnessSandbox(sandboxRoot: string): Promise<void> {

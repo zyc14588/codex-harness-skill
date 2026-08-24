@@ -7,6 +7,7 @@
 - [ ] 根入口与所有命令唯一指向 `current/`；历史全部位于 `archive/`。
 - [ ] package/plugin/MCP/Dashboard/installer/profile/archive root 为同一版本。
 - [ ] release gate 绑定 implementation commit/tree、package-lock、Harness commit/build、critical paths、当前 smoke 与 archive sidecar。
+- [ ] canonical `seal-ready` checkout 完全干净，implementation 后只有白名单 seal metadata；`package-origin.json` 只在隔离 staging 生成。
 - [ ] 最终 archive 实际存在且双构建字节相同；解包后复验通过。
 
 ## Provider 与工具隔离
@@ -15,6 +16,8 @@
 - [ ] shell 不能访问 Monitor socket、Relay 或 direct Provider，尝试后 upstream count=0。
 - [ ] Provider/Adapter/tool bearer 不可互换；route 只接受精确 POST/JSON/schema。
 - [ ] 正常当前 revision Flash/Pro 多轮仍通过。
+- [ ] attempt rollover/cancel/timeout/Monitor SIGTERM 撤销 broker lease、终止完整进程组，且取消后无延迟写入。
+- [ ] editor/目录/repository read 每页最多 49,152 UTF-8 bytes，分页可无损重组且 schema 暴露边界。
 
 ## Clean verification
 
@@ -33,10 +36,19 @@
 
 - [ ] 初始 256-bit random token；失败 rate limit/backoff/audit 生效。
 - [ ] NFC ≥12；Cc/Cf/bidi/zero-width 拒绝；密码不出现在 HTML/log/snapshot/evidence。
+- [ ] 认证洪泛按来源聚合；审计最多四段/总计 1 MiB/30 天保留，0600 且不含 bearer。
+
+## 宿主资源
+
+- [ ] Harness、relay 和每个 broker sibling 都使用同一 `required` profile；launcher realpath/SHA-256 受 pin。
+- [ ] 动态探针精确证明 cgroup v2 memory/CPU/tasks/I/O/runtime 与 RLIMIT；任何 controller 缺失时 controlled use fail closed。
+- [ ] fork、内存、文件大小、worktree allocated bytes 与 runtime 耗尽负测全部被限制，无遗留进程或迟发写入。
 
 ## CI、安装与供应链
 
 - [ ] 根 workflow、full-SHA actions、build/test/direct/security/package/skill/drift/negative/poison 全通过。
 - [ ] 目标 commit 的实际 GitHub Actions run PASS，branch protection required checks 已配置。
+- [ ] protected Provider artifact digest 与 GitHub attestation、run ID/attempt、workflow path/hash、精确 head/tree 一致。
+- [ ] DEC-001…DEC-004 均由可归属 owner 明确批准，选择值与实现/资源 profile 一致。
 - [ ] fresh install、migration、same/cross rollback、reinstall、uninstall 全通过。
 - [ ] ZIP 无 `.git`、node_modules、symlink、PID、临时状态或凭据；解包后全部重验。

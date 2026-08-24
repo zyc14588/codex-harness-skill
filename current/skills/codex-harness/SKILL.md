@@ -9,9 +9,9 @@ description: Use the controller-gated Codex↔DeepSeek Harness bridge with adapt
 
 Codex is the sole controller, decomposer, reviewer, verifier, and integration decision-maker. Harness and llama.cpp execute only frozen leaves. Never delegate an unconstrained project goal, and never accept a worker summary as evidence.
 
-Before controlled use, require `release-status.json` to report `stable`, `controlledUseAllowed=true`, `deliverableStatus=DELIVERABLE_PASS`, and every gate exactly `PASS`. A candidate is installable only for explicit audit with `--audit-candidate`; a withdrawn build is never installable.
+Before controlled use, require `release-status.json` to report `stable`, `controlledUseAllowed=true`, `deliverableStatus=DELIVERABLE_PASS`, and every exact required gate `PASS`. Also require attributable owner approval in `docs/OWNER_DECISIONS.json` and a dynamic doctor probe proving the configured cgroup v2/RLIMIT profile, including I/O control. A candidate is installable only for explicit audit with `--audit-candidate`, uses a commit-suffixed runtime path by default, and remains `audit_only`; a withdrawn build is never installable.
 
-Every Harness attempt must run inside the Bridge-created Bubblewrap user/PID/network/mount boundary. Harness receives a per-task proxy token, never the real Provider key; Provider authorization is replaced only by the authenticated local Broker. Do not inherit parent credentials or proxy variables, mount the host DSH home, track `.env*`, put prompt text in argv, or bypass the prompt-file and Unix-socket relay paths. Dashboard/API access requires the operator bearer token; origin/CSRF checks remain mandatory for mutations.
+Every Harness attempt must run inside the Bridge-created Bubblewrap user/PID/network/mount boundary and the pinned host resource wrapper. Harness receives a per-task proxy token, never the real Provider key; Provider authorization is replaced only by the authenticated local Broker. Do not inherit parent credentials or proxy variables, mount the host DSH home, track `.env*`, put prompt text in argv, or bypass the prompt-file and Unix-socket relay paths. Dashboard/API access requires the operator bearer token; origin/CSRF checks remain mandatory for mutations. Cancellation, attempt rollover, timeout, or Monitor shutdown must revoke broker leases and quiesce the verified whole process group before cleanup.
 
 ## Required decomposition sequence
 
@@ -70,7 +70,7 @@ Minimal Harness starts with persistent shell/editor plus `capability_catalog` an
 - `verification`: frozen command index only;
 - `git_inspect`: read-only status/diff.
 
-A disclosure request is not permission to broaden scope. Reject unlisted capabilities and continue only with the frozen lease.
+A disclosure request is not permission to broaden scope. Reject unlisted capabilities and continue only with the frozen lease. Repository/editor model-visible reads are UTF-8 byte-paged with a 49,152-byte/12,288-estimated-token ceiling; follow `truncation.nextOffsetBytes` instead of requesting an unbounded result.
 
 ## Completion sequence
 

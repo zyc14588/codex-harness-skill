@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "version": "0.6.6",
+  "policy": "Every decision must be APPROVED in an implementation commit before seal-ready or stable promotion.",
+  "decisions": {
+    "DEC-001": {
+      "title": "GitHub private branch protection",
+      "status": "PENDING_OWNER",
+      "selected": null,
+      "options": [
+        "A_PRIVATE_PLAN_WITH_BRANCH_PROTECTION",
+        "B_PUBLIC_AFTER_FULL_REPOSITORY_AND_HISTORY_AUDIT",
+        "C_SIGNED_TAG_TWO_PERSON_APPROVAL_IMMUTABLE_ATTESTATION_CONTRACT"
+      ],
+      "decidedBy": null,
+      "decidedAt": null
+    },
+    "DEC-002": {
+      "title": "Repository and Git history read boundary",
+      "status": "PENDING_OWNER",
+      "selected": null,
+      "options": [
+        "A_ACCEPT_REPOSITORY_AND_HISTORY_READ_BOUNDARY",
+        "B_REQUIRE_FILTERED_WORKSPACE_AND_SHALLOW_SANITIZED_HISTORY"
+      ],
+      "implementationVerified": false,
+      "decidedBy": null,
+      "decidedAt": null
+    },
+    "DEC-003": {
+      "title": "Controlled-use host resource defaults",
+      "status": "PENDING_OWNER",
+      "selected": null,
+      "options": [
+        "A_APPROVE_PROPOSED_PROFILE",
+        "B_SUPPLY_REVISED_BOUNDED_PROFILE"
+      ],
+      "proposedProfile": {
+        "memoryMaxBytes": 4294967296,
+        "cpuQuotaPercent": 200,
+        "tasksMax": 256,
+        "ioWeight": 100,
+        "worktreeMaxBytes": 4294967296,
+        "rlimitNoFile": 4096,
+        "rlimitNproc": 4096,
+        "rlimitFsizeBytes": 1073741824,
+        "commandTimeoutSeconds": 1800
+      },
+      "decidedBy": null,
+      "decidedAt": null
+    },
+    "DEC-004": {
+      "title": "Candidate audit installation path",
+      "status": "PENDING_OWNER",
+      "selected": null,
+      "options": [
+        "A_USE_COMMIT_SUFFIXED_CANDIDATE_PATH",
+        "B_SUPPLY_ALTERNATIVE_NON_STABLE_PATH_POLICY"
+      ],
+      "implementedRecommendation": "0.6.6-candidate-<implementation-commit-prefix>",
+      "decidedBy": null,
+      "decidedAt": null
+    }
+  }
+}

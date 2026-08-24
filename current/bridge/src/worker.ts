@@ -26,9 +26,11 @@ import { attemptInfrastructureAbortReason, classifyMinimalToolPlaneFailure } fro
 import { createExecutionAttempt, thinkingPolicyForModel } from "./thinking-policy.js";
 import { cleanupHarnessSandbox, prepareHarnessSandbox } from "./harness-isolation.js";
 import { captureProcessIdentity, signalVerifiedProcessGroup } from "./process-identity.js";
+import { directoryAllocatedBytes } from "./resource-controls.js";
 
 const MAX_WORKER_LOG_BYTES = 20_000_000;
 const ATTEMPT_ABORT_POLL_MS = 100;
+const WORKTREE_QUOTA_POLL_MS = 500;
 
 
 function containsToolProtocolLeak(text: string): boolean {
@@ -112,6 +114,11 @@ function terminateChild(child: ChildProcess, identity: import("./types.js").Proc
 async function runHarness(taskId: string, forcedModel?: string): Promise<{ code: number | null; launchError?: string; timedOut: boolean }> {
   const config = await loadConfig();
   const task = await loadTask(config, taskId);
+  const resourceProfile = config.harnessIsolation.resourceProfile;
+  const initialWorktreeBytes = await directoryAllocatedBytes(task.worktreePath);
+  if (initialWorktreeBytes > resourceProfile.worktreeMaxBytes) {
+    throw new Error(`task worktree already exceeds ${resourceProfile.worktreeMaxBytes} byte resource ceiling (${initialWorktreeBytes})`);
+  }
   const launcher = await assertHarnessProvenance(config);
   const profile = task.harnessMode === "minimal" ? config.harnessMinimalProfile : config.harnessProfile;
   const selectedModel = forcedModel ?? task.model;
@@ -208,6 +215,7 @@ async function runHarness(taskId: string, forcedModel?: string): Promise<{ code:
     }
     if (cancelledAfterSpawn) terminateChild(child, identity);
     abortWatch = (async () => {
+      let nextQuotaCheckAt = 0;
       while (!stopAbortWatch) {
         const current = await loadTask(config, taskId);
         if (current.status !== "running") return;
@@ -217,13 +225,23 @@ async function runHarness(taskId: string, forcedModel?: string): Promise<{ code:
           terminateChild(child, identity);
           return;
         }
+        if (Date.now() >= nextQuotaCheckAt) {
+          const worktreeBytes = await directoryAllocatedBytes(current.worktreePath);
+          if (worktreeBytes > resourceProfile.worktreeMaxBytes) {
+            attemptAbortError = `task worktree exceeded ${resourceProfile.worktreeMaxBytes} byte resource ceiling (${worktreeBytes})`;
+            terminateChild(child, identity);
+            return;
+          }
+          nextQuotaCheckAt = Date.now() + WORKTREE_QUOTA_POLL_MS;
+        }
         await sleep(ATTEMPT_ABORT_POLL_MS);
       }
     })().catch((error: unknown) => {
       abortWatchError = `attempt abort watcher failed: ${error instanceof Error ? error.message : String(error)}`;
       terminateChild(child, identity);
     });
-    timer = setTimeout(() => { timedOut = true; terminateChild(child, identity); }, task.runtimeSeconds * 1_000);
+    const enforcedRuntimeMs = Math.min(task.runtimeSeconds, resourceProfile.commandTimeoutSeconds) * 1_000;
+    timer = setTimeout(() => { timedOut = true; terminateChild(child, identity); }, enforcedRuntimeMs);
     timer.unref();
     const outcome = await outcomePromise;
     await signalVerifiedProcessGroup(identity, "SIGKILL");

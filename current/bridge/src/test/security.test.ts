@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { lstat, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { chmod, lstat, mkdtemp, readFile, readdir, rm, utimes, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -57,10 +57,70 @@ test("operator authentication uses exponential backoff and credential-free audit
     const auditPath = path.join(stateRoot, "audit", "operator-auth.ndjson");
     const audit = await readFile(auditPath, "utf8");
     assert.match(audit, /"event":"failure"/u);
-    assert.match(audit, /"event":"blocked"/u);
+    assert.match(audit, /"event":"blocked_summary"/u);
     assert.match(audit, /"event":"recovered"/u);
     assert.doesNotMatch(audit, new RegExp(`${wrong}|${expected}`, "u"));
     assert.equal((await lstat(auditPath)).mode & 0o777, 0o600);
+  } finally {
+    await rm(stateRoot, { recursive: true, force: true });
+  }
+});
+
+test("operator authentication flood is source-aggregated instead of append-per-request", async () => {
+  const stateRoot = await mkdtemp(path.join(os.tmpdir(), "codex-harness-operator-auth-flood-"));
+  const config = {
+    stateRoot,
+    monitor: { operatorAuthAudit: { maxBytes: 65_536, maxFiles: 4, retentionDays: 30, blockedSummaryIntervalSeconds: 60 } },
+  } as BridgeConfig;
+  const expected = "a".repeat(64);
+  try {
+    const guard = new OperatorAuthGuard(config);
+    await guard.authorize("Bearer wrong", expected, "127.0.0.1", 1_000);
+    for (let attempt = 0; attempt < 5_000; attempt += 1) {
+      const blocked = await guard.authorize("Bearer wrong", expected, "127.0.0.1", 1_001);
+      assert.equal(blocked.status, 429);
+    }
+    await guard.authorize(`Bearer ${expected}`, expected, "127.0.0.1", 1_002);
+    const audit = await readFile(path.join(stateRoot, "audit", "operator-auth.ndjson"), "utf8");
+    const records = audit.trim().split("\n").map((line) => JSON.parse(line) as { event?: string; blockedAttempts?: number });
+    assert.ok(records.length < 32, `flood generated ${records.length} audit rows`);
+    assert.ok(records.some((record) => record.event === "blocked_summary" && record.blockedAttempts === 5_000));
+  } finally {
+    await rm(stateRoot, { recursive: true, force: true });
+  }
+});
+
+test("operator audit rotation enforces total bytes, segment count, modes, and retention", async () => {
+  const stateRoot = await mkdtemp(path.join(os.tmpdir(), "codex-harness-operator-auth-rotation-"));
+  const policy = { maxBytes: 4_096, maxFiles: 3, retentionDays: 1, blockedSummaryIntervalSeconds: 60 };
+  const config = { stateRoot, monitor: { operatorAuthAudit: policy } } as BridgeConfig;
+  try {
+    const guard = new OperatorAuthGuard(config);
+    for (let source = 0; source < 200; source += 1) {
+      await guard.authorize(undefined, "a".repeat(64), `local-source-${source}`, Date.now() + source);
+    }
+    const auditDirectory = path.join(stateRoot, "audit");
+    const segments = (await readdir(auditDirectory)).filter((name) => /^operator-auth\.ndjson(?:\.\d+)?$/u.test(name));
+    assert.ok(segments.length <= policy.maxFiles);
+    let totalBytes = 0;
+    for (const name of segments) {
+      const info = await lstat(path.join(auditDirectory, name));
+      totalBytes += info.size;
+      assert.equal(info.mode & 0o777, 0o600);
+    }
+    assert.ok(totalBytes <= policy.maxBytes, `${totalBytes} > ${policy.maxBytes}`);
+
+    const expired = path.join(auditDirectory, "operator-auth.ndjson.2");
+    await writeFile(expired, "expired\n", { mode: 0o600 });
+    await chmod(expired, 0o600);
+    const old = new Date(Date.now() - 2 * 86_400_000);
+    await utimes(expired, old, old);
+    await guard.authorize(undefined, "a".repeat(64), "retention-trigger", Date.now() + 1_000);
+    try {
+      assert.notEqual(await readFile(expired, "utf8"), "expired\n");
+    } catch (error) {
+      assert.equal((error as NodeJS.ErrnoException).code, "ENOENT");
+    }
   } finally {
     await rm(stateRoot, { recursive: true, force: true });
   }

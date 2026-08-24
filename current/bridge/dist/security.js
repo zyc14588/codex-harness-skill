@@ -7,6 +7,13 @@ const SECRET_MAX_BYTES = 16_384;
 const AUTH_BACKOFF_BASE_MS = 250;
 const AUTH_BACKOFF_MAX_MS = 30_000;
 const AUTH_FAILURE_RETENTION_MS = 15 * 60_000;
+const MAX_AUTH_FAILURE_SOURCES = 4_096;
+export const DEFAULT_OPERATOR_AUTH_AUDIT_POLICY = {
+    maxBytes: 1_048_576,
+    maxFiles: 4,
+    retentionDays: 30,
+    blockedSummaryIntervalSeconds: 60,
+};
 function equalSecret(left, right) {
     const a = Buffer.from(left, "utf8");
     const b = Buffer.from(right, "utf8");
@@ -31,51 +38,140 @@ export function authorizeBearer(requestAuthorization, expected) {
 export function authorizeExactSecret(candidate, expected) {
     return candidate !== undefined && equalSecret(candidate, expected);
 }
-/** Per-monitor in-memory exponential backoff with a credential-free append-only audit. */
+/** Per-monitor backoff with credential-free, aggregated, bounded, rotated audit records. */
 export class OperatorAuthGuard {
     #config;
     #failures = new Map();
+    #auditTail = Promise.resolve();
     constructor(config) {
         this.#config = config;
     }
-    async #audit(source, event, failures, retryAfterMs) {
+    #policy() {
+        return this.#config.monitor?.operatorAuthAudit ?? DEFAULT_OPERATOR_AUTH_AUDIT_POLICY;
+    }
+    async #writeAudit(source, event, failures, retryAfterMs, nowMs, blockedAttempts) {
         const directory = path.join(this.#config.stateRoot, "audit");
         await mkdir(directory, { recursive: true, mode: 0o700 });
+        const directoryInfo = await lstat(directory);
+        if (!directoryInfo.isDirectory() || directoryInfo.isSymbolicLink())
+            throw new Error(`operator audit path is not a regular directory: ${directory}`);
+        if (typeof process.getuid === "function" && directoryInfo.uid !== process.getuid())
+            throw new Error(`operator audit directory must be owned by uid ${process.getuid()}`);
         await chmod(directory, 0o700);
         const target = path.join(directory, "operator-auth.ndjson");
-        await appendFile(target, `${JSON.stringify({
-            schemaVersion: 1,
-            at: new Date().toISOString(),
+        const line = `${JSON.stringify({
+            schemaVersion: 2,
+            at: new Date(nowMs).toISOString(),
             event,
             source: source.slice(0, 200),
             failures,
             retryAfterMs,
-        })}\n`, { encoding: "utf8", mode: 0o600 });
+            ...(blockedAttempts === undefined ? {} : { blockedAttempts }),
+        })}\n`;
+        const policy = this.#policy();
+        const retentionCutoff = Date.now() - policy.retentionDays * 86_400_000;
+        const segmentPath = (index) => index === 0 ? target : `${target}.${index}`;
+        const existing = async (candidate) => {
+            try {
+                const info = await lstat(candidate);
+                if (!info.isFile() || info.isSymbolicLink())
+                    throw new Error(`operator audit segment must be a regular non-symlink file: ${candidate}`);
+                if (typeof process.getuid === "function" && info.uid !== process.getuid())
+                    throw new Error(`operator audit segment must be owned by uid ${process.getuid()}: ${candidate}`);
+                return info;
+            }
+            catch (error) {
+                if (error.code === "ENOENT")
+                    return undefined;
+                throw error;
+            }
+        };
+        for (let index = 0; index < policy.maxFiles; index += 1) {
+            const candidate = segmentPath(index);
+            const info = await existing(candidate);
+            if (info && info.mtimeMs < retentionCutoff)
+                await rm(candidate, { force: true });
+        }
+        const segmentMaxBytes = Math.floor(policy.maxBytes / policy.maxFiles);
+        const active = await existing(target);
+        if (active && Number(active.size) + Buffer.byteLength(line) > segmentMaxBytes) {
+            if (policy.maxFiles === 1) {
+                await rm(target, { force: true });
+            }
+            else {
+                for (let index = policy.maxFiles - 1; index >= 1; index -= 1) {
+                    const sourcePath = segmentPath(index - 1);
+                    const destinationPath = segmentPath(index);
+                    if (index === policy.maxFiles - 1)
+                        await rm(destinationPath, { force: true });
+                    if (await existing(sourcePath))
+                        await rename(sourcePath, destinationPath);
+                }
+            }
+        }
+        await appendFile(target, line, { encoding: "utf8", mode: 0o600 });
         await chmod(target, 0o600);
+    }
+    async #audit(source, event, failures, retryAfterMs, nowMs, blockedAttempts) {
+        const operation = this.#auditTail.then(async () => await this.#writeAudit(source, event, failures, retryAfterMs, nowMs, blockedAttempts));
+        this.#auditTail = operation.catch(() => undefined);
+        await operation;
+    }
+    async #flushBlockedSummary(source, state, nowMs, force) {
+        if (state.blockedAttempts <= state.reportedBlockedAttempts)
+            return;
+        const intervalMs = this.#policy().blockedSummaryIntervalSeconds * 1_000;
+        const intervalDue = state.lastBlockedSummaryMs === undefined || nowMs - state.lastBlockedSummaryMs >= intervalMs;
+        const magnitudeDue = state.blockedAttempts >= Math.max(1, state.reportedBlockedAttempts * 2);
+        if (!force && !intervalDue && !magnitudeDue)
+            return;
+        await this.#audit(source, "blocked_summary", state.failures, Math.max(0, state.blockedUntilMs - nowMs), nowMs, state.blockedAttempts);
+        state.reportedBlockedAttempts = state.blockedAttempts;
+        state.lastBlockedSummaryMs = nowMs;
     }
     async authorize(requestAuthorization, expected, source, nowMs = Date.now()) {
         const key = source.slice(0, 200) || "unknown-local-client";
-        for (const [candidate, state] of this.#failures) {
-            if (nowMs - state.lastFailureMs > AUTH_FAILURE_RETENTION_MS)
+        for (const [candidate, state] of [...this.#failures]) {
+            if (nowMs - state.lastFailureMs > AUTH_FAILURE_RETENTION_MS) {
+                await this.#flushBlockedSummary(candidate, state, nowMs, true);
                 this.#failures.delete(candidate);
+            }
         }
         const existing = this.#failures.get(key);
         if (authorizeBearer(requestAuthorization, expected)) {
             if (existing) {
+                await this.#flushBlockedSummary(key, existing, nowMs, true);
                 this.#failures.delete(key);
-                await this.#audit(key, "recovered", existing.failures, 0);
+                await this.#audit(key, "recovered", existing.failures, 0, nowMs);
             }
             return { ok: true, status: 200, retryAfterMs: 0 };
         }
         if (existing && existing.blockedUntilMs > nowMs) {
             const retryAfterMs = existing.blockedUntilMs - nowMs;
-            await this.#audit(key, "blocked", existing.failures, retryAfterMs);
+            existing.blockedAttempts += 1;
+            existing.lastFailureMs = nowMs;
+            await this.#flushBlockedSummary(key, existing, nowMs, false);
             return { ok: false, status: 429, retryAfterMs };
+        }
+        if (existing)
+            await this.#flushBlockedSummary(key, existing, nowMs, true);
+        if (!existing && this.#failures.size >= MAX_AUTH_FAILURE_SOURCES) {
+            const oldest = [...this.#failures.entries()].sort((left, right) => left[1].lastFailureMs - right[1].lastFailureMs)[0];
+            if (oldest) {
+                await this.#flushBlockedSummary(oldest[0], oldest[1], nowMs, true);
+                this.#failures.delete(oldest[0]);
+            }
         }
         const failures = (existing?.failures ?? 0) + 1;
         const retryAfterMs = Math.min(AUTH_BACKOFF_MAX_MS, AUTH_BACKOFF_BASE_MS * (2 ** Math.min(16, failures - 1)));
-        this.#failures.set(key, { failures, blockedUntilMs: nowMs + retryAfterMs, lastFailureMs: nowMs });
-        await this.#audit(key, "failure", failures, retryAfterMs);
+        this.#failures.set(key, {
+            failures,
+            blockedUntilMs: nowMs + retryAfterMs,
+            lastFailureMs: nowMs,
+            blockedAttempts: 0,
+            reportedBlockedAttempts: 0,
+        });
+        await this.#audit(key, "failure", failures, retryAfterMs, nowMs);
         return { ok: false, status: 401, retryAfterMs };
     }
 }

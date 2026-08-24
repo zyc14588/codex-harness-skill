@@ -221,6 +221,8 @@ export async function sleep(ms) {
     await new Promise((resolve) => setTimeout(resolve, ms));
 }
 export async function runProcess(command, args, options = {}) {
+    if (options.signal?.aborted)
+        throw new Error(`process execution aborted before spawn: ${String(options.signal.reason ?? "aborted")}`);
     const maxChars = options.maxCaptureChars ?? MAX_CAPTURE_CHARS;
     return await new Promise((resolve, reject) => {
         const useProcessGroup = options.killProcessGroup === true && process.platform !== "win32";
@@ -243,6 +245,7 @@ export async function runProcess(command, args, options = {}) {
         let stdout = "";
         let stderr = "";
         let timedOut = false;
+        let aborted = false;
         let stdoutTruncated = false;
         let stderrTruncated = false;
         let timer;
@@ -255,9 +258,15 @@ export async function runProcess(command, args, options = {}) {
                 child.once("spawn", () => {
                     if (!child.pid)
                         return identityReject(new Error("process supervisor spawned without a PID"));
-                    void captureProcessIdentity(child.pid).then((identity) => {
+                    void captureProcessIdentity(child.pid).then(async (identity) => {
                         if (identity.processGroupId !== identity.pid)
                             throw new Error("process supervisor did not become its process-group leader");
+                        await options.onProcessIdentity?.(identity);
+                        if (options.signal?.aborted) {
+                            identityResolve(identity);
+                            await signalVerifiedProcessGroup(identity, "SIGTERM");
+                            return;
+                        }
                         child.send?.({ type: "start", command, args, cwd: options.cwd, env: options.env, input: options.input });
                         identityResolve(identity);
                     }).catch(identityReject);
@@ -286,14 +295,34 @@ export async function runProcess(command, args, options = {}) {
             }
             catch { /* process already exited or lost its verified identity */ }
         };
-        const fail = (error) => {
+        const beginTermination = () => {
+            void signalProcess("SIGTERM");
+            if (!escalationTimer) {
+                escalationTimer = setTimeout(() => { void signalProcess("SIGKILL"); }, options.abortGraceMs ?? 5_000);
+                escalationTimer.unref();
+            }
+        };
+        const onAbort = () => {
             if (settled)
                 return;
-            settled = true;
+            aborted = true;
+            beginTermination();
+        };
+        options.signal?.addEventListener("abort", onAbort, { once: true });
+        if (options.signal?.aborted)
+            onAbort();
+        const cleanup = () => {
             if (timer)
                 clearTimeout(timer);
             if (escalationTimer)
                 clearTimeout(escalationTimer);
+            options.signal?.removeEventListener("abort", onAbort);
+        };
+        const fail = (error) => {
+            if (settled)
+                return;
+            settled = true;
+            cleanup();
             reject(error);
         };
         child.once("error", fail);
@@ -322,15 +351,13 @@ export async function runProcess(command, args, options = {}) {
             if (settled)
                 return;
             settled = true;
-            if (timer)
-                clearTimeout(timer);
-            if (escalationTimer)
-                clearTimeout(escalationTimer);
+            cleanup();
             resolve({
                 code: reportedCode !== undefined ? reportedCode : code,
                 stdout,
                 stderr,
                 timedOut,
+                aborted,
                 signal: reportedSignal !== undefined ? reportedSignal : signal,
                 stdoutTruncated,
                 stderrTruncated,
@@ -341,9 +368,7 @@ export async function runProcess(command, args, options = {}) {
         if (options.timeoutMs && options.timeoutMs > 0) {
             timer = setTimeout(() => {
                 timedOut = true;
-                void signalProcess("SIGTERM");
-                escalationTimer = setTimeout(() => { void signalProcess("SIGKILL"); }, 5_000);
-                escalationTimer.unref();
+                beginTermination();
             }, options.timeoutMs);
             timer.unref();
         }

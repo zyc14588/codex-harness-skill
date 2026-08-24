@@ -6,6 +6,7 @@ VERSION="0.6.6"
 SOURCE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 HARNESS_ROOT="/home/zyc14588/deepseek-harness"
 INSTALL_ROOT="${XDG_DATA_HOME:-$HOME/.local/share}/codex-harness-bridge/${VERSION}"
+INSTALL_ROOT_EXPLICIT=0
 CONFIG_PATH="${XDG_CONFIG_HOME:-$HOME/.config}/codex-harness-bridge/config.json"
 STATE_ROOT_DEFAULT="${XDG_STATE_HOME:-$HOME/.local/state}/codex-harness-bridge"
 DSH_HOME_TARGET="${DSH_HOME:-$HOME/.dsh}"
@@ -15,6 +16,10 @@ BUILD_HARNESS="yes"
 ALLOW_DIRTY_HARNESS=0
 SKIP_SELF_TESTS=0
 AUDIT_CANDIDATE=0
+AUDIT_PACKAGE_STAGING=0
+ARCHIVE_PATH=""
+ARCHIVE_SIDECAR_PATH=""
+ARCHIVE_VALIDATION_PATH=""
 ALLOWED_ROOTS=()
 MONITOR_PORT=""
 PROVIDER_KEY_SOURCE=""
@@ -40,6 +45,10 @@ Usage: $0 [options]
   --no-build-harness        Reuse current apps/cli/lib/bin.js and pin its build tree
   --allow-dirty-harness     Permit tracked Harness changes and record the exception
   --audit-candidate         Explicitly allow audit-only installation of a candidate build
+  --audit-package-staging   Packaging pipeline only: audit a staged package before external attestation
+  --archive PATH            Exact stable ZIP accompanying an extracted stable package
+  --archive-sidecar PATH    SHA-256 sidecar accompanying the stable ZIP
+  --archive-validation PATH Validation attestation accompanying the stable ZIP
   --skip-self-tests         Candidate audit only: skip deterministic tests; doctor still runs
   -h, --help                Show this help
 USAGE
@@ -55,18 +64,21 @@ codex_mcp() {
 
 while (($#)); do
   case "$1" in
-    --harness-root|--allowed-root|--install-root|--config|--monitor-port|--dsh-home|--provider-key-file|--llama-base-url|--llama-model)
+    --harness-root|--allowed-root|--install-root|--config|--monitor-port|--dsh-home|--provider-key-file|--llama-base-url|--llama-model|--archive|--archive-sidecar|--archive-validation)
       need_value "$@"
       case "$1" in
         --harness-root) HARNESS_ROOT="$2" ;;
         --allowed-root) ALLOWED_ROOTS+=("$2") ;;
-        --install-root) INSTALL_ROOT="$2" ;;
+        --install-root) INSTALL_ROOT="$2"; INSTALL_ROOT_EXPLICIT=1 ;;
         --config) CONFIG_PATH="$2" ;;
         --monitor-port) MONITOR_PORT="$2" ;;
         --dsh-home) DSH_HOME_TARGET="$2" ;;
         --provider-key-file) PROVIDER_KEY_SOURCE="$2" ;;
         --llama-base-url) LLAMA_BASE_URL="$2" ;;
         --llama-model) LLAMA_MODEL="$2" ;;
+        --archive) ARCHIVE_PATH="$2" ;;
+        --archive-sidecar) ARCHIVE_SIDECAR_PATH="$2" ;;
+        --archive-validation) ARCHIVE_VALIDATION_PATH="$2" ;;
       esac
       shift 2
       ;;
@@ -76,13 +88,14 @@ while (($#)); do
     --no-build-harness) BUILD_HARNESS="no"; shift ;;
     --allow-dirty-harness) ALLOW_DIRTY_HARNESS=1; shift ;;
     --audit-candidate) AUDIT_CANDIDATE=1; shift ;;
+    --audit-package-staging) AUDIT_PACKAGE_STAGING=1; shift ;;
     --skip-self-tests) SKIP_SELF_TESTS=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown option: $1" >&2; usage >&2; exit 2 ;;
   esac
 done
 
-for bin in node git codex python3 tar sha256sum timeout bwrap; do
+for bin in node git codex python3 tar sha256sum timeout bwrap systemd-run prlimit; do
   command -v "$bin" >/dev/null 2>&1 || { echo "Missing required command: $bin" >&2; exit 1; }
 done
 node -e 'const [a,b]=process.versions.node.split(".").map(Number); if (a < 22 || (a === 22 && b < 12)) process.exit(1)' \
@@ -100,7 +113,28 @@ echo "[1/14] Verifying package manifest"
 ) || { echo "Package manifest verification failed" >&2; exit 1; }
 RELEASE_GATE_ARGS=(--root "$SOURCE_ROOT")
 ((AUDIT_CANDIDATE)) && RELEASE_GATE_ARGS+=(--audit-candidate)
+((AUDIT_PACKAGE_STAGING)) && RELEASE_GATE_ARGS+=(--audit-package-staging)
 ((SKIP_SELF_TESTS)) && RELEASE_GATE_ARGS+=(--skip-self-tests)
+RELEASE_STATUS="$(node -e 'const fs=require("node:fs"); process.stdout.write(JSON.parse(fs.readFileSync(process.argv[1],"utf8")).releaseStatus)' "$SOURCE_ROOT/release-status.json")"
+if [[ "$RELEASE_STATUS" == "candidate" ]] && ((INSTALL_ROOT_EXPLICIT == 0)); then
+  CANDIDATE_COMMIT="$(node -e 'const fs=require("node:fs"); const v=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); process.stdout.write(v.implementation?.commit ?? "")' "$SOURCE_ROOT/release-status.json")"
+  if [[ ! "$CANDIDATE_COMMIT" =~ ^[0-9a-f]{40,64}$ ]]; then
+    CANDIDATE_COMMIT="$(sha256sum "$SOURCE_ROOT/MANIFEST_SHA256.txt" | awk '{print $1}')"
+  fi
+  INSTALL_ROOT="${XDG_DATA_HOME:-$HOME/.local/share}/codex-harness-bridge/${VERSION}-candidate-${CANDIDATE_COMMIT:0:12}"
+fi
+if [[ "$RELEASE_STATUS" == "stable" ]] && ((!AUDIT_PACKAGE_STAGING)); then
+  ARCHIVE_NAME="$(node -e 'const fs=require("node:fs"); const v=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); process.stdout.write(v.finalArchive?.name ?? "")' "$SOURCE_ROOT/release-status.json")"
+  [[ -n "$ARCHIVE_PATH" ]] || ARCHIVE_PATH="$(dirname "$SOURCE_ROOT")/$ARCHIVE_NAME"
+  [[ -n "$ARCHIVE_SIDECAR_PATH" ]] || ARCHIVE_SIDECAR_PATH="$ARCHIVE_PATH.sha256"
+  [[ -n "$ARCHIVE_VALIDATION_PATH" ]] || ARCHIVE_VALIDATION_PATH="$ARCHIVE_PATH.validation.json"
+  RELEASE_GATE_ARGS+=(
+    --require-archive
+    --archive "$ARCHIVE_PATH"
+    --sidecar "$ARCHIVE_SIDECAR_PATH"
+    --validation "$ARCHIVE_VALIDATION_PATH"
+  )
+fi
 node "$SOURCE_ROOT/scripts/verify-release-gate.mjs" "${RELEASE_GATE_ARGS[@]}"
 for artifact in \
   bridge/dist/index.js bridge/dist/doctor-client.js bridge/dist/monitor-client.js \
@@ -123,6 +157,14 @@ if [[ -n "$PROVIDER_KEY_SOURCE" ]]; then PROVIDER_KEY_SOURCE="$(canonical "$PROV
 BWRAP_BINARY="$(canonical "$(command -v bwrap)")"
 BWRAP_SHA256="$(sha256sum "$BWRAP_BINARY" | awk '{print $1}')"
 [[ "$BWRAP_SHA256" =~ ^[0-9a-f]{64}$ ]] || { echo "Invalid Bubblewrap hash" >&2; exit 1; }
+SYSTEMD_RUN_BINARY="$(canonical "$(command -v systemd-run)")"
+SYSTEMD_RUN_SHA256="$(sha256sum "$SYSTEMD_RUN_BINARY" | awk '{print $1}')"
+PRLIMIT_BINARY="$(canonical "$(command -v prlimit)")"
+PRLIMIT_SHA256="$(sha256sum "$PRLIMIT_BINARY" | awk '{print $1}')"
+[[ "$SYSTEMD_RUN_SHA256" =~ ^[0-9a-f]{64}$ ]] || { echo "Invalid systemd-run hash" >&2; exit 1; }
+[[ "$PRLIMIT_SHA256" =~ ^[0-9a-f]{64}$ ]] || { echo "Invalid prlimit hash" >&2; exit 1; }
+RESOURCE_ENFORCEMENT="required"
+if ((AUDIT_CANDIDATE || AUDIT_PACKAGE_STAGING)); then RESOURCE_ENFORCEMENT="audit_only"; fi
 MINIMAL_PROFILE_DIR="$DSH_HOME_TARGET/profiles/codex-minimal-headless"
 MINIMAL_PRESET_DIR="$DSH_HOME_TARGET/.agent-presets/codex-bridge-minimal"
 [[ -d "$HARNESS_ROOT" ]] || { echo "Harness root not found: $HARNESS_ROOT" >&2; exit 1; }
@@ -311,10 +353,11 @@ echo "[3/14] Installing self-contained prebuilt runtime"
 [[ ! -e "$INSTALL_ROOT/bridge/node_modules" ]] || { echo "Unexpected node_modules in installed runtime" >&2; exit 1; }
 
 mkdir -p "$(dirname "$CONFIG_PATH")"
-python3 - "$CONFIG_PATH" "$STATE_ROOT_DEFAULT" "$HARNESS_ROOT" "$HARNESS_CLI" "$HARNESS_BUILD_ROOT" "$HARNESS_COMMIT" "$HARNESS_BUILD_SHA256" "$ALLOW_DIRTY_HARNESS" "$DSH_HOME_TARGET" "$MONITOR_PORT" "$LLAMA_MODE" "$LLAMA_BASE_URL" "$LLAMA_MODEL" "$BWRAP_BINARY" "$BWRAP_SHA256" "${ALLOWED_ROOTS[@]}" <<'PY'
+python3 - "$CONFIG_PATH" "$STATE_ROOT_DEFAULT" "$HARNESS_ROOT" "$HARNESS_CLI" "$HARNESS_BUILD_ROOT" "$HARNESS_COMMIT" "$HARNESS_BUILD_SHA256" "$ALLOW_DIRTY_HARNESS" "$DSH_HOME_TARGET" "$MONITOR_PORT" "$LLAMA_MODE" "$LLAMA_BASE_URL" "$LLAMA_MODEL" "$BWRAP_BINARY" "$BWRAP_SHA256" "$SYSTEMD_RUN_BINARY" "$SYSTEMD_RUN_SHA256" "$PRLIMIT_BINARY" "$PRLIMIT_SHA256" "$RESOURCE_ENFORCEMENT" "${ALLOWED_ROOTS[@]}" <<'PY'
 import copy, json, os, sys
 (config_path, state_default, harness_root, harness_cli, build_root, commit, build_sha, allow_dirty, dsh_home,
- monitor_port, llama_mode, llama_url, llama_model, bwrap_binary, bwrap_sha256, *roots) = sys.argv[1:]
+ monitor_port, llama_mode, llama_url, llama_model, bwrap_binary, bwrap_sha256, systemd_run_binary,
+ systemd_run_sha256, prlimit_binary, prlimit_sha256, resource_enforcement, *roots) = sys.argv[1:]
 COMPAT_USD_TO_CNY=7.2
 DEFAULT_BUDGET={"gatePolicy":"input_output_tokens","ceilingPolicy":"operator_bounded","enforcement":"hard","maxApiCalls":12,"maxInputTokens":180000,"maxOutputTokens":24000,"maxCostCny":2.5,"maxCostUsd":0.35}
 MAXIMUM_BUDGET={"gatePolicy":"input_output_tokens","ceilingPolicy":"operator_bounded","enforcement":"hard","maxApiCalls":40,"maxInputTokens":1000000,"maxOutputTokens":128000,"maxCostCny":36.0,"maxCostUsd":5.0}
@@ -374,6 +417,22 @@ config["harnessIsolation"]={
     "bubblewrapSha256":bwrap_sha256,
     "relayPort":43128,
     "rejectEnvFiles":True,
+    "resourceProfile":{
+        "enforcement":resource_enforcement,
+        "systemdRunBinary":os.path.realpath(systemd_run_binary),
+        "systemdRunSha256":systemd_run_sha256,
+        "prlimitBinary":os.path.realpath(prlimit_binary),
+        "prlimitSha256":prlimit_sha256,
+        "memoryMaxBytes":4294967296,
+        "cpuQuotaPercent":200,
+        "tasksMax":256,
+        "ioWeight":100,
+        "worktreeMaxBytes":4294967296,
+        "rlimitNoFile":4096,
+        "rlimitNproc":4096,
+        "rlimitFsizeBytes":1073741824,
+        "commandTimeoutSeconds":1800,
+    },
 }
 
 config.setdefault("controller", {})
@@ -441,6 +500,12 @@ currency.setdefault("usdToCnyRate",None)
 currency.setdefault("fxAsOf","not-configured")
 currency.setdefault("fxSource","manual compatibility conversion; hidden by default")
 currency["primary"]="CNY"
+monitor.setdefault("operatorAuthAudit", {})
+auth_audit=monitor["operatorAuthAudit"] if isinstance(monitor["operatorAuthAudit"],dict) else {}
+for k,v in {
+    "maxBytes":1048576,"maxFiles":4,"retentionDays":30,"blockedSummaryIntervalSeconds":60,
+}.items(): auth_audit.setdefault(k,v)
+monitor["operatorAuthAudit"]=auth_audit
 
 config.setdefault("llamaCpp", {})
 llama=config["llamaCpp"]
