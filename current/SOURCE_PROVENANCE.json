@@ -1,27 +1,28 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "version": "0.6.6",
   "repository": "git@github.com:zyc14588/codex-harness-skill.git",
   "canonicalSource": "current/",
-  "generatedAt": "2026-08-24T10:41:43+10:00",
+  "generatedAt": "2026-08-25T02:33:29+10:00",
   "auditedBaseline": {
-    "branch": "release/0.6.5-hotfix-r4",
-    "head": "10a70fc0e59ad93fce387c6a1660596d9f01ad7f",
-    "tree": "3468eb8ce22bec2a00df4f126619bdf7ee739ba3",
-    "claimedImplementationCommit": "e9d6a1cb13409223acedf5632000dbca8e703b51",
-    "auditVerdict": "FAIL_RELEASE_BLOCKER",
-    "withdrawn": true
+    "branch": "repair/0.6.6-provider-capability-and-release-integrity",
+    "head": "91f8d493c52e972bafd0fc19f0e50a927c35448a",
+    "tree": "0daa23b799bcf07ff318c47720ca0c09e9ae8eae",
+    "historicalReleaseBaseline": "release/0.6.5-hotfix-r4",
+    "historicalReleaseHead": "10a70fc0e59ad93fce387c6a1660596d9f01ad7f",
+    "historicalReleaseTree": "3468eb8ce22bec2a00df4f126619bdf7ee739ba3",
+    "withdrawalCommit": "1c7dd48e2e39c642f8b8bf63d384166208004a5a"
   },
   "repairLine": {
-    "branch": "repair/0.6.6-provider-capability-and-release-integrity",
-    "withdrawalCommit": "1c7dd48e2e39c642f8b8bf63d384166208004a5a",
-    "implementationCommit": "adcd07a6ee7904cd70b3cdc8a57c896dc1f12628",
-    "implementationTree": "0011222e61d2f6aaf9d0e1024a9f869013f85fca",
-    "implementationCommittedAt": "2026-08-24T03:54:43+10:00",
-    "status": "CURRENT_REVISION_LOCAL_REAL_AND_ACTIONS_QUALIFIED_EXTERNAL_GATES_PENDING"
+    "branch": "repair/0.6.6-pre-release-audit-r1",
+    "implementationCommit": "62406f99b7caa8ecb3c8b6deb0d457973f3f9b34",
+    "implementationTree": "a7ebd778dc0a532b5baff49ee23055ad73263cd8",
+    "implementationRepositoryTree": "b1e2bec58911d748928b3bcb5a0cd460602b91ec",
+    "implementationCommittedAt": "2026-08-25T02:12:46+10:00",
+    "status": "LOCAL_AND_NEGATIVE_PASS_EXTERNAL_AND_OWNER_GATES_PENDING"
   },
   "sourceRecovery": {
-    "selectedSource": "the audited repaired-source tree promoted to current/",
+    "selectedSource": "current/",
     "historicalHandoff": "archive/r6.4-failure-handoff/",
     "withdrawnReleaseArchives": "archive/releases/",
     "fixtureArchive": "archive/fixtures/",
@@ -30,42 +31,81 @@
   "harnessPin": {
     "commit": "141eb6fef83422698aef7a981029e843e8161534",
     "buildTreeSha256": "6a294d72c51e6570852acaf73458cda98f555bd53c9c7ff0b49c568e7cf88a38",
-    "enforcedByRuntime": true
+    "enforcedByRuntime": true,
+    "localQualificationBuildVerified": true
   },
   "evidencePolicy": {
-    "inherited0_6_5ProviderEvidenceEligibleForRelease": false,
+    "inheritedProviderOrCiEvidenceEligibleForRelease": false,
     "currentRevisionProviderSmokeRequired": true,
+    "protectedProviderArtifactAttestationRequired": true,
     "criticalPathChangeInvalidatesEarlierSmoke": true,
-    "stablePromotionAllowedBeforeActualCiAndBranchProtectionPass": false
+    "stablePromotionAllowedBeforeExternalOwnerAndArchiveGatesPass": false
   },
   "qualification": {
-    "result": "LOCAL_REAL_AND_ACTIONS_PASS",
-    "sourceTreeSha256": "8fbc146f96f0509400eddf80ce44b458a41d684ae5b5b5e97e96e1f2fca9d76d",
-    "criticalSetSha256": "796b91bd3340c0659fce7f3c833d6ad9440f5a608bc249ba0aa4da840e58c9c8",
-    "evidence": {
-      "evidence/01_CURRENT_REVISION_LOCAL_QUALIFICATION.json": "2d0328b23a0184a451d0f113ff7e8cba0e71608e32a7fb14d624f3969263f576",
-      "evidence/02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json": "b912f39ab628dea7659dd33a8e237c4dca6db79f786afafbe57dc24e45b4b03e",
-      "evidence/03_CURRENT_REVISION_NEGATIVE_SMOKE.json": "b9e86926ed7728c90c8df04e5637ee4af196b2588f08d829135636d1a65736b0"
+    "result": "LOCAL_AND_NEGATIVE_PASS_REAL_PROVIDER_BLOCKED_PRE_IO",
+    "sourceTreeSha256": "f5be77c844b9e0dbf378eb1737c23124e826be56a42ac0660f6196d3b9aa4cac",
+    "criticalSetSha256": "9c03cc7d05c876499540a8c6ec0bb78fa949adcffbf762da6a794cfda20bc759",
+    "currentRevisionEvidence": {
+      "evidence/01_CURRENT_REVISION_LOCAL_QUALIFICATION.json": {
+        "sha256": "c8ed9ce5bfd77cd40fa4bb4314951fad17d6fdeb78efbbe7a08b28ce582cdda7",
+        "result": "PASS"
+      },
+      "evidence/02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json": {
+        "sha256": "4fb3b2d61929944e570ccbe1280aa7f4ee29e169f8fcad215e26dc674c27390c",
+        "result": "FAIL_PRE_PROVIDER_IO_HOST_IO_CONTROLLER_UNAVAILABLE"
+      },
+      "evidence/03_CURRENT_REVISION_NEGATIVE_SMOKE.json": {
+        "sha256": "a526f43ba855e7bb50486085948da0566e4339542d5f99295fd3e10e03e27837",
+        "result": "PASS"
+      }
     },
-    "externalGateEvidence": {
+    "historicalExternalEvidence": {
       "path": "evidence/04_GITHUB_EXTERNAL_GATES_2026-08-24.json",
       "sha256": "8c5a3675ac80704590643bc6cd66a237b84730e1e616f3acfa41e817faabbdbd",
-      "result": "ACTIONS_PASS_BRANCH_PROTECTION_BLOCKED"
+      "eligibleForCurrentSeal": false,
+      "reason": "targets the predecessor branch and has no protected Provider artifact attestation"
     },
-    "remoteQualification": {
-      "headCommit": "c8f73753aab70524cb42f3984563c6ae74980fba",
-      "headTree": "8e705c780c230cf7a43defa02179dcc248131523",
-      "workflow": "strict-ci",
-      "runId": 32677107669,
-      "conclusion": "success",
-      "completedAt": "2026-08-24T00:40:40Z"
+    "currentHostResourceProbe": {
+      "cgroupV2": true,
+      "memoryMax": true,
+      "cpuQuota": true,
+      "tasksMax": true,
+      "ioWeight": false,
+      "rlimitNoFile": true,
+      "rlimitNproc": true,
+      "rlimitFsize": true,
+      "controlledUseAllowed": false
     },
     "remainingReleaseGates": [
-      "branch protection required-check configuration",
-      "deterministic final archive and unpacked revalidation"
+      "owner decisions DEC-001 through DEC-004",
+      "host with every required cgroup v2 controller including I/O",
+      "current-revision real Minimal Flash and Pro Thinking smoke",
+      "protected Provider artifact upload and GitHub attestation",
+      "current exact-tip root strict CI",
+      "branch protection required checks or owner-approved replacement contract",
+      "seal-ready verification and deterministic archive/unpacked revalidation"
     ]
   },
+  "remoteState": {
+    "currentBranchPushed": false,
+    "exactTipCi": "PENDING_NOT_PUSHED",
+    "observedAt": "2026-08-25T02:31:22+10:00",
+    "repositoryVisibility": "private",
+    "currentRepairBranchRemoteLookup": "ABSENT",
+    "branchProtectionApi": "HTTP_403_PLAN_LIMIT_ON_EXISTING_PREDECESSOR_BRANCH",
+    "rulesetsApi": "HTTP_403_PLAN_LIMIT",
+    "historicalRun": {
+      "branch": "repair/0.6.6-provider-capability-and-release-integrity",
+      "headCommit": "c8f73753aab70524cb42f3984563c6ae74980fba",
+      "runId": 32677107669,
+      "conclusion": "success",
+      "eligibleForCurrentSeal": false
+    }
+  },
+  "automaticPush": "forbidden",
+  "userAuthorizedPush": "not_recorded_for_current_branch",
+  "userAuthorizedPushPolicy": "allowed_only_after_separate_explicit_authorization",
   "automaticMerge": false,
-  "pushed": true,
-  "tagged": false
+  "tagged": false,
+  "githubReleaseCreated": false
 }

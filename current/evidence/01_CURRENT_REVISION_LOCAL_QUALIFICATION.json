@@ -2,58 +2,58 @@
   "schemaVersion": 1,
   "result": "PASS",
   "version": "0.6.6",
-  "generatedAt": "2026-08-23T17:57:27.097Z",
+  "generatedAt": "2026-08-24T16:24:05.153Z",
   "currentRevision": true,
-  "sourceCommit": "adcd07a6ee7904cd70b3cdc8a57c896dc1f12628",
-  "sourceTree": "0011222e61d2f6aaf9d0e1024a9f869013f85fca",
-  "sourceTreeSha256": "8fbc146f96f0509400eddf80ce44b458a41d684ae5b5b5e97e96e1f2fca9d76d",
-  "sourceFileCount": 298,
-  "criticalSetSha256": "796b91bd3340c0659fce7f3c833d6ad9440f5a608bc249ba0aa4da840e58c9c8",
+  "sourceCommit": "62406f99b7caa8ecb3c8b6deb0d457973f3f9b34",
+  "sourceTree": "a7ebd778dc0a532b5baff49ee23055ad73263cd8",
+  "sourceTreeSha256": "f5be77c844b9e0dbf378eb1737c23124e826be56a42ac0660f6196d3b9aa4cac",
+  "sourceFileCount": 320,
+  "criticalSetSha256": "9c03cc7d05c876499540a8c6ec0bb78fa949adcffbf762da6a794cfda20bc759",
   "criticalPathSha256": {
-    "bridge/src/security.ts": "68861770fb3e41d66d712eca99f8561d81dd9a6180a219d352463e5f844da0e7",
-    "bridge/src/monitor-daemon.ts": "aa27b39725d7761197633cfcd25ca56ac42b3d2121bf9bd5cbfbf436f1891184",
-    "bridge/src/harness-sandbox-entry.ts": "9c6cefe228f92d6efd1ef40b29d2294ddfd6f2e8185ba4a44eae3d2ef142cb8b",
-    "bridge/src/harness-isolation.ts": "4a466625402f77bf83d89b7581c9d87f3eb1eee3880e1feaaa14453ee7ecee65",
-    "bridge/src/brokered-tool-host.ts": "9ecc99771d8f50ba6c35cf6f149d3a4e1d56bd3a5938598874255936c44644f0",
+    "bridge/src/security.ts": "30012c7559053cfd5ebbb4722d65a02b7c5949e7fd43bb5678c3ff0e43ac4160",
+    "bridge/src/monitor-daemon.ts": "2a9ce0301287fc1bd576814d0be94b8048b7f0bb30b08a671babe8e28e4efe83",
+    "bridge/src/harness-sandbox-entry.ts": "6d7f472d2835db9294ae7d15bf4a49361168ab6baa4f03943b4770e08e2c4359",
+    "bridge/src/harness-isolation.ts": "8f446f13ae91d64e547cb3fcae85dce2df28c80261f57dbd0bbfbb8401b94935",
+    "bridge/src/brokered-tool-host.ts": "587543e1c6a60a07fb3e6a34cb7de9fbe8c6e656036109402d893ca83488b35e",
     "bridge/src/thinking-policy.ts": "ff021e0d64fb5bc535387872de7f9d25043dad7e67a29a09cd18d153a3cd75b2",
     "bridge/src/minimal-request-state.ts": "b0c60eaed42e599028602e7dbf4afa946eb2613641db3d377286c028e5d94af4",
     "bridge/src/provider-policy.ts": "aea8b29afd3f98129422d1027a4f7cc2ba1f59ef7abaceec90067d9938520233",
-    "bridge/src/worker.ts": "bf9d948b248e8bb1130bfadfa22c6c08c7de032091a902cf81e16bd112b04b26",
-    "bridge/src/service.ts": "7fd384411429139881abfce759ea22f3d80c11ba45b59702078606ee95d3d013",
+    "bridge/src/worker.ts": "f6c9baa27916d2c1f7e9ef13d0a6e671dfd560711e0bcb6727701ed8762b706d",
+    "bridge/src/service.ts": "0b2e978517abe995989c1118913924921f5ca192aa3f811f14b6374fa739ff8b",
     "harness/minimal/preset/agent.cordis.yml.in": "05945570459b34499ca4fd775642c0fc28696c67e2fa48b42a00ab36416ea29f",
-    "harness/minimal/profile/bridge-brokered-tools.mjs": "1066eda6d4865bbe3927c3f2b392966937004006fb35df499c59beb77071465a",
+    "harness/minimal/profile/bridge-brokered-tools.mjs": "bf1e9af573f388ae3f7de1e61b689dead8e6a2bbfb293148179e462164877249",
     "harness/minimal/profile/bridge-headless-runner.mjs": "c647264daeecc37d845de1b42937c328fec22c5c1618f0c830108ab83e74c8c3",
     "harness/minimal/profile/cordis.patch.yml": "e46d24af07c98ce331b17658fa9dce4d68db793d8f5447f43f49c8d2d5b209ce"
   },
-  "testCount": 188,
+  "testCount": 220,
   "steps": [
     {
       "name": "candidate-release-gate",
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-23T17:55:37.433Z",
-      "durationMs": 48,
+      "startedAt": "2026-08-24T16:20:38.507Z",
+      "durationMs": 116,
       "testCount": 0,
-      "outputSha256": "dc493ae4d97d18a03b9fa111d4ba4d2517eb2fc280f7303dfeb2b16760721bd7"
+      "outputSha256": "1b498872af694e29c876cb344d0139ded6709e1897d266e799c7b6b9e53ec8ee"
     },
     {
       "name": "reproducible-dependency-install",
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-23T17:55:37.483Z",
-      "durationMs": 396,
+      "startedAt": "2026-08-24T16:20:38.624Z",
+      "durationMs": 522,
       "testCount": 0,
-      "outputSha256": "b8e1107518615b1050218197cfde0013ee747cdcb8fb0fa7f1c762af67ca4f52"
+      "outputSha256": "4cda4b7544f23e7cadbd4645329fcab2950584f77d470498fa1ae0873d2de576"
     },
     {
       "name": "strict-typescript-build",
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-23T17:55:37.879Z",
-      "durationMs": 1358,
+      "startedAt": "2026-08-24T16:20:39.146Z",
+      "durationMs": 2278,
       "testCount": 0,
       "outputSha256": "1c6d38d107e1ba12f0427f2eaca3a53937f0375db8f75c885cd3fcb0a2e15a25"
     },
@@ -62,68 +62,68 @@
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-23T17:55:39.237Z",
-      "durationMs": 146,
-      "testCount": 6,
-      "outputSha256": "6894eec95b67fd543dc8aff6fc350cb5fdf5b37346287b12dcb1bb747e11b2ef"
+      "startedAt": "2026-08-24T16:20:41.424Z",
+      "durationMs": 719,
+      "testCount": 12,
+      "outputSha256": "539731dc88b453bfb609e8e92e20328e94510a327ea5c2dec6e87289b01db58c"
     },
     {
       "name": "unit-and-component-regression",
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-23T17:55:39.384Z",
-      "durationMs": 3678,
-      "testCount": 91,
-      "outputSha256": "816d13d9f4b13320852050ffbc0ef0e51473692238effdbddda8ec8c3acebe73"
+      "startedAt": "2026-08-24T16:20:42.143Z",
+      "durationMs": 12219,
+      "testCount": 104,
+      "outputSha256": "ff768ca29ca2848f5c91162c9c8af09fd0208c1d9b14ab75a91de13855d2158e"
     },
     {
       "name": "process-e2e",
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-23T17:55:43.063Z",
-      "durationMs": 74452,
+      "startedAt": "2026-08-24T16:20:54.362Z",
+      "durationMs": 127749,
       "testCount": 0,
-      "outputSha256": "03c51c8bf21977d45b6dc02d20d5466ab8e273010af396f1f4dd731c2e00fb5b"
+      "outputSha256": "131173121eca59ae9ff84bbc43fc0e68a5931e3b5d29083b4b319e77c005c76a"
     },
     {
       "name": "managed-profile-dynamic-fixture",
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-23T17:56:57.515Z",
-      "durationMs": 3488,
+      "startedAt": "2026-08-24T16:23:02.111Z",
+      "durationMs": 6840,
       "testCount": 0,
-      "outputSha256": "04655677f720a8f702d16625a39f1af4706b2cffcf9dba952a06fa1ffc4065c2"
+      "outputSha256": "6d9bc43604b4fbab557825c4f6b3d765d1715c40ca1d2e4bd9d0578a3d0c876b"
     },
     {
       "name": "stdio-mcp",
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-23T17:57:01.004Z",
-      "durationMs": 3743,
+      "startedAt": "2026-08-24T16:23:08.951Z",
+      "durationMs": 6661,
       "testCount": 0,
-      "outputSha256": "2b99329295557204e93ac05053858eb789b445e8eb209ea76f91cf0dc3630722"
+      "outputSha256": "6497dd0f50fc1888d84e668556ef31b0b2bb9bd9a0da4e9d133804838f026160"
     },
     {
       "name": "security-acceptance",
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-23T17:57:04.747Z",
-      "durationMs": 3679,
+      "startedAt": "2026-08-24T16:23:15.612Z",
+      "durationMs": 12749,
       "testCount": 0,
-      "outputSha256": "45dfcf48eed29e2ce89f84c3409d2f924f5ff4b852c28d0ed2edb952cb1f4ad2"
+      "outputSha256": "5527d22d20c7bfad2270bacd61a8a81178d5ab319ed6d378e265a42d7cf02d84"
     },
     {
       "name": "skill-validation",
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-23T17:57:08.426Z",
-      "durationMs": 16,
+      "startedAt": "2026-08-24T16:23:28.361Z",
+      "durationMs": 37,
       "testCount": 0,
       "outputSha256": "db349825903d66adffea3ecf1bd8e1803043e8a71cf1a051235dabc5371f5bb0"
     },
@@ -132,8 +132,8 @@
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-23T17:57:08.442Z",
-      "durationMs": 15,
+      "startedAt": "2026-08-24T16:23:28.398Z",
+      "durationMs": 31,
       "testCount": 0,
       "outputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
@@ -142,30 +142,30 @@
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-23T17:57:08.457Z",
-      "durationMs": 52,
+      "startedAt": "2026-08-24T16:23:28.429Z",
+      "durationMs": 117,
       "testCount": 0,
-      "outputSha256": "dfadc4fc0712d25f4bad877a753209d778a93877247eb5eda7eae7c360f5a399"
+      "outputSha256": "f62d8621d5fb665601e65fb5778f2d5d91735fa58f4a6c8da398789c7d787120"
     },
     {
       "name": "manifest-verification",
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-23T17:57:08.509Z",
-      "durationMs": 10,
+      "startedAt": "2026-08-24T16:23:28.546Z",
+      "durationMs": 23,
       "testCount": 0,
-      "outputSha256": "14c46f0a36c8b9fb77510aa7855c8e3141ed4647e505232933b00b199807dd2c"
+      "outputSha256": "caca682c66457365d5ddfce5a7c00fc3456c3c552b8bf970f039deca3bd38dcd"
     },
     {
       "name": "transactional-package-acceptance",
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-23T17:57:08.520Z",
-      "durationMs": 18551,
-      "testCount": 91,
-      "outputSha256": "a3607fe8d8fd722cc0fb6ddb04ff2f43885e1949b5c925f8b67b02e8b5be3f52"
+      "startedAt": "2026-08-24T16:23:28.569Z",
+      "durationMs": 36535,
+      "testCount": 104,
+      "outputSha256": "88acf91bca7f19a0a26e4e7673983d7a9e70217087991824fc9d3a71a57f011e"
     }
   ],
   "assertions": {
@@ -175,6 +175,11 @@
     "processE2E": true,
     "stdioMcp": true,
     "securityAcceptance": true,
+    "brokeredToolCancellationNegatives": true,
+    "resourceExhaustionNegatives": true,
+    "modelReadOutputBounds": true,
+    "operatorAuditAggregationRotationRetention": true,
+    "controlledHostResourceEnforcement": "REQUIRES_PROTECTED_HOST_WITH_ALL_CGROUP_CONTROLLERS",
     "skillValidation": true,
     "generatedDistDriftFree": true,
     "transactionalInstallRollbackReinstallUninstall": true

@@ -1,23 +1,116 @@
 {
-  "schemaVersion": 2,
-  "auditDate": "2026-08-24",
-  "auditedRef": "release/0.6.5-hotfix-r4",
-  "originalVerdict": "FAIL_RELEASE_BLOCKER",
-  "currentVerdict": "QUALIFIED_CANDIDATE_EXTERNAL_GATES_PENDING",
-  "controlledUseAllowed": false,
+  "schemaVersion": 3,
+  "auditDate": "2026-08-25",
+  "repository": "zyc14588/codex-harness-skill",
+  "baselineBranch": "repair/0.6.6-provider-capability-and-release-integrity",
+  "repairBranch": "repair/0.6.6-pre-release-audit-r1",
   "canonicalSource": "current/",
+  "verdict": "PRE_RELEASE_REPAIR_BLOCKED",
+  "releaseStatus": "candidate",
+  "stablePromotionAllowed": false,
+  "controlledUseAllowed": false,
+  "finalArchive": null,
+  "implementation": {
+    "commit": "62406f99b7caa8ecb3c8b6deb0d457973f3f9b34",
+    "sourceTree": "a7ebd778dc0a532b5baff49ee23055ad73263cd8",
+    "repositoryTree": "b1e2bec58911d748928b3bcb5a0cd460602b91ec"
+  },
+  "counts": {
+    "P0": 1,
+    "P1": 4,
+    "P2": 2,
+    "externalOrOwnerBlockers": 6,
+    "pendingOwnerDecisions": 4
+  },
   "findings": [
-    { "id": "P0-001", "title": "Release authority and R4 artifact are inconsistent", "status": "IMPLEMENTED_EXTERNAL_GATES_PENDING", "remainingGate": "actual CI, branch protection and final archive" },
-    { "id": "P0-002", "title": "Harness shell can forge Provider/request-state capability", "status": "PASS_CURRENT_REVISION", "evidence": "bound local, negative, Flash and Pro qualification" },
-    { "id": "P1-001", "title": "No current-revision real Provider rerun", "status": "PASS_CURRENT_REVISION", "evidence": "current/evidence/02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json" },
-    { "id": "P1-002", "title": "Workflow is not at repository root", "status": "IMPLEMENTED_PENDING_ACTUAL_RUN", "remainingGate": "actual target-seal GitHub Actions PASS" },
-    { "id": "P1-003", "title": "Behaviorally different hotfixes reuse 0.6.5", "status": "IMPLEMENTED", "evidence": "0.6.6 final-version candidate runtime/package/plugin metadata" },
-    { "id": "P1-004", "title": "Release gate lacks current tree/smoke/archive binding", "status": "IMPLEMENTED_EVIDENCE_BOUND", "remainingGate": "final archive binding after external gates" },
-    { "id": "P1-005", "title": "Ignored files can poison in-place verification", "status": "PASS_CURRENT_REVISION", "evidence": "fresh baseCommit worktree plus ignored false-pass fixture" },
-    { "id": "P1-006", "title": "Repository root governance is stale", "status": "IMPLEMENTED", "evidence": "current/ canonical source and archive/ history" },
-    { "id": "P2-001", "title": "Weak operator policy lacks throttling", "status": "PASS_CURRENT_REVISION", "evidence": "12-character policy plus exponential backoff/audit" },
-    { "id": "P2-002", "title": "Invisible Unicode accepted in operator password", "status": "PASS_CURRENT_REVISION", "evidence": "NFC and Cc/Cf/bidi/zero-width rejection" },
-    { "id": "P2-003", "title": "Actions use moving major tags", "status": "IMPLEMENTED_PENDING_ACTUAL_RUN", "evidence": "root workflow pins full action commit SHAs" },
-    { "id": "P2-004", "title": "Full-worktree read confidentiality boundary is implicit", "status": "DOCUMENTED_RISK", "remainingGate": "operator accepts repository-wide read boundary or future filtered-workspace mode" }
-  ]
+    {
+      "id": "P0-001",
+      "title": "Stable release gate accepted incomplete gates and used a circular pre-build archive claim",
+      "status": "IMPLEMENTED_LOCAL_VERIFIED",
+      "evidence": "exact source/archive gate sets, required external bindings, two-stage seal and 12 release-gate tests pass",
+      "remainingGate": "protected external seal evidence and deterministic archive attestation"
+    },
+    {
+      "id": "P1-001",
+      "title": "Brokered tool cancellation did not reach Host Bubblewrap subprocesses",
+      "status": "PASS_LOCAL_CURRENT_REVISION",
+      "evidence": "AbortSignal propagation, task/attempt/process registry, TERM-to-KILL quiescence and long-command cancellation tests"
+    },
+    {
+      "id": "P1-002",
+      "title": "Namespace isolation lacked CPU, memory, PID and disk resource ceilings",
+      "status": "IMPLEMENTED_NEGATIVES_PASS_CONTROLLED_BLOCKED_HOST_IO",
+      "evidence": "cgroup/systemd and RLIMIT enforcement with fork, memory, file-size and runtime negatives",
+      "remainingGate": "qualify on a protected host with delegated cgroup v2 I/O control"
+    },
+    {
+      "id": "P1-003",
+      "title": "Protected GitHub Provider evidence was not retained or bound and exact tip lacked CI",
+      "status": "IMPLEMENTED_PENDING_EXTERNAL_RUN",
+      "evidence": "workflow now uploads a direct-file artifact and creates GitHub OIDC attestation with exact run bindings",
+      "remainingGate": "push only after authorization, then run exact-tip strict CI and protected Provider job"
+    },
+    {
+      "id": "P1-004",
+      "title": "Root governance files contradicted the external-gate state",
+      "status": "IMPLEMENTED_LOCAL_EXACT_TIP_CI_PENDING",
+      "evidence": "root/current status, provenance, contract, findings and readmes use one candidate state and unambiguous remote-operation policy"
+    },
+    {
+      "id": "P2-001",
+      "title": "Operator authentication audit was append-only without rotation or size cap",
+      "status": "PASS_LOCAL_CURRENT_REVISION",
+      "evidence": "aggregation, rotation, max-byte/file/retention policy and flood tests"
+    },
+    {
+      "id": "P2-002",
+      "title": "Model-facing repository and editor reads lacked an output-token bound",
+      "status": "PASS_LOCAL_CURRENT_REVISION",
+      "evidence": "UTF-8-safe pagination, 49152-byte bound, estimated-token bound and truncation metadata tests"
+    }
+  ],
+  "blockers": [
+    {
+      "id": "EXT-001",
+      "title": "Current repair branch is not present on origin and has no exact-tip strict CI",
+      "status": "PENDING_USER_AUTHORIZED_PUSH_AND_RUN"
+    },
+    {
+      "id": "EXT-002",
+      "title": "Protected real-Provider job, redacted artifact and GitHub attestation have not run for the current implementation",
+      "status": "PENDING_EXTERNAL_PROTECTED_RUN"
+    },
+    {
+      "id": "EXT-003",
+      "title": "Private-repository branch protection and rulesets are unavailable under the observed GitHub plan",
+      "status": "BLOCKED_EXTERNAL_GITHUB_PLAN_HTTP_403_OR_OWNER_DECISION_DEC_001"
+    },
+    {
+      "id": "EXT-004",
+      "title": "Current host cannot establish or observe required cgroup v2 I/O control",
+      "status": "BLOCKED_HOST_RESOURCE_CONTROLLER"
+    },
+    {
+      "id": "OWN-001",
+      "title": "Owner decisions DEC-001 through DEC-004 are not approved and attributable",
+      "status": "PENDING_OWNER"
+    },
+    {
+      "id": "ART-001",
+      "title": "Seal-ready verification, deterministic stable archive and unpacked revalidation are absent",
+      "status": "PENDING_AFTER_EXTERNAL_AND_OWNER_GATES"
+    }
+  ],
+  "ownerDecisions": {
+    "path": "current/docs/OWNER_DECISIONS.json",
+    "status": "PENDING_OWNER_DEC_001_THROUGH_DEC_004",
+    "stablePromotionRequiresImplementationCommitApprovalAndRequalification": true
+  },
+  "remoteObservation": {
+    "observedAt": "2026-08-25T02:31:22+10:00",
+    "repositoryVisibility": "private",
+    "currentRepairBranchPresent": false,
+    "branchProtectionApi": "HTTP_403_PLAN_LIMIT",
+    "rulesetsApi": "HTTP_403_PLAN_LIMIT"
+  }
 }

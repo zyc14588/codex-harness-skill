@@ -1,33 +1,54 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "version": "0.6.6",
   "canonicalSource": "current/",
   "canonicalProvenance": "current/SOURCE_PROVENANCE.json",
+  "canonicalProvenanceSha256": "acae52f85cae9a38448a6a056c2776b1a1ce261e42ebaf6dbdfb52987c52c996",
   "repository": "git@github.com:zyc14588/codex-harness-skill.git",
-  "repairBranch": "repair/0.6.6-provider-capability-and-release-integrity",
-  "auditedBaselineHead": "10a70fc0e59ad93fce387c6a1660596d9f01ad7f",
-  "auditedBaselineTree": "3468eb8ce22bec2a00df4f126619bdf7ee739ba3",
-  "withdrawalCommit": "1c7dd48e2e39c642f8b8bf63d384166208004a5a",
-  "implementationCommit": "adcd07a6ee7904cd70b3cdc8a57c896dc1f12628",
-  "implementationTree": "0011222e61d2f6aaf9d0e1024a9f869013f85fca",
-  "implementationCommittedAt": "2026-08-24T03:54:43+10:00",
+  "repairBranch": "repair/0.6.6-pre-release-audit-r1",
+  "repairBaselineHead": "91f8d493c52e972bafd0fc19f0e50a927c35448a",
+  "repairBaselineTree": "0daa23b799bcf07ff318c47720ca0c09e9ae8eae",
+  "implementationCommit": "62406f99b7caa8ecb3c8b6deb0d457973f3f9b34",
+  "implementationTree": "a7ebd778dc0a532b5baff49ee23055ad73263cd8",
+  "implementationRepositoryTree": "b1e2bec58911d748928b3bcb5a0cd460602b91ec",
+  "implementationCommittedAt": "2026-08-25T02:12:46+10:00",
   "historicalArchive": "archive/",
-  "generatedAt": "2026-08-24T10:41:43+10:00",
-  "qualificationResult": "LOCAL_REAL_AND_ACTIONS_PASS_EXTERNAL_GATES_PENDING",
-  "canonicalEvidence": {
-    "current/evidence/01_CURRENT_REVISION_LOCAL_QUALIFICATION.json": "2d0328b23a0184a451d0f113ff7e8cba0e71608e32a7fb14d624f3969263f576",
-    "current/evidence/02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json": "b912f39ab628dea7659dd33a8e237c4dca6db79f786afafbe57dc24e45b4b03e",
-    "current/evidence/03_CURRENT_REVISION_NEGATIVE_SMOKE.json": "b9e86926ed7728c90c8df04e5637ee4af196b2588f08d829135636d1a65736b0",
-    "current/evidence/04_GITHUB_EXTERNAL_GATES_2026-08-24.json": "8c5a3675ac80704590643bc6cd66a237b84730e1e616f3acfa41e817faabbdbd"
+  "generatedAt": "2026-08-25T02:33:29+10:00",
+  "qualificationResult": "LOCAL_AND_NEGATIVE_PASS_REAL_PROVIDER_EXTERNAL_OWNER_AND_ARCHIVE_GATES_PENDING",
+  "currentRevisionEvidence": {
+    "current/evidence/01_CURRENT_REVISION_LOCAL_QUALIFICATION.json": {
+      "sha256": "c8ed9ce5bfd77cd40fa4bb4314951fad17d6fdeb78efbbe7a08b28ce582cdda7",
+      "result": "PASS"
+    },
+    "current/evidence/02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json": {
+      "sha256": "4fb3b2d61929944e570ccbe1280aa7f4ee29e169f8fcad215e26dc674c27390c",
+      "result": "FAIL_PRE_PROVIDER_IO_HOST_IO_CONTROLLER_UNAVAILABLE"
+    },
+    "current/evidence/03_CURRENT_REVISION_NEGATIVE_SMOKE.json": {
+      "sha256": "a526f43ba855e7bb50486085948da0566e4339542d5f99295fd3e10e03e27837",
+      "result": "PASS"
+    }
   },
-  "remoteQualification": {
-    "headCommit": "c8f73753aab70524cb42f3984563c6ae74980fba",
-    "headTree": "8e705c780c230cf7a43defa02179dcc248131523",
-    "workflow": "strict-ci",
-    "runId": 32677107669,
-    "conclusion": "success",
-    "completedAt": "2026-08-24T00:40:40Z"
+  "historicalExternalEvidence": {
+    "path": "current/evidence/04_GITHUB_EXTERNAL_GATES_2026-08-24.json",
+    "sha256": "8c5a3675ac80704590643bc6cd66a237b84730e1e616f3acfa41e817faabbdbd",
+    "eligibleForCurrentSeal": false
   },
-  "pushed": true,
-  "tagged": false
+  "remoteState": {
+    "currentBranchPushed": false,
+    "exactTipCi": "PENDING_NOT_PUSHED",
+    "protectedProviderAttestation": "PENDING_NOT_CREATED",
+    "branchProtectionRequiredChecks": "BLOCKED_EXTERNAL_GITHUB_PLAN_OR_OWNER_DECISION",
+    "observedAt": "2026-08-25T02:31:22+10:00",
+    "repositoryVisibility": "private",
+    "currentRepairBranchRemoteLookup": "ABSENT",
+    "branchProtectionApi": "HTTP_403_PLAN_LIMIT_ON_EXISTING_PREDECESSOR_BRANCH",
+    "rulesetsApi": "HTTP_403_PLAN_LIMIT"
+  },
+  "automaticPush": "forbidden",
+  "userAuthorizedPush": "not_recorded_for_current_branch",
+  "userAuthorizedPushPolicy": "allowed_only_after_separate_explicit_authorization",
+  "automaticMerge": false,
+  "tagged": false,
+  "githubReleaseCreated": false
 }

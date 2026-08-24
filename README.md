@@ -1,14 +1,31 @@
 # Codex-Harness Bridge repository
 
-The only active source is [`current/`](current/). Run every build, test, install, release-gate, and packaging command from that directory (or use a root workflow whose `working-directory` is `current`).
+The only active source is [`current/`](current/). Run builds, tests, installs, release gates, and packaging commands there, or through a root workflow whose working directory is `current/`.
 
 ```text
 Version: 0.6.6
-Status: candidate / QUALIFIED_CANDIDATE_EXTERNAL_GATES_PENDING
+Status: candidate / REPAIR_IMPLEMENTED_EXTERNAL_OWNER_AND_ARCHIVE_GATES_PENDING
 Controlled use: false
-Branch: repair/0.6.6-provider-capability-and-release-integrity
+Branch: repair/0.6.6-pre-release-audit-r1
+Implementation commit: 62406f99b7caa8ecb3c8b6deb0d457973f3f9b34
+Final archive: null
 ```
 
-The former R6.4 handoff, recovered baselines, withdrawn 0.6.5 archives, historical reports, and fixtures are under [`archive/`](archive/). They are evidence only and are not build or install entrypoints.
+The repaired implementation passed the bound local qualification and negative-smoke suites. Cancellation now reaches Host-side process groups, resource profiles cover the Harness parent and brokered siblings, the release gate uses exact fail-closed gate sets and a non-circular two-stage seal, protected Provider evidence is designed for artifact upload and attestation, and the two P2 output/audit bounds have local coverage.
 
-Start with [`README_FIRST_ZH.md`](README_FIRST_ZH.md), then consult [`current/release-status.json`](current/release-status.json) for machine-readable qualification state. Bound local and current-revision Provider qualification passed, and remote `strict-ci` run `32677107669` succeeded on `c8f73753aab70524cb42f3984563c6ae74980fba`. No 0.6.6 stable artifact exists: branch protection is unavailable under the observed private-repository plan (HTTP 403), and final archive revalidation remains blocked.
+This is not a stable or controlled-use release. On the current host, every required resource control except the delegated cgroup v2 I/O controller was observed, so the real Provider smoke stopped before sending any Provider request. The current repair branch has not been pushed and therefore has no exact-tip GitHub Actions run. A read-only check on 2026-08-25 confirmed that the private repository's branch-protection and rulesets APIs still return HTTP 403 for the current GitHub plan. Protected Provider artifact attestation, owner decisions DEC-001 through DEC-004, seal-ready verification, deterministic archive generation, and unpacked archive revalidation remain pending.
+
+The earlier successful CI run on `repair/0.6.6-provider-capability-and-release-integrity` is historical evidence only and is ineligible for the current seal. No stable ZIP, tag, merge, push, or GitHub Release was created.
+
+Start with [`README_FIRST_ZH.md`](README_FIRST_ZH.md). Machine-readable authority is [`current/release-status.json`](current/release-status.json), with provenance in [`current/SOURCE_PROVENANCE.json`](current/SOURCE_PROVENANCE.json) and pending owner choices in [`current/docs/OWNER_DECISIONS.json`](current/docs/OWNER_DECISIONS.json).
+
+```bash
+cd current
+node scripts/verify-release-gate.mjs --root . --audit-candidate
+cd bridge
+npm ci
+npm run build
+npm test
+```
+
+Automatic merge, push, tag, or release is forbidden. A push requires separate explicit user authorization.

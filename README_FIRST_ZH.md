@@ -1,6 +1,6 @@
-# 首先阅读：0.6.6 最终版本资格化候选
+# 首先阅读：0.6.6 发布前修复候选
 
-唯一活动源码是 `current/`。旧 handoff、baseline、withdrawn ZIP、旧 PASS 报告和历史 smoke 全部在 `archive/`，不得作为安装或发布入口。
+唯一活动源码是 `current/`。旧 handoff、baseline、withdrawn ZIP、旧 PASS 报告和历史 smoke 全部位于 `archive/`，只能作为历史证据，不能作为安装或发布入口。
 
 当前权威状态：
 
@@ -8,11 +8,17 @@
 releaseStatus=candidate
 controlledUseAllowed=false
 qualificationStage=FINAL_VERSION_CURRENT_REVISION_QUALIFICATION
-deliverableStatus=QUALIFIED_CANDIDATE_EXTERNAL_GATES_PENDING
-realProviderSmoke=pass
+deliverableStatus=REPAIR_IMPLEMENTED_EXTERNAL_OWNER_AND_ARCHIVE_GATES_PENDING
+branch=repair/0.6.6-pre-release-audit-r1
+implementationCommit=62406f99b7caa8ecb3c8b6deb0d457973f3f9b34
+finalArchive=null
 ```
 
-Provider/Adapter/tool capability 分域、Host 侧工具兄弟 Bubblewrap、clean reviewed-patch verification、ignored poisoning、operator 认证、最终版完整 regression/安装回滚矩阵、负向 smoke，以及当前 revision Flash/Pro 均已通过并绑定实现提交 `adcd07a6ee7904cd70b3cdc8a57c896dc1f12628`。目标分支现已推送，远端 `strict-ci` run `32677107669` 在提交 `c8f73753aab70524cb42f3984563c6ae74980fba` 上通过；私有仓库 branch-protection API 仍因方案限制返回 HTTP 403。required checks 无法配置且最终归档尚未生成，因此状态继续是 candidate。
+本轮已完成 fail-closed 精确 gate 集合、两阶段 seal、Brokered Tool 端到端取消与 Host process registry、Harness/Tool sibling 资源 profile、protected Provider artifact/attestation 工作流、认证审计轮换与聚合、模型可见读取分页与输出上限。绑定当前实现的本地完整资格化和负向 smoke 均通过。
+
+这不构成稳定版通过。本机缺少已委派的 cgroup v2 I/O controller，真实 Provider smoke 因受控资源门禁在 Provider I/O 前失败，实际发送请求数为 0。当前修复分支尚未推送，因此不存在当前 exact-tip strict CI 或 protected Provider artifact attestation。2026-08-25 的只读核验确认仓库仍为 private，branch-protection 与 rulesets API 均因当前 GitHub 方案返回 HTTP 403。DEC-001 至 DEC-004 尚未由所有者批准，seal-ready、最终 deterministic ZIP 与解包复验也尚未执行。
+
+前一修复分支的成功 CI run `32677107669` 只属于历史 observational evidence，不得用于当前 seal。没有生成 stable ZIP，没有 merge、push、tag 或 GitHub Release。
 
 从这里开始：
 
@@ -25,4 +31,4 @@ npm run build
 npm test
 ```
 
-本次 push 经用户明确授权；仍禁止自动 merge、tag 或 GitHub Release。`version=0.6.6` 不等于 `releaseStatus=stable`；只有严格矩阵全部通过，才可将状态提升为 stable 并生成最终 ZIP。
+机器可读状态以 `current/release-status.json` 为准，来源绑定以 `current/SOURCE_PROVENANCE.json` 为准，待决事项见 `current/docs/OWNER_DECISIONS.json`。自动 merge、push、tag 和 release 均被禁止；任何 push 都需要用户另行明确授权。

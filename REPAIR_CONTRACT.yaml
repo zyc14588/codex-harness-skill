@@ -1,26 +1,108 @@
-schemaVersion: 1
-version: 0.6.6
+schemaVersion: 2
+version: "0.6.6"
 canonicalSource: current/
-repairBranch: repair/0.6.6-provider-capability-and-release-integrity
+historicalArchive: archive/
+baselineBranch: repair/0.6.6-provider-capability-and-release-integrity
+repairBranch: repair/0.6.6-pre-release-audit-r1
 releaseStatus: candidate
 controlledUseAllowed: false
-deliverableStatus: QUALIFIED_CANDIDATE_EXTERNAL_GATES_PENDING
+deliverableStatus: REPAIR_IMPLEMENTED_EXTERNAL_OWNER_AND_ARCHIVE_GATES_PENDING
 qualificationStage: FINAL_VERSION_CURRENT_REVISION_QUALIFICATION
-externalGateState: BLOCKED_TARGET_NOT_REMOTE_NO_ACTIONS_AND_BRANCH_PROTECTION_PLAN_403
+finalArchive: null
+implementation:
+  commit: 62406f99b7caa8ecb3c8b6deb0d457973f3f9b34
+  sourceTree: a7ebd778dc0a532b5baff49ee23055ad73263cd8
+  repositoryTree: b1e2bec58911d748928b3c8b6deb0d457973f3f9b34
+stateMachine:
+  phases:
+    - candidate
+    - seal_ready
+    - isolated_staging_package
+    - deterministic_archive_validation
+    - stable
+  archiveResultsMayBePredeclared: false
+  canonicalSourceMayReceivePackageOriginMarker: false
+  stableInstallRequiresPackageOriginMarker: true
+requiredStableSourceGateKeys:
+  - branchProtectionRequiredChecks
+  - brokeredToolCancellationNegatives
+  - cleanReviewedPatchVerification
+  - currentRevisionFlashSmoke
+  - currentRevisionProThinkingSmoke
+  - directAcceptance
+  - dynamicManagedProfile
+  - githubActionsExactTip
+  - ignoredPoisoningVerification
+  - modelReadOutputBounds
+  - negativeSmokeSuite
+  - operatorAuditRetention
+  - operatorAuthenticationHardening
+  - processE2E
+  - protectedProviderEvidenceAttestation
+  - providerCapabilityIsolation
+  - reasoningReplayFailureInjection
+  - repositoryHistoryReadBoundaryDecision
+  - resourceControlEnforcement
+  - resourceExhaustionNegatives
+  - securityAcceptance
+  - skillValidation
+  - stdioMcpAcceptance
+  - transactionalPackageAcceptance
+  - unitAndComponentRegression
+requiredArchiveChecks:
+  - deterministicDoubleBuild
+  - freshInstallLifecycle
+  - releaseGate
+  - symlinkAndNodeModulesHygiene
+  - unpackedBuildAndTests
+  - unpackedManifest
+  - unpackedPackageAcceptance
+  - unpackedSourceGate
 requirements:
-  providerCapabilityIsolation: required
-  cleanReviewedPatchVerification: required
-  ignoredPoisoningNegativeTest: required
+  exactGateKeySet: required
+  allGateValuesPass: required
+  currentCanonicalSourceEqualsImplementationScope: required
+  fullRepositoryWorktreeAndIndexCleanAtSeal: required
   currentRevisionFlashSmoke: required
   currentRevisionProThinkingSmoke: required
-  actualRootGitHubActionsPass: required
-  branchProtectionRequiredChecks: required
+  brokeredToolCancellationAndQuiescence: required
+  controlledHostResourceProfile: required
+  actualRootGitHubActionsExactTipPass: required
+  protectedProviderArtifactAndAttestation: required
+  branchProtectionRequiredChecksOrOwnerApprovedReplacement: required
+  ownerDecisionsDEC001ThroughDEC004: required
   deterministicArchiveAndUnpackedRevalidation: required
-promotion:
-  initialCandidateVersion: 0.6.6-rc.1
-  qualificationVersion: 0.6.6
-  stableVersion: 0.6.6
+currentQualification:
+  localQualification: PASS_CURRENT_IMPLEMENTATION
+  negativeSmoke: PASS_CURRENT_IMPLEMENTATION
+  realProviderSmoke: BLOCKED_PRE_PROVIDER_IO_HOST_IO_CONTROLLER
+  exactTipCi: PENDING_NOT_PUSHED
+  protectedProviderArtifactAttestation: PENDING_NOT_CREATED
+  branchProtectionRequiredChecks: BLOCKED_EXTERNAL_GITHUB_PLAN_OR_OWNER_DECISION
+  ownerDecisions: PENDING_DEC_001_THROUGH_DEC_004
+  deterministicArchive: PENDING_AFTER_SEAL_READY
+externalState:
+  repositoryVisibility: private
+  currentRepairBranchPushed: false
+  observedBranchProtectionApi: HTTP_403_PLAN_LIMIT
+  observedRulesetsApi: HTTP_403_PLAN_LIMIT
+  observationDate: "2026-08-25"
+remoteOperations:
+  automaticPush: forbidden
+  userAuthorizedPush: not_recorded_for_current_branch
+  userAuthorizedPushPolicy: allowed_only_after_separate_explicit_authorization
+  currentBranchPushAuthorizationRecorded: false
+  currentBranchPushPerformed: false
   automaticMerge: forbidden
-  push: forbidden
-  tag: forbidden
-  githubRelease: forbidden
+  automaticTag: forbidden
+  automaticGitHubRelease: forbidden
+ownerDecisions:
+  path: current/docs/OWNER_DECISIONS.json
+  status: PENDING_OWNER
+  approvalsMustBeInImplementationCommit: true
+  approvalChangeRequiresFullRequalification: true
+promotion:
+  candidateAuditInstallPath: "0.6.6-candidate-<implementation-commit-prefix>"
+  sealReadyControlledUseAllowed: false
+  stableVersion: "0.6.6"
+  stablePromotionBeforeEveryRequiredGatePass: forbidden

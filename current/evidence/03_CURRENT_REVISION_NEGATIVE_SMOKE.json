@@ -2,26 +2,26 @@
   "schemaVersion": 1,
   "result": "PASS",
   "version": "0.6.6",
-  "generatedAt": "2026-08-23T17:57:46.814Z",
+  "generatedAt": "2026-08-24T16:24:41.407Z",
   "currentRevision": true,
-  "sourceCommit": "adcd07a6ee7904cd70b3cdc8a57c896dc1f12628",
-  "sourceTree": "0011222e61d2f6aaf9d0e1024a9f869013f85fca",
-  "sourceTreeSha256": "8fbc146f96f0509400eddf80ce44b458a41d684ae5b5b5e97e96e1f2fca9d76d",
-  "sourceFileCount": 298,
-  "criticalSetSha256": "796b91bd3340c0659fce7f3c833d6ad9440f5a608bc249ba0aa4da840e58c9c8",
+  "sourceCommit": "62406f99b7caa8ecb3c8b6deb0d457973f3f9b34",
+  "sourceTree": "a7ebd778dc0a532b5baff49ee23055ad73263cd8",
+  "sourceTreeSha256": "f5be77c844b9e0dbf378eb1737c23124e826be56a42ac0660f6196d3b9aa4cac",
+  "sourceFileCount": 320,
+  "criticalSetSha256": "9c03cc7d05c876499540a8c6ec0bb78fa949adcffbf762da6a794cfda20bc759",
   "criticalPathSha256": {
-    "bridge/src/security.ts": "68861770fb3e41d66d712eca99f8561d81dd9a6180a219d352463e5f844da0e7",
-    "bridge/src/monitor-daemon.ts": "aa27b39725d7761197633cfcd25ca56ac42b3d2121bf9bd5cbfbf436f1891184",
-    "bridge/src/harness-sandbox-entry.ts": "9c6cefe228f92d6efd1ef40b29d2294ddfd6f2e8185ba4a44eae3d2ef142cb8b",
-    "bridge/src/harness-isolation.ts": "4a466625402f77bf83d89b7581c9d87f3eb1eee3880e1feaaa14453ee7ecee65",
-    "bridge/src/brokered-tool-host.ts": "9ecc99771d8f50ba6c35cf6f149d3a4e1d56bd3a5938598874255936c44644f0",
+    "bridge/src/security.ts": "30012c7559053cfd5ebbb4722d65a02b7c5949e7fd43bb5678c3ff0e43ac4160",
+    "bridge/src/monitor-daemon.ts": "2a9ce0301287fc1bd576814d0be94b8048b7f0bb30b08a671babe8e28e4efe83",
+    "bridge/src/harness-sandbox-entry.ts": "6d7f472d2835db9294ae7d15bf4a49361168ab6baa4f03943b4770e08e2c4359",
+    "bridge/src/harness-isolation.ts": "8f446f13ae91d64e547cb3fcae85dce2df28c80261f57dbd0bbfbb8401b94935",
+    "bridge/src/brokered-tool-host.ts": "587543e1c6a60a07fb3e6a34cb7de9fbe8c6e656036109402d893ca83488b35e",
     "bridge/src/thinking-policy.ts": "ff021e0d64fb5bc535387872de7f9d25043dad7e67a29a09cd18d153a3cd75b2",
     "bridge/src/minimal-request-state.ts": "b0c60eaed42e599028602e7dbf4afa946eb2613641db3d377286c028e5d94af4",
     "bridge/src/provider-policy.ts": "aea8b29afd3f98129422d1027a4f7cc2ba1f59ef7abaceec90067d9938520233",
-    "bridge/src/worker.ts": "bf9d948b248e8bb1130bfadfa22c6c08c7de032091a902cf81e16bd112b04b26",
-    "bridge/src/service.ts": "7fd384411429139881abfce759ea22f3d80c11ba45b59702078606ee95d3d013",
+    "bridge/src/worker.ts": "f6c9baa27916d2c1f7e9ef13d0a6e671dfd560711e0bcb6727701ed8762b706d",
+    "bridge/src/service.ts": "0b2e978517abe995989c1118913924921f5ca192aa3f811f14b6374fa739ff8b",
     "harness/minimal/preset/agent.cordis.yml.in": "05945570459b34499ca4fd775642c0fc28696c67e2fa48b42a00ab36416ea29f",
-    "harness/minimal/profile/bridge-brokered-tools.mjs": "1066eda6d4865bbe3927c3f2b392966937004006fb35df499c59beb77071465a",
+    "harness/minimal/profile/bridge-brokered-tools.mjs": "bf1e9af573f388ae3f7de1e61b689dead8e6a2bbfb293148179e462164877249",
     "harness/minimal/profile/bridge-headless-runner.mjs": "c647264daeecc37d845de1b42937c328fec22c5c1618f0c830108ab83e74c8c3",
     "harness/minimal/profile/cordis.patch.yml": "e46d24af07c98ce331b17658fa9dce4d68db793d8f5447f43f49c8d2d5b209ce"
   },
@@ -32,7 +32,47 @@
       "exitCode": 0,
       "signal": null,
       "testCount": 1,
-      "outputSha256": "7fa9f6ef1f9167dab6f4f14b6610993df50eae9ed762789608dcade66c090985"
+      "outputSha256": "344ec95b2c9f350a0b6f023d8a43ee10267d9d03935a2671fb35ef7f82f6959b"
+    },
+    {
+      "testFile": "bridge/dist/test/brokered-tool-registry.test.js",
+      "result": "PASS",
+      "exitCode": 0,
+      "signal": null,
+      "testCount": 2,
+      "outputSha256": "190154d611033b96eb9bddd138ca833e819c4227247fd05998b042e6b7a05aec"
+    },
+    {
+      "testFile": "bridge/dist/test/process-group.test.js",
+      "result": "PASS",
+      "exitCode": 0,
+      "signal": null,
+      "testCount": 3,
+      "outputSha256": "54ee2544841c8643de08e7527982de32972f755e00b86b5eec4af6c7afcb5eda"
+    },
+    {
+      "testFile": "bridge/dist/test/resource-controls.test.js",
+      "result": "PASS",
+      "exitCode": 0,
+      "signal": null,
+      "testCount": 4,
+      "outputSha256": "b8d4554c497e7cce56891a6460ca77a4ecdc69f9e0cf08a6e4f7d557072a4454"
+    },
+    {
+      "testFile": "bridge/dist/test/model-visible-output.test.js",
+      "result": "PASS",
+      "exitCode": 0,
+      "signal": null,
+      "testCount": 3,
+      "outputSha256": "6544b231da764b12a540eae5a83c96ed8613c86836a17541d053d066d8294b57"
+    },
+    {
+      "testFile": "bridge/dist/test/security.test.js",
+      "result": "PASS",
+      "exitCode": 0,
+      "signal": null,
+      "testCount": 6,
+      "outputSha256": "a9e37920753771bf8eb1d55f128c1d6986b48f7deb5b8071f8ae95c49cd4932f"
     },
     {
       "testFile": "bridge/dist/test/provider-protocol-fail-fast.test.js",
@@ -40,7 +80,7 @@
       "exitCode": 0,
       "signal": null,
       "testCount": 2,
-      "outputSha256": "359428430a168da837729c525d93c691b624d0f6475cb44aae24cf35b16f4b9b"
+      "outputSha256": "6f663abaf5fa60ef6fb4ad74e1fa32b7e02dd27e7036d7203b5045c5bb2194c5"
     },
     {
       "testFile": "bridge/dist/test/verification-isolation.test.js",
@@ -48,7 +88,7 @@
       "exitCode": 0,
       "signal": null,
       "testCount": 1,
-      "outputSha256": "ef16f05851ca8346b079ab5196fe06cfa2d77f9f6e5e35c80ccafeadd179c199"
+      "outputSha256": "50db29834fba9ee4f35cd88885035f91f1b07cb490fa984a1103b6ce6cf55254"
     }
   ],
   "assertions": {
@@ -64,6 +104,12 @@
     "reasoningReplayOmissionOutputTokens": 0,
     "reasoningReplayOmissionSplitMemoryChanged": false,
     "ignoredArtifactCanCauseAuthoritativeFalsePass": false,
-    "verificationWorktreeRemoved": true
+    "verificationWorktreeRemoved": true,
+    "brokeredToolTaskAttemptAndShutdownCancellation": true,
+    "brokeredToolRegistryEventuallyEmpty": true,
+    "forkMemoryDiskAndTimeoutHostNegatives": true,
+    "modelVisibleReadByteAndEstimatedTokenBounds": true,
+    "operatorAuditFloodAggregationRotationAndRetention": true,
+    "controlledUseRequiresAllCgroupControllers": "PROTECTED_HOST_GATE_REQUIRED"
   }
 }
