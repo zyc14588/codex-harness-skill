@@ -2,7 +2,7 @@
 
 机器权威文件为仓库根与本目录的 `SOURCE_PROVENANCE.json`。唯一活动源码是 `current/`。
 
-历史审计基线 `release/0.6.5-hotfix-r4` 的 HEAD 为 `10a70fc0e59ad93fce387c6a1660596d9f01ad7f`，tree 为 `3468eb8ce22bec2a00df4f126619bdf7ee739ba3`；其 stable 声明已在本地 commit `1c7dd48e2e39c642f8b8bf63d384166208004a5a` 撤回。本次预发布审计修复从仓库 HEAD `91f8d493c52e972bafd0fc19f0e50a927c35448a`、tree `0daa23b799bcf07ff318c47720ca0c09e9ae8eae` 开始，施工分支为 `repair/0.6.6-pre-release-audit-r1`。前一修复分支及其远端 run 只作历史输入，不能为本分支续期。
+历史审计基线 `release/0.6.5-hotfix-r4` 的 HEAD 为 `10a70fc0e59ad93fce387c6a1660596d9f01ad7f`，tree 为 `3468eb8ce22bec2a00df4f126619bdf7ee739ba3`；其 stable 声明已在本地 commit `1c7dd48e2e39c642f8b8bf63d384166208004a5a` 撤回。本轮 owner-decision 与 R2 remediation 从已接受的仓库基线 HEAD `587513fe45f25b9235eb0d430161d675be2adfa7`、tree `beef11892852f0097f7db6be9a8e8dd82fa2e246` 开始，施工分支为 `repair/0.6.6-owner-decisions-and-r2-remediation`。此前修复分支及其远端 run 只作历史输入，不能为本分支续期。
 
 旧 R6.4 handoff、旧 baseline、withdrawn R2/R3/R4 归档和 fixture 已移至 `archive/`。没有 nested Git metadata 作为 canonical source；`current/` 的普通 tracked files 是唯一实现权威。
 
