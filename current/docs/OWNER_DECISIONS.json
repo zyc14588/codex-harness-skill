@@ -1,7 +1,7 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "version": "0.6.6",
-  "status": "OWNER_DECISIONS_IMPLEMENTED_LOCAL_PASS_EXTERNAL_BLOCKED",
+  "status": "OWNER_DECISIONS_IMPLEMENTED_PUBLIC_HISTORY_PASS_BRANCH_AND_HOST_BLOCKED",
   "policy": "Owner approval and implementation verification are independent. Any decision change is an implementation change and invalidates earlier qualification evidence.",
   "decidedBy": "zyc14588",
   "decidedAt": "2026-08-26T01:22:12+10:00",
@@ -17,8 +17,16 @@
       "decidedAt": "2026-08-26T01:22:12+10:00",
       "ownerMeaning": "Public visibility is accepted only with a full worktree, all-refs, reachable-history, archive, ZIP, privacy, secret, license, and provenance audit plus actual required-check governance.",
       "implementationVerified": false,
-      "implementationStatus": "BLOCKED_PUBLIC_HISTORY_REMEDIATION",
-      "verificationEvidence": "evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json"
+      "implementationStatus": "PUBLIC_HISTORY_AND_STRUCTURE_PASS_BRANCH_GOVERNANCE_BLOCKED",
+      "publicHistoryAudit": "PASS_WITH_OWNER_ACCEPTED_FINDINGS",
+      "historyRewriteRequired": false,
+      "publicVisibilityVerified": true,
+      "currentAndFinalZeroGitlinkGates": "PASS_IMPLEMENTED_AND_NEGATIVE_TESTED",
+      "verificationEvidence": "evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json",
+      "riskAcceptanceEvidence": "evidence/PUBLIC_HISTORY_RISK_ACCEPTANCE.json",
+      "blockedBy": [
+        "REQUIRED_STATUS_CHECKS_AND_BRANCH_GOVERNANCE_NOT_CONFIGURED_OR_API_VERIFIED"
+      ]
     },
     "DEC-002": {
       "title": "Repository and Git history read boundary",
@@ -30,7 +38,8 @@
       "decidedBy": "zyc14588",
       "decidedAt": "2026-08-26T01:22:12+10:00",
       "ownerMeaning": "Harness may read the complete task worktree and Git history through the Broker. Repository/history content may be sent to the configured remote model; this is an accepted disclosure boundary, not a confidentiality boundary.",
-      "implementationVerified": false,
+      "implementationVerified": true,
+      "implementationStatus": "PASS_ACCEPTED_DISCLOSURE_BOUNDARY_AND_NEGATIVE_ISOLATION",
       "implementationPrerequisites": [
         "owner decision approved",
         "disclosure documentation present",
@@ -39,9 +48,16 @@
         "public repository/history audit PASS",
         "negative isolation tests PASS"
       ],
-      "blockedBy": [
-        "PUBLIC_REPOSITORY_HISTORY_AUDIT_NOT_PASS"
-      ]
+      "verificationAssertions": {
+        "fullRepositoryAndHistoryDisclosureOwnerAccepted": true,
+        "remoteModelExposureDisclosedInSkillReadmeAndSecurityDocs": true,
+        "readToolsConfinedToCurrentTaskRepository": true,
+        "providerAdapterAndToolCredentialsUnavailable": true,
+        "stateRootHostPathsAndMonitorSocketUnavailable": true,
+        "historyOutputBytePaginatedAndModelBounded": true,
+        "publicHistoryAuditAndRiskAcceptance": "PASS_WITH_OWNER_ACCEPTED_FINDINGS",
+        "negativeIsolationTests": "PASS"
+      }
     },
     "DEC-003": {
       "title": "Tiered controlled-use resource profiles",

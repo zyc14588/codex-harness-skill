@@ -31,6 +31,7 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
+          fetch-depth: 0
       - name: Set up pinned Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
@@ -73,14 +74,30 @@ jobs:
             stable) node scripts/verify-release-gate.mjs --root . ;;
             *) exit 1 ;;
           esac
+      - name: Reproducible dependency install
+        working-directory: current/bridge
+        run: npm ci
+      - name: Verify public-history Owner acceptance and zero-gitlink gates
+        working-directory: .
+        run: |
+          node scripts/public-repository-history-audit.test.mjs
+          node current/scripts/release-structure.test.mjs
+          node scripts/public-repository-history-audit.mjs \
+            --root . \
+            --output "$RUNNER_TEMP/public-repository-history-audit.json" \
+            --owner-acceptance current/evidence/PUBLIC_HISTORY_OWNER_ACCEPTANCE.json \
+            --baseline-audit current/evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT_BASELINE_2026-08-26.json \
+            --fail-on-blockers
+          node scripts/public-history-risk-acceptance.mjs \
+            --root . \
+            --audit "$RUNNER_TEMP/public-repository-history-audit.json" \
+            --output "$RUNNER_TEMP/public-history-risk-acceptance.json"
+          node current/scripts/verify-release-structure.mjs --active-source current
       - name: Reject credentials, environment files, and nested workflows
         run: |
           test ! -e .github/workflows/ci.yml
           if git ls-files | grep -E '(^|/)\.env($|\.)' | grep -Ev '\.(example|sample|template|dist)$'; then exit 1; fi
           if git grep -nE '(sk-[A-Za-z0-9_-]{20,}|-----BEGIN ([A-Z0-9 ]+ )?PRIVATE KEY-----)' -- . ':!scripts/fake-dsh.mjs'; then exit 1; fi
-      - name: Reproducible dependency install
-        working-directory: current/bridge
-        run: npm ci
       - name: Strict TypeScript build
         working-directory: current/bridge
         run: npm run build
@@ -137,6 +154,7 @@ jobs:
       - name: Generated dist and manifest drift
         run: |
           node scripts/update-manifest.mjs .
+          node scripts/verify-manifest.mjs --root . --require-git-exact
           git diff --exit-code -- bridge/dist MANIFEST_SHA256.txt
       - name: Root Manifest fault-injection matrix
         working-directory: .

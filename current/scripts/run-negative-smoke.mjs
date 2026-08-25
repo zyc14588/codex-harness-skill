@@ -59,12 +59,13 @@ const testFiles = [
   "dist/test/security.test.js",
   "dist/test/provider-protocol-fail-fast.test.js",
   "dist/test/verification-isolation.test.js",
-];
+].map((relative) => ({ relative, cwd: path.join(options.root, "bridge"), evidencePath: `bridge/${relative}` }));
+testFiles.push({ relative: "scripts/release-structure.test.mjs", cwd: options.root, evidencePath: "scripts/release-structure.test.mjs" });
 const executions = [];
 let passed = true;
-for (const relative of testFiles) {
-  const result = spawnSync(process.execPath, [relative], {
-    cwd: path.join(options.root, "bridge"),
+for (const testFile of testFiles) {
+  const result = spawnSync(process.execPath, [testFile.relative], {
+    cwd: testFile.cwd,
     encoding: "utf8",
     env: { ...process.env, NO_COLOR: "1" },
     timeout: 900_000,
@@ -74,7 +75,7 @@ for (const relative of testFiles) {
   const output = `${result.stdout ?? ""}${result.stderr ?? ""}`;
   const count = output.match(/(?:ℹ|#) tests\s+(\d+)/u);
   executions.push({
-    testFile: `bridge/${relative}`,
+    testFile: testFile.evidencePath,
     result: result.status === 0 ? "PASS" : "FAIL",
     exitCode: result.status,
     signal: result.signal,
@@ -95,6 +96,12 @@ const evidence = {
   generatedAt: new Date().toISOString(),
   currentRevision: true,
   ...binding,
+  testCount: executions.reduce((sum, entry) => sum + Number(entry.testCount ?? 0), 0),
+  testAccounting: {
+    uniqueTestCount: 0,
+    repeatedTestCount: executions.reduce((sum, entry) => sum + Number(entry.testCount ?? 0), 0),
+    gateExecutionCount: 0,
+  },
   tests: executions,
   assertions: {
     shellEnvironmentContainsNoProviderAdapterOrToolCapability: passed,
@@ -115,6 +122,7 @@ const evidence = {
     forkMemoryDiskAndTimeoutHostNegatives: passed,
     modelVisibleReadByteAndEstimatedTokenBounds: passed,
     operatorAuditFloodAggregationRotationAndRetention: passed,
+    activePackageArchiveZeroGitlinkNegatives: executions.some((entry) => entry.testFile === "scripts/release-structure.test.mjs" && entry.result === "PASS"),
     controlledUseRequiresAllCgroupControllers: "PROTECTED_HOST_GATE_REQUIRED",
   },
 };

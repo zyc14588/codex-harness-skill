@@ -1,7 +1,7 @@
 # Codex ↔ DeepSeek Harness Bridge 0.6.6
 
 ```text
-Release status: candidate / repaired implementation awaiting full requalification
+Release status: candidate / public-history acceptance implemented; full requalification required
 Controlled use: forbidden
 Canonical source: current/
 ```
@@ -11,6 +11,8 @@ Canonical source: current/
 0.6.6 修复了审计发现的 Provider capability 链：Provider、request-state Adapter 与工具 broker 使用三个不同的一次性 bearer；能力通过匿名 stdin 管道交给受信任的隔离入口，URL 只包含非秘密 task/attempt ID。模型可见的 Bash/Pwsh 在宿主监控进程启动的独立 Bubblewrap 兄弟沙箱中执行，没有 Provider/Adapter/tool 环境、监控 socket、宿主状态挂载或网络能力。Provider route 只接受精确的 JSON `POST /chat/completions`。
 
 本轮预发布修复还增加了四个 fail-closed 边界：取消信号贯穿 worker、Harness、relay、broker 与进程组并由 task/attempt registry 终止旧 lease；受控执行必须由固定哈希的 `systemd-run`/`prlimit` 同时证明 cgroup v2 与 RLIMIT 限额；模型可见读取按 UTF-8 字节分页且每页不超过 49,152 bytes；operator 认证审计按来源聚合并受段数、总字节与保留期约束。`audit_only` 资源模式只允许候选审计，不能把 `controlledUseAllowed` 提升为 true。
+
+公开历史中的邮箱账户标识、Owner 自有 home-path alias 与三个不可访问 gitlink 已由 Owner 逐项接受；findings 仍完整保留，历史未被重写或描述为已脱敏。该接受不覆盖任何新增个人信息、凭据或第三方数据。active source、package staging、archive manifest 与 final ZIP 现在分别执行零 gitlink/零 `.gitmodules` 门禁；包与 ZIP 另拒绝 symlink 和嵌套 `.git` metadata。
 
 权威 verification 不再在 Agent 施工树运行。Codex review 封存标准 binary patch 与 fingerprint，Bridge 从 `baseCommit` 创建新的 detached worktree，执行 `git clean -ffdx`，只应用 reviewed patch，再运行冻结命令。ignored/untracked poison 不会进入验证树；通过后仍要求 current/reviewed/verified fingerprint 一致才允许本地提交。
 
@@ -37,4 +39,4 @@ node scripts/verify-release-gate.mjs --root . --audit-candidate
 
 ## 发布门禁
 
-每项资格化结果只以 [`release-status.json`](release-status.json) 及其 SHA-256 绑定的当前修订证据为准。发布采用两阶段封印：先在干净的 canonical checkout 上以仓库外 GitHub 证据取得 `seal-ready`，再复制到隔离 staging、写入 `package-origin.json` 并构建归档；canonical source 不得被打包元数据反向修改。根 GitHub Actions 的精确目标提交、受保护 Provider job 与 artifact attestation、branch protection required checks，以及最终 deterministic archive/unpacked revalidation 都必须独立通过。四项 owner 决策也必须在实现提交内明确批准。任一项未通过时，状态必须保持 candidate；不得从版本号、旧分支或历史报告推断 stable/PASS。
+每项资格化结果只以 [`release-status.json`](release-status.json) 及其 SHA-256 绑定的当前修订证据为准。发布采用两阶段封印：先在干净的 canonical checkout 上以仓库外 GitHub 证据取得 `seal-ready`，再复制到隔离 staging、写入 `package-origin.json` 并构建归档；canonical source 不得被打包元数据反向修改。根 GitHub Actions 的精确目标提交、受保护 Provider job 与 artifact attestation、branch protection required checks，以及最终 deterministic archive/unpacked revalidation 都必须独立通过。DEC-002 已实现验证；DEC-001 仍须实际配置并 API 核验 required checks/branch governance。任一项未通过时，状态必须保持 candidate；不得从版本号、旧分支或历史报告推断 stable/PASS。

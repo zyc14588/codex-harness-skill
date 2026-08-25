@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "decisionId": "HOST-QUAL-001",
+  "selected": "B_RECONFIGURE_CURRENT_HOST_CGROUP_DELEGATION",
+  "result": "HOST_CGROUP_RECONFIGURATION_PLAN_READY",
+  "plan": {
+    "path": "current/docs/HOST_CGROUP_V2_REMEDIATION_PLAN_ZH.md",
+    "sha256": "0c2104fa1d70014a237d788e6371445319dffb00b8e68ac26fa9dc4ef878b6c9"
+  },
+  "observedAt": "2026-08-26T09:36:21+10:00",
+  "readOnlyDiagnosticsOnly": true,
+  "privilegedCommandsExecuted": 0,
+  "systemFilesModified": 0,
+  "rebootOrLogoutPerformed": false,
+  "providerRequestsSent": 0,
+  "host": {
+    "hostname": "zyc14588-ROG-Flow-Z13-GZ302EA-GZ302EA",
+    "os": "Ubuntu 26.04 LTS",
+    "kernel": "7.0.0-30-generic",
+    "systemdVersion": 259,
+    "uid": 1000,
+    "user": "zyc14588"
+  },
+  "currentProcess": {
+    "cgroup": "/user.slice/user-1000.slice/user@1000.service/app.slice/ptyxis-spawn-53e3eba3-eebf-4cea-9217-1117be8bb4ba.scope",
+    "unifiedHierarchy": true,
+    "cgroup2Mount": "/sys/fs/cgroup",
+    "mountOptionsObserved": "ro,nosuid,nodev,noexec,relatime,nsdelegate,memory_recursiveprot,memory_hugetlb_accounting"
+  },
+  "controllerChain": [
+    {
+      "path": "/sys/fs/cgroup",
+      "controllers": ["cpuset", "cpu", "io", "memory", "hugetlb", "pids", "rdma", "misc", "dmem"],
+      "subtreeControl": ["cpuset", "cpu", "io", "memory", "pids"]
+    },
+    {
+      "path": "/sys/fs/cgroup/user.slice",
+      "controllers": ["cpuset", "cpu", "io", "memory", "pids"],
+      "subtreeControl": ["cpu", "memory", "pids"]
+    },
+    {
+      "path": "/sys/fs/cgroup/user.slice/user-1000.slice",
+      "controllers": ["cpu", "memory", "pids"],
+      "subtreeControl": ["cpu", "memory", "pids"]
+    },
+    {
+      "path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service",
+      "controllers": ["cpu", "memory", "pids"],
+      "subtreeControl": ["cpu", "memory", "pids"]
+    }
+  ],
+  "rootCause": {
+    "classification": "IO_CONTROLLER_NOT_DELEGATED_TO_USER_MANAGER",
+    "firstMissingAt": "/sys/fs/cgroup/user.slice/cgroup.subtree_control",
+    "vendorUserManagerUnit": "/usr/lib/systemd/system/user@.service",
+    "vendorUserManagerUnitSha256": "3e64dd11e1f9f5b39e31b689adecebf6f2e79153d271acd4c55172002e468236",
+    "vendorDelegate": ["pids", "memory", "cpu"],
+    "missingDelegateController": "io",
+    "ioWeightObservable": false
+  },
+  "priorQualification": {
+    "path": "HOST_RESOURCE_QUALIFICATION.json",
+    "sha256": "4836e9fcf3c31992516ab7d9fc67c24193e1587e104e3732e59ef6dee1dcceb3",
+    "result": "BLOCKED_CONTROLLED_HOST_CGROUP_IO",
+    "allFourProfilesProbed": true,
+    "onlyFailedRequiredControl": "IOWeight"
+  },
+  "proposedChange": {
+    "target": "/etc/systemd/system/user@.service.d/90-codex-harness-io-delegation.conf",
+    "targetPresentAtBaseline": false,
+    "originalSha256": null,
+    "proposedSha256": "43502dffd2236d66d7ba7c84d13b0120e02579cd1c67ba6a02635056dadf4940",
+    "backupDirectory": "/var/backups/codex-harness-host-qual-20260826T093621+1000",
+    "backupPathIfPresent": "/var/backups/codex-harness-host-qual-20260826T093621+1000/90-codex-harness-io-delegation.conf.original",
+    "absenceMarker": "/var/backups/codex-harness-host-qual-20260826T093621+1000/90-codex-harness-io-delegation.conf.ABSENT",
+    "fullContent": "[Service]\nDelegate=pids memory cpu io\n"
+  },
+  "unchangedVendorInputs": [
+    {
+      "path": "/usr/lib/systemd/system/user@.service",
+      "sha256": "3e64dd11e1f9f5b39e31b689adecebf6f2e79153d271acd4c55172002e468236"
+    },
+    {
+      "path": "/usr/lib/systemd/system/user-.slice.d/10-defaults.conf",
+      "sha256": "f8779864a6741f9a80eb803a651c38914a002330dcc17f048716f1d6f0cab983"
+    },
+    {
+      "path": "/usr/lib/systemd/system/user.slice",
+      "sha256": "502efa90338cff5781e7d63195906700a868094154864add8f38d252feed2715"
+    }
+  ],
+  "diagnosticLimitations": [
+    "The restricted construction shell could read cgroupfs and unit files but could not connect to the system or user D-Bus.",
+    "No live systemctl property mutation or restart was attempted.",
+    "The existing four-profile qualification evidence supplies the dynamic systemd-run/RLIMIT observations."
+  ],
+  "nextAuthorityRequired": "SEPARATE_EXPLICIT_HOST_CGROUP_RECONFIGURATION_APPROVAL"
+}

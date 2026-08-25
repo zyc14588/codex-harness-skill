@@ -110,7 +110,7 @@ async function writeSourceFixture(root, version) {
   config.harnessIsolation.resourceProfiles = profiles;
   await writeFile(configPath, json(config));
   await writeRelative(root, "docs/OWNER_DECISIONS.json", json({
-    schemaVersion: 2,
+    schemaVersion: 3,
     version: STABLE_VERSION,
     ...owner,
     decisions: {
@@ -122,10 +122,23 @@ async function writeSourceFixture(root, version) {
   }));
   await writeRelative(root, "docs/REPOSITORY_HISTORY_DISCLOSURE_BOUNDARY_ZH.md", "accepted disclosure boundary for configured remote model\n");
   await writeRelative(root, "evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json", json({
-    schemaVersion: 1,
-    auditPolicy: "DEC-001-full-repository-and-history-audit-v1",
-    result: "PASS_PUBLICATION_ELIGIBILITY_AUDIT",
+    schemaVersion: 2,
+    auditPolicy: "DEC-001-full-repository-and-history-audit-v2-owner-acceptance",
+    result: "PASS",
+    findingsDisposition: "PASS_WITH_OWNER_ACCEPTED_HISTORICAL_FINDINGS",
+    historyRewriteRequired: false,
+    confirmedSecrets: 0,
+    unresolvedDistributedLicenseFindings: 0,
+    ownerDecisionIds: ["PUB-HIST-EMAIL-001", "PUB-HIST-PATH-001", "PUB-HIST-GITLINK-001"],
     blockers: [],
+  }));
+  await writeRelative(root, "evidence/PUBLIC_HISTORY_RISK_ACCEPTANCE.json", json({
+    result: "PASS",
+    findingsDisposition: "PASS_WITH_OWNER_ACCEPTED_HISTORICAL_FINDINGS",
+    historyRewriteRequired: false,
+    confirmedSecrets: 0,
+    unresolvedDistributedLicenseFindings: 0,
+    ownerDecisionIds: ["PUB-HIST-EMAIL-001", "PUB-HIST-PATH-001", "PUB-HIST-GITLINK-001"],
   }));
   await writeRelative(root, "bridge/src/brokered-tool-host.ts", "// gitHistoryArguments MODEL_VISIBLE_TEXT_MAX_BYTES\n");
   await writeRelative(root, "docs/fixture.md", `qualification fixture ${version}\n`);
@@ -133,6 +146,7 @@ async function writeSourceFixture(root, version) {
   await writeRelative(root, "schemas/fixture.json", json({}));
   await writeRelative(root, "scripts/install.sh", `VERSION="${version}"\n`);
   await writeRelative(root, "scripts/render-minimal-harness.py", `VERSION = "${version}"\n`);
+  await writeRelative(root, "scripts/verify-release-archive.py", await readFile(new URL("verify-release-archive.py", import.meta.url), "utf8"));
   await writeRelative(root, "skills/codex-harness/SKILL.md", `# Codex-Harness ${version} fixture\n`);
 }
 
@@ -640,7 +654,16 @@ test("final archive validation binds the exact name, SHA sidecar, and validation
   const archive = path.join(root, archiveName);
   const sidecar = `${archive}.sha256`;
   const validation = `${archive}.validation.json`;
-  await writeFile(archive, "deterministic fixture archive\n");
+  const archiveFixture = spawnSync("python3", ["-c", [
+    "import stat,sys,zipfile",
+    "z=zipfile.ZipFile(sys.argv[1],'w',compression=zipfile.ZIP_DEFLATED)",
+    "i=zipfile.ZipInfo('CODEX_HARNESS_BRIDGE_0_6_6_STABLE/README.md')",
+    "i.create_system=3",
+    "i.external_attr=(stat.S_IFREG|0o644)<<16",
+    "z.writestr(i,b'fixture\\n')",
+    "z.close()",
+  ].join(";"), archive], { encoding: "utf8" });
+  assert.equal(archiveFixture.status, 0, archiveFixture.stderr);
   const archiveSha256 = digest(await readFile(archive));
   const packageOriginSha256 = digest(await readFile(path.join(root, "package-origin.json")));
   await writeFile(sidecar, `${archiveSha256}  ${archiveName}\n`);

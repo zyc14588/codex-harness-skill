@@ -8,9 +8,13 @@ Provider key 永远只在 Monitor 中读取。Harness 只接收一次性的 Adap
 
 任务 worktree 的读取不是 confidentiality boundary：Bash/editor/repository tools 可读取 worktree 内文件，并可能把工具输出交给远程模型；`contextFiles` 和渐进披露只控制提示与工具可见性，不保证其它仓库文件保密。操作员只能对允许远程 Provider 处理其内容的仓库启用 Harness。未来需要机密分区时应采用 filtered workspace，而不能依赖 prompt。
 
+Owner 已接受当前任务仓库完整 worktree/history 的远程模型披露边界；读取仍只能落在任务绑定仓库中，不能读取其它宿主仓库、`stateRoot`、Monitor socket 或 Provider/Adapter/Tool credentials。Git history 输出与文件输出同样受 49,152-byte UTF-8 分页上限约束。
+
 ## Git 与验证
 
 启动冻结 base commit、branch、leases，并拒绝相交 symlink/gitlink/environment paths。Agent 不能 stage/commit。Codex review 必须覆盖全部 changed paths；binary patch 与 fingerprint 封存后，在新的 detached clean worktree 权威验证。ignored poison、cache 与 node_modules 不复制。只有 current/reviewed/verified fingerprint 一致、HEAD/index/lease/symlink/gitlink/cleanup 全通过才可本地提交。
+
+Owner 对历史 opaque gitlink 的接受不扩张活动源码或交付范围。`current/` 的 Git index 必须无 mode-160000 和 `.gitmodules`；package staging 必须再无 symlink、nested `.git` 与 node_modules；archive manifest/final ZIP 必须拒绝 gitlink mode、`.gitmodules`、nested `.git`、symlink 和重复路径。历史引用的不可访问外部内容排除在 release provenance 与许可证结论之外。
 
 ## Operator 与进程
 

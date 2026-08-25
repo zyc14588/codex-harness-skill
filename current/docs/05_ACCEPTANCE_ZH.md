@@ -46,6 +46,9 @@
 
 ## CI、安装与供应链
 
+- [x] 公开历史审计保留两组 Owner-accepted 标识与三个 opaque gitlink findings；confirmed secrets/新增个人信息/ZIP traversal/LFS/分发许可证未闭合项为 0，3,288 与 1,776 口径分离。
+- [x] active source、package staging、archive manifest/final ZIP 零 gitlink/`.gitmodules` 门禁及负向测试通过；历史 accepted gitlink 不误伤当前门禁。
+- [x] DEC-002 完整仓库/history 读取披露、仓库边界、credential/state/socket 隔离与输出分页已实现验证。
 - [ ] 根 workflow、full-SHA actions、build/test/direct/security/package/skill/drift/negative/poison 全通过。
 - [ ] 目标 commit 的实际 GitHub Actions run PASS，branch protection required checks 已配置。
 - [ ] protected Provider artifact digest 与 GitHub attestation、run ID/attempt、workflow path/hash、精确 qualification head/tree 一致。

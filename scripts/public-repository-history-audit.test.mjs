@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { auditPublicRepository } from "./public-repository-history-audit.mjs";
+import { validatePublicHistoryRiskAcceptance } from "./public-history-risk-acceptance.mjs";
 
 function git(root, args) {
   const result = spawnSync("git", ["-C", root, ...args], { encoding: "utf8" });
@@ -69,4 +71,58 @@ test("public audit binds but does not content-scan its current evidence file", (
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
+});
+
+test("Owner acceptance closes only the exact baseline findings and rejects additions", () => {
+  const repositoryRoot = path.resolve(new URL("..", import.meta.url).pathname);
+  const baselineBytes = readFileSync(path.join(repositoryRoot, "current/evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT_BASELINE_2026-08-26.json"));
+  const baselineAudit = JSON.parse(baselineBytes.toString("utf8"));
+  const ownerAcceptance = JSON.parse(readFileSync(path.join(repositoryRoot, "current/evidence/PUBLIC_HISTORY_OWNER_ACCEPTANCE.json"), "utf8"));
+  const currentAudit = structuredClone(baselineAudit);
+  currentAudit.coverage = {
+    ...currentAudit.coverage,
+    uniqueZipFiles: 6,
+    zipMemberOccurrencesOverlapInclusive: 3288,
+    zipMembersAfterZipBlobDeduplication: 1776,
+  };
+  for (const finding of currentAudit.findings.personalInformation) {
+    if (finding.rule === "personal_email") {
+      finding.identifierShape = "9_DIGIT_ACCOUNT_IDENTIFIER_AT_QQ_COM";
+      finding.uniqueCommitCount = 32;
+    } else if (finding.rule === "personal_local_home") finding.uniqueHistoricalZipCount = 6;
+  }
+  currentAudit.activeSource = { gitlinkCount: 0, gitmodulesCount: 0 };
+  const details = [
+    ["bd707c75e7c730773fec3f7716847942f9bf27a5", "repair-worktree/rc1-real-smoke-repo", "05773fb6bee92b6f58f0aae6556b014103eebd24"],
+    ["bd707c75e7c730773fec3f7716847942f9bf27a5", "repair-worktree/repaired-source", "d30d9ac678f143e7bb14ea11a55e8b7cdd7152c8"],
+    ["dd4714a52aaef93f4645f4f7b3aded491aa95b0b", "repair-worktree/repaired-source", "e2581382415fc167f26d9ce49bb9a6a95a119a04"],
+  ];
+  currentAudit.historicalGitlinks = details.map(([commit, gitlinkPath, objectId]) => ({
+    ref: "refs/heads/main",
+    commit,
+    path: gitlinkPath,
+    mode: "160000",
+    type: "commit",
+    objectId,
+    gitmodulesPresent: false,
+    externalUrl: null,
+    targetAccessible: false,
+    externalContentPresentInRepository: false,
+    externalContentPresentInHistoricalZips: false,
+    classifications: [
+      "ACCEPTED_OPAQUE_HISTORICAL_REFERENCE",
+      "EXTERNAL_CONTENT_NOT_DISTRIBUTED",
+      "EXCLUDED_FROM_RELEASE_PROVENANCE",
+    ],
+  }));
+  currentAudit.preAcceptanceBlockers = ["PUBLIC_HISTORY_PERSONAL_INFORMATION", "UNSAFE_SYMLINK_OR_GITLINK_IN_HISTORY"];
+  const input = {
+    ownerAcceptance,
+    baselineAudit,
+    baselineAuditSha256: createHash("sha256").update(baselineBytes).digest("hex"),
+    currentAudit,
+  };
+  assert.equal(validatePublicHistoryRiskAcceptance(input).result, "PASS");
+  currentAudit.findings.secrets.push({ rule: "new-secret" });
+  assert.throws(() => validatePublicHistoryRiskAcceptance(input), /new secret/u);
 });

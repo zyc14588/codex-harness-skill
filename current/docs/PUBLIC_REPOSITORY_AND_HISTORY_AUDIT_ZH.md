@@ -1,30 +1,38 @@
 # 公开仓库与完整历史审计（DEC-001）
 
-## 结论
+机器权威结果为 `evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json`。当前结论是 `PASS_WITH_OWNER_ACCEPTED_HISTORICAL_FINDINGS`：发现被完整保留并由 Owner 明确接受，不表示历史已被重写、邮箱已被脱敏，或不可访问的外部 gitlink 内容已完成许可证核验。
 
-当前结论是 `BLOCKED_PUBLIC_HISTORY_REMEDIATION`，不能把仓库已为 public 解释成发布资格 PASS。机器权威结果由 `scripts/public-repository-history-audit.mjs` 生成到 `evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json`；报告只保存哈希和结构定位，不回显秘密或个人值。
+## 覆盖与计数口径
 
-阻断项有两类：
+- 接受基线覆盖 32 个 reachable commits；邮箱账户标识出现在这 32 个提交的 author/committer metadata 中，共 64 次。
+- 发现 6 个唯一历史 ZIP。旧值 `3,288` 是同一 ZIP blob 在历史对象与当前 worktree 重叠检查时累加的成员次数；`1,776` 是对 ZIP blob 去重后六个唯一 ZIP 的成员总数。二者不得混用。
+- Owner 自有 home-path/account alias 共出现 136 次，并存在于六个 ZIP 中。审计未发现额外真实姓名、第三方个人信息、凭据或项目秘密。该 alias 可与邮箱/公开账号关联，Owner 已接受这一关联。
+- confirmed secrets、额外 personal-information candidates、LFS pointers、ZIP path traversal、archive integrity、当前声明依赖许可证未闭合项均为 0。
 
-1. `PUBLIC_HISTORY_PERSONAL_INFORMATION`：可达历史和归档中存在本机 home account 标识；commit author/committer metadata 中存在个人邮箱。两者仅以 match SHA-256、字节数、次数和有限 locator 记录。
-2. `UNSAFE_SYMLINK_OR_GITLINK_IN_HISTORY`：历史 tree 中存在 `160000` gitlink。当前 HEAD 没有 symlink/gitlink，但缺失的外部对象内容、许可证和来源不能由本仓库完整证明。
+## Owner 接受的标识
 
-未经 Owner 对破坏性历史修复的额外明确授权，不执行 history rewrite、force push、远端 ref 删除或发布物删除。即使未来修复远端历史，也不能撤回已经发生的公开披露。
+`PUB-HIST-EMAIL-001` 的分类是 `OWNER_ACCEPTED_PUBLIC_EMAIL_IDENTIFIER`。邮箱标识仍在公开 Git history 中，形状为 `9-digit account identifier at qq.com`；不得描述成 `email redacted in Git history`。Owner 接受继续公开，因此不单独为该标识要求 history rewrite。
 
-## 覆盖范围
+`PUB-HIST-PATH-001` 的分类是 `OWNER_ACCEPTED_PUBLIC_PATH_IDENTIFIER`。哈希与 Owner 本人的本机 account alias 一致；接受范围不包括任何第三方个人信息、额外敏感字段、凭据或秘密。若以后出现此范围之外的发现，审计必须 fail-closed 为 `BLOCKED_NEW_PUBLIC_HISTORY_FINDING`。
 
-审计器逐项覆盖：当前 tracked worktree 的实际字节、untracked 文件、ignored path inventory、全部本地 refs、所有可达 commits/objects/blobs（包括已删除文件）、commit author/committer metadata、历史 tree mode、archive/evidence/log/prompt 路径、ZIP member 内容与 traversal、超大对象和 LICENSE/COPYING 路径。ignored 内容不属于 Git 发布集合，因此只盘点路径而不读取内容。
+## 三个历史 gitlink
 
-当前轮次确认所有可达 text blobs 均进入模式扫描；二进制按类型单独处理，ZIP 解包成员继续扫描。最终精确数量以 machine evidence 为准，因为实现提交和元数据提交会改变 worktree/ref 计数。
+每项均为 `mode=160000`、`.gitmodules absent`、external URL absent、target inaccessible；目标 Git object/tree 不在本仓库，六个 ZIP 也没有目标路径树或嵌套 `.git` metadata。这里只能断言外部目标内容未由本仓库或最终包分发，不能断言目标许可证合规已经核验。
 
-## 材料分类
+| ref | commit | path | object id |
+| --- | --- | --- | --- |
+| `refs/heads/main` | `bd707c75e7c730773fec3f7716847942f9bf27a5` | `repair-worktree/rc1-real-smoke-repo` | `05773fb6bee92b6f58f0aae6556b014103eebd24` |
+| `refs/heads/main` | `bd707c75e7c730773fec3f7716847942f9bf27a5` | `repair-worktree/repaired-source` | `d30d9ac678f143e7bb14ea11a55e8b7cdd7152c8` |
+| `refs/heads/evidence/0.6.5-stable` | `dd4714a52aaef93f4645f4f7b3aded491aa95b0b` | `repair-worktree/repaired-source` | `e2581382415fc167f26d9ce49bb9a6a95a119a04` |
 
-- secrets/credentials：未确认私钥、Provider/OpenAI key、GitHub PAT、AWS key 或 Slack token；源代码中的示例规则和安全术语不作为凭据命中。
-- personal information：确认存在，阻断。包括 local home account 和个人 commit-email metadata；报告不含原值。
-- confidential/unreleased：存在 repair prompts、failure handoff、evidence、logs 和历史 release/withdrawn archives 等项目内部 provenance；未确认第三方 confidentiality/NDA 标记。它们只能在个人信息和来源阻断清除后作为项目公开 provenance 再评估。
-- copyright/licensing：当前仓库含 LICENSE，扫描到的 ZIP 无损坏或 path traversal；历史 gitlink 的外部内容与许可证来源不可在本仓库闭合，因此仍阻断。
-- 条件可公开材料：source code、documentation/prompts、hash-redacted evidence/logs、通过完整性验证的 archives。该分类不覆盖命中的个人信息，也不替代第三方许可证复核。
+三项同时分类为：
 
-## 重新取得资格的条件
+- `ACCEPTED_OPAQUE_HISTORICAL_REFERENCE`
+- `EXTERNAL_CONTENT_NOT_DISTRIBUTED`
+- `EXCLUDED_FROM_RELEASE_PROVENANCE`
 
-需要先形成经 Owner 明确批准的历史修复方案，处理个人 metadata/home path 与历史 gitlink provenance；在所有受影响 refs、归档和公开远端完成可验证修复后，重新运行同一全量审计。只有 `blockers=[]` 且结果为 `PASS_PUBLICATION_ELIGIBILITY_AUDIT`，DEC-001/DEC-002 的稳定发布门禁才可通过。
+## 当前与交付边界
+
+Owner 接受的只是历史 opaque references。活动 `current/` 必须为零 mode-160000、零 `.gitmodules`；candidate/package staging 还必须为零 symlink、零 nested `.git`；final ZIP 必须通过独立 archive-mode gate。发布 provenance 与许可证清单只覆盖实际分发内容。
+
+DEC-001 仍未整体完成：公开历史与风险接受已 PASS，仓库 visibility 已核验为 public，当前/包/归档结构门禁已实现并通过负测；但 GitHub default branch 的 required status checks / branch governance 尚未实际配置并经 API 核验。因此 `DEC-001.implementationVerified=false`。

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "version": "0.6.6",
+  "status": "PUBLIC_HISTORY_OWNER_ACCEPTANCE_APPROVED",
+  "decidedBy": "zyc14588",
+  "decidedAt": "2026-08-26T08:51:40+10:00",
+  "baseline": {
+    "branch": "repair/0.6.6-public-history-acceptance-and-host-cgroup-r1",
+    "head": "c53614dba3d14b1d441c317a167e8e158193df2b",
+    "tree": "423a5b3139e64f85909463a655a138916f719b2b",
+    "worktreeClean": true,
+    "publicHistoryAuditSha256": "3af7e6be9ad2498bca234e469529098f871d795df9da972c2434ca5e308a3afb"
+  },
+  "decisions": {
+    "PUB-HIST-EMAIL-001": {
+      "status": "APPROVED",
+      "selected": "A_ACCEPT_PUBLIC_EMAIL_ACCOUNT_IDENTIFIER_EXPOSURE",
+      "classification": "OWNER_ACCEPTED_PUBLIC_EMAIL_IDENTIFIER",
+      "scope": {
+        "reachableCommits": 32,
+        "authorCommitterOccurrences": 64,
+        "identifierShape": "9-digit account identifier at qq.com",
+        "historyRewriteRequired": false
+      },
+      "ownerAcknowledgement": [
+        "The email/account identifier remains present in public Git author/committer metadata.",
+        "The identifier may be associated with the repository and the owner's public identity.",
+        "The audit must not describe the historical identifier as irreversibly redacted."
+      ]
+    },
+    "PUB-HIST-PATH-001": {
+      "status": "APPROVED",
+      "selected": "A_ACCEPT_PUBLIC_HOME_PATH_AND_ACCOUNT_ALIAS",
+      "classification": "OWNER_ACCEPTED_PUBLIC_PATH_IDENTIFIER",
+      "scope": {
+        "observedOccurrences": 136,
+        "presentInHistoricalZipCount": 6,
+        "historyRewriteRequired": false
+      },
+      "ownerAcknowledgement": [
+        "The home-path account alias may remain public.",
+        "The alias may be correlated with the accepted public email/account identifier.",
+        "Acceptance is limited to the owner's own alias and does not cover unrelated third-party personal data."
+      ]
+    },
+    "PUB-HIST-GITLINK-001": {
+      "status": "APPROVED",
+      "selected": "A_ACCEPT_OPAQUE_HISTORICAL_GITLINK_REFERENCES",
+      "classifications": [
+        "ACCEPTED_OPAQUE_HISTORICAL_REFERENCE",
+        "EXTERNAL_CONTENT_NOT_DISTRIBUTED",
+        "EXCLUDED_FROM_RELEASE_PROVENANCE"
+      ],
+      "scope": {
+        "historicalGitlinkCount": 3,
+        "gitmodulesPresent": false,
+        "externalTargetsAccessible": false,
+        "historyRewriteRequired": false
+      },
+      "ownerAcknowledgement": [
+        "The historical mode-160000 path/object references may remain public.",
+        "This acceptance does not assert that inaccessible external content is license-compliant.",
+        "Stable release provenance and license closure cover only content actually distributed by this repository and final archive.",
+        "Active source and final packages must contain zero gitlinks and zero .gitmodules."
+      ]
+    }
+  },
+  "notAuthorized": [
+    "git history rewrite",
+    "force push",
+    "remote ref deletion",
+    "concealment or deletion of audit findings",
+    "acceptance of credentials or secrets",
+    "acceptance of unrelated third-party personal information",
+    "claiming inaccessible gitlink targets are license-compliant",
+    "automatic push, merge, tag, or GitHub Release"
+  ]
+}

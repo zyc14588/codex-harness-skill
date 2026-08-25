@@ -56,6 +56,7 @@ python3 "$STAGING/scripts/deterministic-zip.py" "$STAGING" "$ARCHIVE" "$ARCHIVE_
 python3 "$STAGING/scripts/deterministic-zip.py" "$STAGING" "$SECOND_ARCHIVE" "$ARCHIVE_ROOT"
 cmp -s "$ARCHIVE" "$SECOND_ARCHIVE" || { echo "Deterministic ZIP comparison failed" >&2; exit 1; }
 rm -f "$SECOND_ARCHIVE"
+python3 "$STAGING/scripts/verify-release-archive.py" "$ARCHIVE" >/dev/null
 ARCHIVE_SHA="$(sha256sum "$ARCHIVE" | awk '{print $1}')"
 printf '%s  %s\n' "$ARCHIVE_SHA" "$ARCHIVE_NAME" > "$SIDECAR"
 
@@ -102,7 +103,8 @@ value={
     "unpackedBuildAndTests":"PASS",
     "unpackedManifest":"PASS",
     "unpackedPackageAcceptance":"PASS",
-    "unpackedSourceGate":"PASS"
+    "unpackedSourceGate":"PASS",
+    "zeroGitlinkAndMetadata":"PASS"
   },
   "attestation":{
     "type":"sha256-chain-v1",

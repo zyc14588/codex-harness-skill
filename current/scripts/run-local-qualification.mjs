@@ -50,6 +50,7 @@ function testCount(output) {
 
 const options = parseArgs(process.argv.slice(2));
 const bridge = path.join(options.root, "bridge");
+const repositoryRoot = path.dirname(options.root);
 const packageJson = JSON.parse(await readFile(path.join(bridge, "package.json"), "utf8"));
 if (packageJson.version !== STABLE_VERSION) {
   throw new Error(`local release qualification requires version ${STABLE_VERSION}`);
@@ -57,20 +58,35 @@ if (packageJson.version !== STABLE_VERSION) {
 const before = await releaseIntegrity(options.root);
 const binding = sourceProof(before);
 const steps = [
-  { name: "candidate-release-gate", command: process.execPath, args: ["scripts/verify-release-gate.mjs", "--root", ".", "--audit-candidate"], cwd: options.root, timeout: 60_000 },
+  { name: "candidate-release-gate", kind: "gate", command: process.execPath, args: ["scripts/verify-release-gate.mjs", "--root", ".", "--audit-candidate"], cwd: options.root, timeout: 60_000 },
   { name: "reproducible-dependency-install", command: "npm", args: ["ci"], cwd: bridge, timeout: 600_000 },
   { name: "strict-typescript-build", command: "npm", args: ["run", "build"], cwd: bridge, timeout: 180_000 },
-  { name: "release-gate-negative-tests", command: process.execPath, args: ["scripts/release-gate.test.mjs"], cwd: options.root, timeout: 120_000 },
-  { name: "unit-and-component-regression", command: "npm", args: ["test"], cwd: bridge, timeout: 900_000 },
+  { name: "release-gate-negative-tests", kind: "unique-test-suite", command: process.execPath, args: ["scripts/release-gate.test.mjs"], cwd: options.root, timeout: 120_000 },
+  { name: "release-structure-negative-tests", kind: "unique-test-suite", command: process.execPath, args: ["scripts/release-structure.test.mjs"], cwd: options.root, timeout: 120_000 },
+  { name: "public-history-audit-tests", kind: "unique-test-suite", command: process.execPath, args: ["scripts/public-repository-history-audit.test.mjs"], cwd: repositoryRoot, timeout: 300_000 },
+  { name: "root-manifest-tests", kind: "unique-test-suite", command: process.execPath, args: ["scripts/root-manifest.test.mjs"], cwd: repositoryRoot, timeout: 300_000 },
+  { name: "unit-and-component-regression", kind: "unique-test-suite", command: "npm", args: ["test"], cwd: bridge, timeout: 900_000 },
   { name: "process-e2e", command: process.execPath, args: ["dist/direct-acceptance.js"], cwd: bridge, timeout: 900_000 },
   { name: "managed-profile-dynamic-fixture", command: process.execPath, args: ["dist/dynamic-profile-fixture.js"], cwd: bridge, timeout: 300_000 },
   { name: "stdio-mcp", command: process.execPath, args: ["dist/acceptance-client.js"], cwd: bridge, timeout: 300_000 },
   { name: "security-acceptance", command: path.join(options.root, "scripts", "security-acceptance.sh"), args: [], cwd: options.root, timeout: 300_000 },
   { name: "skill-validation", command: process.execPath, args: ["scripts/validate-skill.mjs", "skills/codex-harness"], cwd: options.root, timeout: 120_000 },
   { name: "generated-dist-drift", command: "git", args: ["diff", "--exit-code", "--", "current/bridge/dist"], cwd: path.dirname(options.root), timeout: 120_000 },
-  { name: "manifest-regeneration", command: process.execPath, args: ["scripts/update-manifest.mjs", "."], cwd: options.root, timeout: 120_000 },
-  { name: "manifest-verification", command: "sha256sum", args: ["-c", "MANIFEST_SHA256.txt"], cwd: options.root, timeout: 300_000 },
-  { name: "transactional-package-acceptance", command: path.join(options.root, "scripts", "package-acceptance.sh"), args: [], cwd: options.root, timeout: 1_200_000,
+  { name: "public-history-audit", kind: "gate", command: process.execPath, args: [
+    "scripts/public-repository-history-audit.mjs", "--root", ".",
+    "--output", "current/evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json",
+    "--owner-acceptance", "current/evidence/PUBLIC_HISTORY_OWNER_ACCEPTANCE.json",
+    "--baseline-audit", "current/evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT_BASELINE_2026-08-26.json",
+    "--fail-on-blockers",
+  ], cwd: repositoryRoot, timeout: 300_000 },
+  { name: "public-history-risk-acceptance", kind: "gate", command: process.execPath, args: [
+    "scripts/public-history-risk-acceptance.mjs", "--root", ".",
+  ], cwd: repositoryRoot, timeout: 120_000 },
+  { name: "manifest-regeneration", kind: "gate", command: process.execPath, args: ["scripts/update-manifest.mjs", "."], cwd: options.root, timeout: 120_000 },
+  { name: "manifest-verification", kind: "gate", command: process.execPath, args: ["scripts/verify-manifest.mjs", "--root", ".", "--require-git-exact"], cwd: options.root, timeout: 300_000 },
+  { name: "root-manifest-regeneration", kind: "gate", command: process.execPath, args: ["scripts/update-root-manifest.mjs", "--root", "."], cwd: repositoryRoot, timeout: 300_000 },
+  { name: "root-manifest-verification", kind: "gate", command: process.execPath, args: ["scripts/verify-root-manifest.mjs", "--root", "."], cwd: repositoryRoot, timeout: 300_000 },
+  { name: "transactional-package-acceptance", kind: "gate", command: path.join(options.root, "scripts", "package-acceptance.sh"), args: [], cwd: options.root, timeout: 1_200_000,
     env: { CODEX_HARNESS_PACKAGE_SKIP_PROCESS_E2E: "1" } },
 ];
 const executions = [];
@@ -89,6 +105,7 @@ for (const step of steps) {
   const output = `${result.stdout ?? ""}${result.stderr ?? ""}`;
   executions.push({
     name: step.name,
+    kind: step.kind ?? "acceptance",
     result: result.status === 0 ? "PASS" : "FAIL",
     exitCode: result.status,
     signal: result.signal,
@@ -115,7 +132,12 @@ const evidence = {
   generatedAt: new Date().toISOString(),
   currentRevision: true,
   ...binding,
-  testCount: executions.reduce((sum, entry) => sum + entry.testCount, 0),
+  testCount: executions.filter((entry) => entry.kind === "unique-test-suite").reduce((sum, entry) => sum + entry.testCount, 0),
+  testAccounting: {
+    uniqueTestCount: executions.filter((entry) => entry.kind === "unique-test-suite").reduce((sum, entry) => sum + entry.testCount, 0),
+    repeatedTestCount: 0,
+    gateExecutionCount: executions.filter((entry) => entry.kind === "gate").length,
+  },
   steps: executions,
   assertions: {
     strictTypeScriptBuild: executions.some((entry) => entry.name === "strict-typescript-build" && entry.result === "PASS"),
@@ -131,6 +153,11 @@ const evidence = {
     controlledHostResourceEnforcement: "REQUIRES_PROTECTED_HOST_WITH_ALL_CGROUP_CONTROLLERS",
     skillValidation: executions.some((entry) => entry.name === "skill-validation" && entry.result === "PASS"),
     generatedDistDriftFree: executions.some((entry) => entry.name === "generated-dist-drift" && entry.result === "PASS"),
+    publicHistoryAudit: executions.some((entry) => entry.name === "public-history-audit" && entry.result === "PASS"),
+    publicHistoryRiskAcceptance: executions.some((entry) => entry.name === "public-history-risk-acceptance" && entry.result === "PASS"),
+    activePackageArchiveZeroGitlinkNegatives: executions.some((entry) => entry.name === "release-structure-negative-tests" && entry.result === "PASS"),
+    currentManifestExact: executions.some((entry) => entry.name === "manifest-verification" && entry.result === "PASS"),
+    rootManifestExact: executions.some((entry) => entry.name === "root-manifest-verification" && entry.result === "PASS"),
     transactionalInstallRollbackReinstallUninstall: executions.some((entry) => entry.name === "transactional-package-acceptance" && entry.result === "PASS"),
   },
 };

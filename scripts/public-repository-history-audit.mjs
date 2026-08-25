@@ -4,6 +4,7 @@ import { lstatSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSyn
 import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
+import { applyPublicHistoryRiskAcceptance } from "./public-history-risk-acceptance.mjs";
 
 const MAX_SCANNED_BLOB_BYTES = 10_000_000;
 const LARGE_OBJECT_BYTES = 5_000_000;
@@ -48,6 +49,25 @@ function git(root, args, options = {}) {
   return result.stdout;
 }
 
+function gitStatus(root, args, options = {}) {
+  return spawnSync("git", [
+    "-c", "core.hooksPath=/dev/null",
+    "-c", "commit.gpgSign=false",
+    "-c", "tag.gpgSign=false",
+    "-c", "core.fsmonitor=false",
+    "-C", root,
+    ...args,
+  ], { encoding: options.encoding ?? "utf8", maxBuffer: options.maxBuffer ?? 64_000_000 });
+}
+
+function regularJsonInput(target, label) {
+  const resolved = path.resolve(target);
+  const info = lstatSync(resolved);
+  if (!info.isFile() || info.isSymbolicLink()) throw new Error(`${label} must be a regular non-symlink file: ${resolved}`);
+  const bytes = readFileSync(resolved);
+  return { value: JSON.parse(bytes.toString("utf8")), sha256: sha256(bytes) };
+}
+
 function zeroSplit(value) {
   return String(value).split("\0").filter(Boolean);
 }
@@ -76,7 +96,11 @@ function scanText(text, locator, findings) {
     const local = match[0].slice(0, match[0].lastIndexOf("@")).toLowerCase();
     if (SAFE_EMAIL_DOMAINS.has(domain) || domain.endsWith(".invalid") || domain.endsWith(".test") || domain.endsWith(".service")) continue;
     if (domain === "github.com" && local === "git") continue;
-    findings.personalInformation.push({ ...redactFinding("personal_email", locator, match[0]), domain });
+    findings.personalInformation.push({
+      ...redactFinding("personal_email", locator, match[0]),
+      domain,
+      identifierShape: /^[0-9]{9}@qq\.com$/u.test(match[0]) ? "9_DIGIT_ACCOUNT_IDENTIFIER_AT_QQ_COM" : "OTHER_EMAIL_IDENTIFIER",
+    });
   }
   LOCAL_HOME_PATTERN.lastIndex = 0;
   for (const match of text.matchAll(LOCAL_HOME_PATTERN)) {
@@ -109,7 +133,7 @@ function safeArchiveEntry(entry) {
   return normalized !== ".." && !normalized.startsWith("../");
 }
 
-function inspectZip(data, locator, findings, coverage) {
+function inspectZip(data, locator, findings, coverage, inventory) {
   progress(`zip start ${locator}`);
   const temporary = mkdtempSync(path.join(os.tmpdir(), "codex-history-zip-"));
   const zipPath = path.join(temporary, "archive.zip");
@@ -121,7 +145,16 @@ function inspectZip(data, locator, findings, coverage) {
       return;
     }
     const entries = lines(listing.stdout);
-    coverage.zipEntries += entries.length;
+    coverage.zipFileInspectionsOverlapInclusive += 1;
+    coverage.zipMemberOccurrencesOverlapInclusive += entries.length;
+    const archiveSha256 = sha256(data);
+    const firstUniqueInspection = !inventory.archiveSha256.has(archiveSha256);
+    if (firstUniqueInspection) {
+      inventory.archiveSha256.add(archiveSha256);
+      coverage.uniqueZipFiles += 1;
+      coverage.zipMembersAfterZipBlobDeduplication += entries.length;
+      for (const entry of entries) inventory.uniqueArchiveEntries.push(entry);
+    }
     const regularEntries = [];
     for (const entry of entries) {
       if (!safeArchiveEntry(entry)) {
@@ -148,11 +181,16 @@ function inspectZip(data, locator, findings, coverage) {
 }
 
 function parseArgs(argv) {
-  const result = { root: process.cwd(), output: undefined, failOnBlockers: false };
+  const result = {
+    root: process.cwd(), output: undefined, failOnBlockers: false,
+    ownerAcceptance: undefined, baselineAudit: undefined,
+  };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === "--root") result.root = argv[++index];
     else if (arg === "--output") result.output = argv[++index];
+    else if (arg === "--owner-acceptance") result.ownerAcceptance = argv[++index];
+    else if (arg === "--baseline-audit") result.baselineAudit = argv[++index];
     else if (arg === "--fail-on-blockers") result.failOnBlockers = true;
     else throw new Error(`Unknown argument: ${arg}`);
   }
@@ -271,9 +309,12 @@ export function auditPublicRepository(options) {
   const coverage = {
     refs: 0, commits: 0, objects: 0, blobs: 0, scannedTextBlobs: 0, skippedBinaryBlobs: 0,
     oversizedBlobs: 0, trackedWorktreePaths: 0, scannedTrackedWorktreeFiles: 0, untrackedPaths: 0, ignoredPaths: 0,
-    archivePaths: 0, evidencePaths: 0, logPaths: 0, promptPaths: 0, zipBlobs: 0, zipEntries: 0,
+    archivePaths: 0, evidencePaths: 0, logPaths: 0, promptPaths: 0, zipBlobs: 0,
+    uniqueZipFiles: 0, zipFileInspectionsOverlapInclusive: 0,
+    zipMemberOccurrencesOverlapInclusive: 0, zipMembersAfterZipBlobDeduplication: 0,
     selfEvidenceContentExclusions: 0,
   };
+  const zipInventory = { archiveSha256: new Set(), uniqueArchiveEntries: [] };
 
   const refs = lines(git(root, ["for-each-ref", "--format=%(refname)%09%(objectname)"]));
   coverage.refs = refs.length;
@@ -317,7 +358,7 @@ export function auditPublicRepository(options) {
     if (!buffer) throw new Error(`missing blob data for ${oid}`);
     if (/\.zip$/iu.test(objectPath) || (buffer[0] === 0x50 && buffer[1] === 0x4b)) {
       coverage.zipBlobs += 1;
-      inspectZip(buffer, locator, findings, coverage);
+      inspectZip(buffer, locator, findings, coverage, zipInventory);
     }
     if (buffer.includes(0)) { coverage.skippedBinaryBlobs += 1; continue; }
     coverage.scannedTextBlobs += 1;
@@ -347,6 +388,52 @@ export function auditPublicRepository(options) {
     }
   }
 
+  const refRecords = refs.map((item) => { const [name, oid] = item.split("\t"); return { name, oid }; });
+  const gitmodulesInHistory = [...objectPaths.values()].filter((value) => /(^|\/)\.gitmodules$/iu.test(value));
+  const historicalGitlinkMap = new Map();
+  for (const commit of [...commits].reverse()) {
+    for (const entry of zeroSplit(git(root, ["ls-tree", "-r", "-z", commit]))) {
+      const tab = entry.indexOf("\t");
+      if (tab < 0) continue;
+      const [mode, type, oid] = entry.slice(0, tab).split(/\s+/u);
+      if (mode !== "160000" && type !== "commit") continue;
+      const gitlinkPath = entry.slice(tab + 1);
+      const key = `${oid}:${gitlinkPath}`;
+      if (!historicalGitlinkMap.has(key)) {
+        historicalGitlinkMap.set(key, { commit, path: gitlinkPath, mode, type, oid });
+      }
+    }
+  }
+  const historicalGitlinks = [...historicalGitlinkMap.values()].map((item) => {
+    const containing = lines(git(root, ["for-each-ref", "--contains", item.commit, "--format=%(refname)"])).sort();
+    const exactRef = refRecords.find((entry) => entry.oid === item.commit)?.name;
+    const targetProbe = gitStatus(root, ["cat-file", "-e", `${item.oid}^{commit}`]);
+    const targetPathPresentInZip = zipInventory.uniqueArchiveEntries.some((entry) => (
+      entry === item.path || entry.startsWith(`${item.path}/`) || entry.includes(`/${item.path}/`)
+    ));
+    const nestedGitMetadataInZip = zipInventory.uniqueArchiveEntries.some((entry) => /(^|\/)\.git(?:modules|\/|$)/iu.test(entry));
+    return {
+      ref: exactRef ?? containing[0] ?? null,
+      reachableFromRefs: containing,
+      commit: item.commit,
+      path: item.path,
+      mode: item.mode,
+      type: item.type,
+      objectId: item.oid,
+      gitmodulesPresent: gitmodulesInHistory.length > 0,
+      externalUrl: null,
+      targetAccessible: targetProbe.status === 0,
+      externalContentPresentInRepository: targetProbe.status === 0,
+      externalContentPresentInHistoricalZips: targetPathPresentInZip || nestedGitMetadataInZip,
+      classifications: [
+        "ACCEPTED_OPAQUE_HISTORICAL_REFERENCE",
+        "EXTERNAL_CONTENT_NOT_DISTRIBUTED",
+        "EXCLUDED_FROM_RELEASE_PROVENANCE",
+      ],
+      licenseStatement: "INACCESSIBLE_EXTERNAL_TARGET_LICENSE_COMPLIANCE_NOT_VERIFIED",
+    };
+  });
+
   const tracked = zeroSplit(git(root, ["ls-files", "-z"]));
   progress("tree scans complete");
   const untracked = zeroSplit(git(root, ["ls-files", "--others", "--exclude-standard", "-z"]));
@@ -354,6 +441,22 @@ export function auditPublicRepository(options) {
   coverage.trackedWorktreePaths = tracked.length;
   coverage.untrackedPaths = untracked.length;
   coverage.ignoredPaths = ignored.length;
+  const activeIndex = zeroSplit(git(root, ["ls-files", "-s", "-z", "--", "current"]));
+  const activeGitlinks = [];
+  const activeGitmodules = [];
+  for (const entry of activeIndex) {
+    const tab = entry.indexOf("\t");
+    if (tab < 0) continue;
+    const [mode] = entry.slice(0, tab).split(/\s+/u);
+    const relative = entry.slice(tab + 1);
+    if (mode === "160000") activeGitlinks.push(relative);
+    if (/(^|\/)\.gitmodules$/iu.test(relative)) activeGitmodules.push(relative);
+  }
+  for (const relative of untracked) {
+    if (relative === "current/.gitmodules" || (relative.startsWith("current/") && /(^|\/)\.gitmodules$/iu.test(relative))) {
+      activeGitmodules.push(relative);
+    }
+  }
   for (const relative of tracked) {
     if (relative === AUDIT_EVIDENCE_PATH) {
       coverage.selfEvidenceContentExclusions += 1;
@@ -371,7 +474,9 @@ export function auditPublicRepository(options) {
     if (info.size >= LARGE_OBJECT_BYTES) findings.largeObjects.push({ locator: `worktree-tracked:${relative}`, bytes: info.size, source: "worktree_tracked" });
     if (info.size > MAX_SCANNED_BLOB_BYTES) continue;
     const data = readFileSync(absolute);
-    if (/\.zip$/iu.test(relative) || (data[0] === 0x50 && data[1] === 0x4b)) inspectZip(data, `worktree-tracked:${relative}`, findings, coverage);
+    if (/\.zip$/iu.test(relative) || (data[0] === 0x50 && data[1] === 0x4b)) {
+      inspectZip(data, `worktree-tracked:${relative}`, findings, coverage, zipInventory);
+    }
     if (!data.includes(0)) scanText(data.toString("utf8"), `worktree-tracked:${relative}`, findings);
   }
   for (const relative of untracked) {
@@ -411,15 +516,29 @@ export function auditPublicRepository(options) {
       matchedUtf8Bytes: item.matchedUtf8Bytes,
       ...(item.domain ? { domain: item.domain } : {}),
       ...(item.identityClass ? { identityClass: item.identityClass } : {}),
+      ...(item.identifierShape ? { identifierShape: item.identifierShape } : {}),
       ...(item.reviewRequired ? { reviewRequired: true } : {}),
       occurrenceCount: 0,
       representativeLocators: [],
+      _commitLocators: new Set(),
+      _historicalZipLocators: new Set(),
     };
     existing.occurrenceCount += 1;
     if (existing.representativeLocators.length < 5) existing.representativeLocators.push(item.locator);
+    const commitMatch = /^commit:([0-9a-f]{40,64}):/u.exec(item.locator);
+    if (commitMatch) existing._commitLocators.add(commitMatch[1]);
+    const zipMatch = /^git-blob:([0-9a-f]{40,64}):.*\.zip!\[aggregate-members\]$/iu.exec(item.locator);
+    if (zipMatch) existing._historicalZipLocators.add(zipMatch[1]);
       groups.set(key, existing);
     }
-    return [...groups.values()];
+    return [...groups.values()].map((item) => {
+      const value = { ...item };
+      if (item._commitLocators.size > 0) value.uniqueCommitCount = item._commitLocators.size;
+      if (item._historicalZipLocators.size > 0) value.uniqueHistoricalZipCount = item._historicalZipLocators.size;
+      delete value._commitLocators;
+      delete value._historicalZipLocators;
+      return value;
+    });
   };
   findings.personalInformation = groupPrivacyFindings(findings.personalInformation);
   findings.personalInformationCandidates = groupPrivacyFindings(findings.personalInformationCandidates);
@@ -444,7 +563,7 @@ export function auditPublicRepository(options) {
     blockers.push("THIRD_PARTY_LICENSE_REVIEW_INCOMPLETE");
   }
   const result = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     auditPolicy: "DEC-001-full-repository-and-history-audit-v1",
     observedAt: new Date().toISOString(),
     repositoryRootSha256: sha256(root),
@@ -452,7 +571,15 @@ export function auditPublicRepository(options) {
     result: blockers.length ? "BLOCKED_PUBLIC_HISTORY_REMEDIATION" : "PASS_PUBLICATION_ELIGIBILITY_AUDIT",
     blockers,
     coverage,
-    refs: refs.map((item) => { const [name, oid] = item.split("\t"); return { name, oid }; }),
+    refs: refRecords,
+    activeSource: {
+      scope: "current/",
+      trackedEntryCount: activeIndex.length,
+      gitlinkCount: activeGitlinks.length,
+      gitmodulePaths: [...new Set(activeGitmodules)].sort(),
+      gitmodulesCount: new Set(activeGitmodules).size,
+    },
+    historicalGitlinks,
     worktree: {
       trackedPathSetSha256: sha256(trackedLower.sort().join("\0")),
       untrackedPathSetSha256: sha256(untracked.sort().join("\0")),
@@ -494,6 +621,25 @@ export function auditPublicRepository(options) {
       "No history rewrite, remote deletion, visibility change, branch protection mutation, push, or release action is performed by this audit.",
     ],
   };
+  if (options.ownerAcceptance || options.baselineAudit) {
+    if (!options.ownerAcceptance || !options.baselineAudit) {
+      throw new Error("--owner-acceptance and --baseline-audit must be supplied together");
+    }
+    const owner = regularJsonInput(options.ownerAcceptance, "Owner acceptance");
+    const baseline = regularJsonInput(options.baselineAudit, "baseline public-history audit");
+    result.auditPolicy = "DEC-001-full-repository-and-history-audit-v2-owner-acceptance";
+    applyPublicHistoryRiskAcceptance(result, {
+      ownerAcceptance: owner.value,
+      baselineAudit: baseline.value,
+      baselineAuditSha256: baseline.sha256,
+    });
+    result.ownerAcceptance = {
+      path: path.relative(root, path.resolve(options.ownerAcceptance)).split(path.sep).join("/"),
+      sha256: owner.sha256,
+      baselineAuditPath: path.relative(root, path.resolve(options.baselineAudit)).split(path.sep).join("/"),
+      baselineAuditSha256: baseline.sha256,
+    };
+  }
   return result;
 }
 

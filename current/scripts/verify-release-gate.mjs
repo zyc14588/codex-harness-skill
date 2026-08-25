@@ -13,8 +13,10 @@ import {
   releaseIntegrity,
   sha256File,
 } from "./release-integrity.mjs";
+import { auditActiveSourceStructure, auditPackageStructure } from "./release-structure.mjs";
 
 export const REQUIRED_STABLE_SOURCE_GATES = Object.freeze([
+  "activeSourceStructure",
   "branchProtectionRequiredChecks",
   "brokeredToolCancellationNegatives",
   "cleanReviewedPatchVerification",
@@ -51,6 +53,7 @@ export const REQUIRED_ARCHIVE_CHECKS = Object.freeze([
   "unpackedManifest",
   "unpackedPackageAcceptance",
   "unpackedSourceGate",
+  "zeroGitlinkAndMetadata",
 ].sort());
 
 const EXPECTED_ARCHIVE_NAME = "CODEX_HARNESS_BRIDGE_0_6_6_STABLE.zip";
@@ -241,7 +244,7 @@ function assertStableSourceGates(status) {
 
 async function assertOwnerDecisions(root, config) {
   const document = await jsonFile(path.join(root, "docs/OWNER_DECISIONS.json"), "owner decisions");
-  if (document.schemaVersion !== 2 || document.version !== STABLE_VERSION
+  if (document.schemaVersion !== 3 || document.version !== STABLE_VERSION
     || document.decidedBy !== "zyc14588" || document.decidedAt !== "2026-08-26T01:22:12+10:00") {
     throw new Error("owner decisions schema/version/attribution is invalid");
   }
@@ -264,10 +267,24 @@ async function assertOwnerDecisions(root, config) {
     }
   }
   const publicAudit = await jsonFile(path.join(root, "evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json"), "public repository/history audit");
-  if (publicAudit.result !== "PASS_PUBLICATION_ELIGIBILITY_AUDIT"
+  if (publicAudit.result !== "PASS"
+    || publicAudit.findingsDisposition !== "PASS_WITH_OWNER_ACCEPTED_HISTORICAL_FINDINGS"
+    || publicAudit.historyRewriteRequired !== false || publicAudit.confirmedSecrets !== 0
+    || publicAudit.unresolvedDistributedLicenseFindings !== 0
+    || JSON.stringify(publicAudit.ownerDecisionIds) !== JSON.stringify([
+      "PUB-HIST-EMAIL-001", "PUB-HIST-PATH-001", "PUB-HIST-GITLINK-001",
+    ])
     || !Array.isArray(publicAudit.blockers) || publicAudit.blockers.length !== 0
-    || publicAudit.auditPolicy !== "DEC-001-full-repository-and-history-audit-v1") {
+    || publicAudit.auditPolicy !== "DEC-001-full-repository-and-history-audit-v2-owner-acceptance") {
     throw new Error("DEC-001/DEC-002 require a complete PASS public repository/history audit");
+  }
+  const riskAcceptance = await jsonFile(path.join(root, "evidence/PUBLIC_HISTORY_RISK_ACCEPTANCE.json"), "public-history risk acceptance");
+  if (riskAcceptance.result !== "PASS"
+    || riskAcceptance.findingsDisposition !== "PASS_WITH_OWNER_ACCEPTED_HISTORICAL_FINDINGS"
+    || riskAcceptance.historyRewriteRequired !== false || riskAcceptance.confirmedSecrets !== 0
+    || riskAcceptance.unresolvedDistributedLicenseFindings !== 0
+    || JSON.stringify(riskAcceptance.ownerDecisionIds) !== JSON.stringify(publicAudit.ownerDecisionIds)) {
+    throw new Error("DEC-001/DEC-002 require exact Owner public-history risk acceptance evidence");
   }
   const disclosure = await readFile(path.join(root, "docs/REPOSITORY_HISTORY_DISCLOSURE_BOUNDARY_ZH.md"), "utf8");
   if (!disclosure.includes("accepted disclosure boundary") || !disclosure.includes("configured remote model")) {
@@ -544,6 +561,13 @@ async function validateArchive(options, status, packageOriginSha256) {
     throw new Error(`stable archive name must be ${EXPECTED_ARCHIVE_NAME}`);
   }
   const archiveSha256 = await sha256File(options.archive);
+  const archiveStructure = spawnSync("python3", [path.join(options.root, "scripts/verify-release-archive.py"), options.archive], {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  if (archiveStructure.status !== 0) {
+    throw new Error(`final archive structure gate failed: ${String(archiveStructure.stderr || archiveStructure.stdout).trim()}`);
+  }
   const sidecar = (await readFile(options.sidecar, "utf8")).trim();
   if (sidecar !== `${archiveSha256}  ${EXPECTED_ARCHIVE_NAME}`) throw new Error("archive SHA-256 sidecar does not bind the final archive");
   const validation = await jsonFile(options.validation, "archive validation sidecar");
@@ -593,12 +617,16 @@ export async function verifyReleaseGate(options) {
     if (status.finalArchive !== undefined && status.finalArchive !== null) throw new Error("candidate release must not declare a final archive");
     await assertVersionSurfaces(root, status.version);
     const integrity = await releaseIntegrity(root);
+    const structure = integrity.git.available
+      ? await auditActiveSourceStructure(root)
+      : await auditPackageStructure(root);
     return {
       releaseStatus: "candidate",
       installMode: "audit-only",
       skipSelfTests: options.skipSelfTests === true,
       sourceTreeSha256: integrity.source.sha256,
       criticalSetSha256: integrity.critical.setSha256,
+      structureGate: structure.result,
     };
   }
   if (status.releaseStatus === "seal_ready") {
@@ -610,6 +638,7 @@ export async function verifyReleaseGate(options) {
     if (status.finalArchive !== null) throw new Error("seal-ready source must not declare an archive before packaging");
     if (options.skipSelfTests || options.requireArchive) throw new Error("seal-ready source verification cannot skip tests or claim archive validation");
     await assertVersionSurfaces(root, STABLE_VERSION);
+    await auditActiveSourceStructure(root);
     const source = await assertSourceAndEvidence(root, status, {
       requireGit: true,
       externalEvidence: options.externalEvidence,
@@ -632,6 +661,7 @@ export async function verifyReleaseGate(options) {
     throw new Error("stable release requires controlled use, deliverable PASS, and current real Provider PASS");
   }
   await assertVersionSurfaces(root, STABLE_VERSION);
+  await auditPackageStructure(root);
   const source = await assertSourceAndEvidence(root, status, { requireGit: false });
   const packageOrigin = await assertPackageOrigin(root, status, source.integrity);
   if (options.auditPackageStaging) {
