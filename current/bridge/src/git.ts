@@ -1,4 +1,5 @@
 import path from "node:path";
+import { createHash } from "node:crypto";
 import { lstat, readFile, realpath, stat } from "node:fs/promises";
 import type { TaskRecord } from "./types.js";
 import { isWithin, leaseMatches, normalizeRepoRelative, pathExists, runProcess } from "./util.js";
@@ -6,6 +7,17 @@ import { isWithin, leaseMatches, normalizeRepoRelative, pathExists, runProcess }
 const MAX_GIT_CAPTURE_CHARS = 10_000_000;
 const MAX_PATCH_CHARS = 50_000_000;
 const MAX_REVIEW_FILE_BYTES = 5_000_000;
+export const MAX_REVIEW_PAGE_BYTES = 49_152;
+const SAFE_GIT_CONFIG_ARGS = [
+  "-c", "core.hooksPath=/dev/null",
+  "-c", "commit.gpgSign=false",
+  "-c", "tag.gpgSign=false",
+  "-c", "core.fsmonitor=false",
+];
+
+function safeGitArgs(args: string[]): string[] {
+  return [...SAFE_GIT_CONFIG_ARGS, "-c", "core.quotepath=false", ...args];
+}
 
 async function git(
   cwd: string,
@@ -13,7 +25,7 @@ async function git(
   timeoutMs = 120_000,
   maxCaptureChars = MAX_GIT_CAPTURE_CHARS,
 ): Promise<string> {
-  const result = await runProcess("git", ["-c", "core.quotepath=false", ...args], { cwd, timeoutMs, maxCaptureChars, killProcessGroup: true });
+  const result = await runProcess("git", safeGitArgs(args), { cwd, timeoutMs, maxCaptureChars, killProcessGroup: true });
   if (result.code !== 0) throw new Error(`git ${args.join(" ")} failed (${result.code}): ${result.stderr || result.stdout}`);
   if (result.stdoutTruncated) throw new Error(`git ${args.join(" ")} output exceeded ${maxCaptureChars} characters`);
   return result.stdout;
@@ -131,9 +143,9 @@ export async function unsafeChangedGitlinkPaths(worktreePath: string, paths: str
 
 export async function textFileAtCommit(repoRoot: string, commit: string, filePath: string): Promise<string | undefined> {
   const relative = normalizeRepoRelative(filePath);
-  const exists = await runProcess("git", ["-C", repoRoot, "cat-file", "-e", `${commit}:${relative}`], { timeoutMs: 10_000, killProcessGroup: true });
+  const exists = await runProcess("git", safeGitArgs(["-C", repoRoot, "cat-file", "-e", `${commit}:${relative}`]), { timeoutMs: 10_000, killProcessGroup: true });
   if (exists.code !== 0) return undefined;
-  const result = await runProcess("git", ["-C", repoRoot, "show", `${commit}:${relative}`], {
+  const result = await runProcess("git", safeGitArgs(["-C", repoRoot, "show", `${commit}:${relative}`]), {
     timeoutMs: 30_000,
     maxCaptureChars: 1_000_000,
     killProcessGroup: true,
@@ -174,7 +186,7 @@ export async function removeWorktree(repoRoot: string, worktreePath: string, for
 }
 
 export async function deleteBranch(repoRoot: string, branchName: string, force: boolean): Promise<void> {
-  const check = await runProcess("git", ["-C", repoRoot, "show-ref", "--verify", "--quiet", `refs/heads/${branchName}`], { timeoutMs: 10_000, killProcessGroup: true });
+  const check = await runProcess("git", safeGitArgs(["-C", repoRoot, "show-ref", "--verify", "--quiet", `refs/heads/${branchName}`]), { timeoutMs: 10_000, killProcessGroup: true });
   if (check.code !== 0) return;
   await git(repoRoot, ["branch", force ? "-D" : "-d", branchName], 120_000);
 }
@@ -218,9 +230,9 @@ export async function binaryPatch(worktreePath: string, baseCommit: string): Pro
   const tracked = await git(worktreePath, ["diff", "--binary", "--full-index", baseCommit, "--"], 300_000, MAX_PATCH_CHARS);
   if (tracked) sections.push(tracked.trimEnd());
   for (const file of await untrackedPaths(worktreePath)) {
-    const result = await runProcess("git", [
-      "-c", "core.quotepath=false", "diff", "--no-index", "--binary", "--full-index", "--", "/dev/null", file,
-    ], { cwd: worktreePath, timeoutMs: 300_000, maxCaptureChars: MAX_PATCH_CHARS, killProcessGroup: true });
+    const result = await runProcess("git", safeGitArgs([
+      "diff", "--no-index", "--binary", "--full-index", "--", "/dev/null", file,
+    ]), { cwd: worktreePath, timeoutMs: 300_000, maxCaptureChars: MAX_PATCH_CHARS, killProcessGroup: true });
     if (result.code !== 1 || !result.stdout || result.stdoutTruncated) {
       throw new Error(`cannot encode untracked file in canonical reviewed patch: ${file}: ${result.stderr || result.stdout}`);
     }
@@ -250,21 +262,63 @@ export async function commitLog(worktreePath: string, baseCommit: string): Promi
   return await git(worktreePath, ["log", "--oneline", "--decorate", `${baseCommit}..HEAD`]);
 }
 
-export async function readRepoFile(worktreePath: string, filePath: string): Promise<string> {
+export interface ReviewFilePage {
+  content: string;
+  source: "worktree" | "base_commit_deleted";
+  fileSha256: string;
+  totalBytes: number;
+  requestedOffsetBytes: number;
+  offsetBytes: number;
+  returnedBytes: number;
+  nextOffsetBytes: number | null;
+}
+
+export async function readRepoFile(
+  worktreePath: string,
+  filePath: string,
+  baseCommit: string,
+  requestedOffsetBytes = 0,
+  requestedMaxBytes = MAX_REVIEW_PAGE_BYTES,
+): Promise<ReviewFilePage> {
   const relative = normalizeRepoRelative(filePath);
   const absolute = path.resolve(worktreePath, relative);
   const root = await realpath(worktreePath);
   if (!isWithin(absolute, root)) throw new Error("path escapes worktree");
-  const resolved = await realpath(absolute);
-  if (!isWithin(resolved, root)) throw new Error(`${relative} resolves outside the worktree`);
-  const info = await stat(resolved);
-  if (!info.isFile()) throw new Error(`${relative} is not a regular file`);
-  if (info.size > MAX_REVIEW_FILE_BYTES) throw new Error(`${relative} exceeds the ${MAX_REVIEW_FILE_BYTES}-byte review limit`);
-  const data = await readFile(resolved);
+  if (!Number.isSafeInteger(requestedOffsetBytes) || requestedOffsetBytes < 0) throw new Error("offsetBytes must be a non-negative integer");
+  if (!Number.isSafeInteger(requestedMaxBytes) || requestedMaxBytes < 256 || requestedMaxBytes > MAX_REVIEW_PAGE_BYTES) {
+    throw new Error(`maxBytes must be an integer from 256 to ${MAX_REVIEW_PAGE_BYTES}`);
+  }
+  let data: Buffer;
+  let source: ReviewFilePage["source"] = "worktree";
+  if (await pathExists(absolute)) {
+    const resolved = await realpath(absolute);
+    if (!isWithin(resolved, root)) throw new Error(`${relative} resolves outside the worktree`);
+    const info = await stat(resolved);
+    if (!info.isFile()) throw new Error(`${relative} is not a regular file`);
+    if (info.size > MAX_REVIEW_FILE_BYTES) throw new Error(`${relative} exceeds the ${MAX_REVIEW_FILE_BYTES}-byte review limit`);
+    data = await readFile(resolved);
+  } else {
+    source = "base_commit_deleted";
+    const deleted = await git(worktreePath, ["show", `${baseCommit}:${relative}`], 30_000, MAX_REVIEW_FILE_BYTES + 1);
+    data = Buffer.from(deleted, "utf8");
+    if (data.length > MAX_REVIEW_FILE_BYTES) throw new Error(`${relative} base version exceeds the ${MAX_REVIEW_FILE_BYTES}-byte review limit`);
+  }
   if (data.includes(0)) throw new Error(`${relative} appears to be binary`);
-  const lines = data.toString("utf8").split(/\r?\n/);
-  const capped = lines.slice(0, 2000).join("\n");
-  return lines.length > 2000 ? `${capped}\n\n[FILE TRUNCATED: ${lines.length - 2000} lines omitted]\n` : capped;
+  let start = Math.min(requestedOffsetBytes, data.length);
+  while (start < data.length && (data[start]! & 0xc0) === 0x80) start += 1;
+  let end = Math.min(data.length, start + requestedMaxBytes);
+  while (end > start && end < data.length && (data[end]! & 0xc0) === 0x80) end -= 1;
+  const selected = data.subarray(start, end);
+  return {
+    content: selected.toString("utf8"),
+    source,
+    fileSha256: createHash("sha256").update(data).digest("hex"),
+    totalBytes: data.length,
+    requestedOffsetBytes,
+    offsetBytes: start,
+    returnedBytes: selected.length,
+    nextOffsetBytes: end < data.length ? end : null,
+  };
 }
 
 export async function createCommit(worktreePath: string, message: string): Promise<{ commit: string; created: boolean }> {
@@ -277,7 +331,7 @@ export async function createCommit(worktreePath: string, message: string): Promi
   } catch (error) {
     // The precondition for bridge commits is an empty index. Restore that state if
     // `git add` or a commit hook/signing policy fails, while preserving worktree edits.
-    const reset = await runProcess("git", ["-C", worktreePath, "reset", "--mixed", "HEAD"], {
+    const reset = await runProcess("git", safeGitArgs(["-C", worktreePath, "reset", "--mixed", "HEAD"]), {
       timeoutMs: 120_000,
       maxCaptureChars: MAX_GIT_CAPTURE_CHARS,
     });
@@ -296,6 +350,6 @@ export async function assertTaskWorktreeIdentity(task: TaskRecord): Promise<void
   }
   const branch = (await git(task.worktreePath, ["branch", "--show-current"])).trim();
   if (branch !== task.branchName) throw new Error(`branch identity mismatch: expected ${task.branchName}, got ${branch || "DETACHED"}`);
-  const ancestor = await runProcess("git", ["-C", task.worktreePath, "merge-base", "--is-ancestor", task.baseCommit, "HEAD"], { timeoutMs: 10_000, killProcessGroup: true });
+  const ancestor = await runProcess("git", safeGitArgs(["-C", task.worktreePath, "merge-base", "--is-ancestor", task.baseCommit, "HEAD"]), { timeoutMs: 10_000, killProcessGroup: true });
   if (ancestor.code !== 0) throw new Error(`base commit ${task.baseCommit} is not an ancestor of task HEAD`);
 }

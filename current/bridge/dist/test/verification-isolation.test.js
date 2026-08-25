@@ -4,7 +4,9 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { createWorktree, removeWorktree } from "../git.js";
-import { reviewTask, verifyTask } from "../service.js";
+import { readChangedFile, reviewTask, verifyTask } from "../service.js";
+import { createPinnedHostResourceProfile, freezeHostResourceProfile } from "../resource-controls.js";
+import { sha256Executable } from "../process-identity.js";
 import { createPlan, createTask, taskDirectory } from "../store.js";
 import { runProcess } from "../util.js";
 import { testConfig } from "./test-config.js";
@@ -50,6 +52,7 @@ async function makeTask(config, repo, baseCommit, root, id, verificationCommand)
         effectiveExecutor: "harness",
         complexity: "small",
         harnessMode: "minimal",
+        resourceProfile: freezeHostResourceProfile(config, "local_or_flash_trivial_small"),
         dependsOn: [],
         toolCapabilities: [],
         taskFamily: "security/verification-isolation",
@@ -97,6 +100,7 @@ async function makeTask(config, repo, baseCommit, root, id, verificationCommand)
         routingReason: "fixture",
         complexity: task.complexity,
         harnessMode: task.harnessMode,
+        resourceProfile: task.resourceProfile,
         dependsOn: [],
         toolCapabilities: [],
         taskFamily: task.taskFamily,
@@ -130,9 +134,29 @@ async function makeTask(config, repo, baseCommit, root, id, verificationCommand)
     };
     await createPlan(config, plan);
     await createTask(config, task);
-    await writeFile(path.join(worktreePath, "result.txt"), "reviewed result\n");
+    await writeFile(path.join(worktreePath, "result.txt"), `${"reviewed-result-".repeat(48)}\n`);
     await mkdir(path.join(worktreePath, ".cache"), { recursive: true });
     await writeFile(path.join(worktreePath, ".cache", "poison"), "ignored false-pass artifact\n");
+    await assert.rejects(reviewTask(id, "approved", ["result.txt"], "must not approve unread content"), /complete paginated read receipts/u);
+    const first = await readChangedFile(id, "result.txt", 0, 256);
+    assert.equal(first.receipt.complete, false);
+    await assert.rejects(reviewTask(id, "approved", ["result.txt"], "must not approve partially read content"), /complete paginated read receipts/u);
+    let offset = first.nextOffsetBytes;
+    while (offset !== null) {
+        const page = await readChangedFile(id, "result.txt", offset, 256);
+        offset = page.nextOffsetBytes;
+        if (offset === null)
+            assert.equal(page.receipt.complete, true);
+    }
+    await writeFile(path.join(worktreePath, "result.txt"), `${"reviewed-result-".repeat(48)}changed\n`);
+    await assert.rejects(reviewTask(id, "approved", ["result.txt"], "must not approve a change made after reading"), /complete paginated read receipts/u);
+    offset = 0;
+    while (offset !== null) {
+        const page = await readChangedFile(id, "result.txt", offset, 256);
+        offset = page.nextOffsetBytes;
+        if (offset === null)
+            assert.equal(page.receipt.complete, true);
+    }
     await reviewTask(id, "approved", ["result.txt"], "reviewed fixture patch");
     return task;
 }
@@ -154,7 +178,20 @@ test("authoritative verification excludes ignored false-pass artifacts and remov
         await git(repo, ["add", ".gitignore", "README.md"]);
         await git(repo, ["commit", "-qm", "fixture"]);
         const baseCommit = await git(repo, ["rev-parse", "HEAD"]);
-        const config = testConfig(stateRoot, { allowedRepoRoots: [root] });
+        const base = testConfig(stateRoot, { allowedRepoRoots: [root] });
+        const [bwrap, resourceProfile] = await Promise.all([
+            sha256Executable("/usr/bin/bwrap"),
+            createPinnedHostResourceProfile("audit_only"),
+        ]);
+        const config = testConfig(stateRoot, {
+            allowedRepoRoots: [root],
+            harnessIsolation: {
+                ...base.harnessIsolation,
+                bubblewrapBinary: bwrap.realpath,
+                bubblewrapSha256: bwrap.sha256,
+                resourceProfile,
+            },
+        });
         await mkdir(stateRoot, { recursive: true });
         await writeFile(configPath, `${JSON.stringify(config, null, 2)}\n`, { mode: 0o600 });
         process.env.CODEX_HARNESS_CONFIG = configPath;

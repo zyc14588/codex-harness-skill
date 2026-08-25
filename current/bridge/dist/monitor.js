@@ -369,8 +369,9 @@ export async function buildMonitorSnapshot(config, limit = 100, live = []) {
     grandLiveCny = rounded(grandLiveCny);
     grandLiveUsd = rounded(grandLiveUsd);
     const snapshot = {
-        schemaVersion: 6,
+        schemaVersion: 7,
         serviceVersion: "0.6.6",
+        installationIdentity: config.installation ?? { status: "source_or_legacy_runtime_without_candidate_binding" },
         generatedAt: nowIso(),
         pricingAsOf: config.monitor.pricingAsOf,
         costSemantics: "configured_pricing_estimate_cny_primary",

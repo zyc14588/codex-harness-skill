@@ -3,9 +3,32 @@ import { mkdtemp, rm, stat, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { assertControlledResourceProfile, createPinnedHostResourceProfile, directoryAllocatedBytes, probeHostResourceProfile, resourceWrappedCommand, } from "../resource-controls.js";
+import { assertControlledResourceProfile, createPinnedHostResourceProfile, directoryAllocatedBytes, freezeHostResourceProfile, OWNER_RESOURCE_LIMITS, probeHostResourceProfile, RESOURCE_PROFILE_IDS, resourceWrappedCommand, selectResourceProfileId, } from "../resource-controls.js";
 import { runProcess } from "../util.js";
 import { testConfig } from "./test-config.js";
+test("Owner tiered profiles route deterministically and freeze exact hashes", () => {
+    const config = testConfig(os.tmpdir());
+    assert.equal(selectResourceProfileId("llama_cpp", undefined, "trivial"), "local_or_flash_trivial_small");
+    assert.equal(selectResourceProfileId("harness", "deepseek-v4-flash", "small"), "local_or_flash_trivial_small");
+    assert.equal(selectResourceProfileId("harness", "deepseek-v4-flash", "medium"), "flash_medium");
+    assert.equal(selectResourceProfileId("harness", "deepseek-v4-pro", "large"), "pro_large");
+    assert.throws(() => selectResourceProfileId("harness", "deepseek-v4-flash", "large"), /does not accept large/u);
+    assert.throws(() => selectResourceProfileId("harness", "deepseek-v4-pro", "medium"), /unsupported model\/complexity/u);
+    const hashes = new Set();
+    for (const id of RESOURCE_PROFILE_IDS) {
+        const frozen = freezeHostResourceProfile(config, id);
+        assert.equal(frozen.resourceProfileId, id);
+        assert.deepEqual(Object.fromEntries(Object.keys(OWNER_RESOURCE_LIMITS[id]).map((key) => [key, frozen[key]])), OWNER_RESOURCE_LIMITS[id]);
+        assert.match(frozen.resourceProfileHash, /^[0-9a-f]{64}$/u);
+        hashes.add(frozen.resourceProfileHash);
+    }
+    assert.equal(hashes.size, RESOURCE_PROFILE_IDS.length);
+});
+test("Owner profile tampering fails before a process can launch", async () => {
+    const config = testConfig(os.tmpdir());
+    config.harnessIsolation.resourceProfiles.flash_medium.memoryMaxBytes += 1;
+    assert.throws(() => freezeHostResourceProfile(config, "flash_medium"), /Owner-approved value/u);
+});
 test("audit-only resource wrapper pins and dynamically enforces RLIMIT values", { skip: process.platform !== "linux" }, async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), "codex-harness-resource-audit-"));
     try {
@@ -34,6 +57,68 @@ test("audit-only resource wrapper pins and dynamically enforces RLIMIT values", 
         assert.equal(probe.rlimitNoFile, true);
         assert.equal(probe.rlimitNproc, true);
         assert.equal(probe.rlimitFsize, true);
+    }
+    finally {
+        await rm(root, { recursive: true, force: true });
+    }
+});
+test("every Owner tier is dynamically routed through its exact audit-only RLIMIT wrapper", { skip: process.platform !== "linux" }, async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "codex-harness-resource-tiers-"));
+    try {
+        const base = testConfig(root);
+        base.harnessIsolation.resourceProfile = await createPinnedHostResourceProfile("audit_only");
+        for (const id of RESOURCE_PROFILE_IDS) {
+            const profile = freezeHostResourceProfile(base, id);
+            const wrapped = await resourceWrappedCommand(base, `tier-${id}`, process.execPath, ["-e", [
+                    "const fs=require('node:fs');",
+                    "process.stdout.write(fs.readFileSync('/proc/self/limits','utf8'));",
+                ].join("")], profile);
+            assert.equal(wrapped.cgroupEnforced, false);
+            const result = await runProcess(wrapped.command, wrapped.args, { env: wrapped.env, timeoutMs: 5_000, killProcessGroup: true });
+            assert.equal(result.code, 0, `${id}: ${result.stderr}`);
+            assert.match(result.stdout, new RegExp(`^Max open files\\s+${profile.rlimitNoFile}\\s+${profile.rlimitNoFile}\\s+`, "mu"));
+            assert.match(result.stdout, new RegExp(`^Max processes\\s+${profile.rlimitNproc}\\s+${profile.rlimitNproc}\\s+`, "mu"));
+            assert.match(result.stdout, new RegExp(`^Max file size\\s+${profile.rlimitFsizeBytes}\\s+${profile.rlimitFsizeBytes}\\s+`, "mu"));
+        }
+    }
+    finally {
+        await rm(root, { recursive: true, force: true });
+    }
+});
+test("every Owner tier encodes its exact required cgroup and runtime ceilings", { skip: process.platform !== "linux" }, async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "codex-harness-resource-required-tiers-"));
+    try {
+        const config = testConfig(root);
+        config.harnessIsolation.resourceProfile = await createPinnedHostResourceProfile("required");
+        for (const id of RESOURCE_PROFILE_IDS) {
+            const profile = freezeHostResourceProfile(config, id);
+            const wrapped = await resourceWrappedCommand(config, `required-${id}`, "/usr/bin/true", [], profile);
+            assert.equal(wrapped.cgroupEnforced, true);
+            for (const expected of [
+                `--property=MemoryMax=${profile.memoryMaxBytes}`,
+                `--property=CPUQuota=${profile.cpuQuotaPercent}%`,
+                `--property=TasksMax=${profile.tasksMax}`,
+                `--property=IOWeight=${profile.ioWeight}`,
+                `--property=RuntimeMaxSec=${profile.commandTimeoutSeconds}s`,
+                `--nofile=${profile.rlimitNoFile}:${profile.rlimitNoFile}`,
+                `--nproc=${profile.rlimitNproc}:${profile.rlimitNproc}`,
+                `--fsize=${profile.rlimitFsizeBytes}:${profile.rlimitFsizeBytes}`,
+            ])
+                assert.ok(wrapped.args.includes(expected), `${id} missing ${expected}`);
+        }
+    }
+    finally {
+        await rm(root, { recursive: true, force: true });
+    }
+});
+test("a frozen attempt profile cannot be changed after its hash is issued", { skip: process.platform !== "linux" }, async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "codex-harness-resource-frozen-tamper-"));
+    try {
+        const config = testConfig(root);
+        config.harnessIsolation.resourceProfile = await createPinnedHostResourceProfile("audit_only");
+        const frozen = freezeHostResourceProfile(config, "flash_medium");
+        const tampered = { ...frozen, cpuQuotaPercent: frozen.cpuQuotaPercent + 1 };
+        await assert.rejects(resourceWrappedCommand(config, "tampered", "/usr/bin/true", [], tampered), /Owner-approved value|integrity mismatch/u);
     }
     finally {
         await rm(root, { recursive: true, force: true });

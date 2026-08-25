@@ -7,10 +7,11 @@ import { loadPlan, withNamedLock } from "./store.js";
 import { appendUsageEvent, budgetExceededReason, estimateTokens, markBudgetExceeded, parseProviderUsage, projectedBudgetExceededReason, usageEventId, usageForBudgetGroup, writeUsageSnapshot, } from "./telemetry.js";
 import { atomicWriteJson, ensureDir, isWithin, normalizeRepoRelative, nowIso, pathExists, readJson, runProcess, sleep } from "./util.js";
 import { captureSettledProcessIdentity, processIdentityMatches, sha256Executable, signalVerifiedProcessGroup, } from "./process-identity.js";
+import { resourceWrappedCommand } from "./resource-controls.js";
 export class LlamaExecutionError extends Error {
     code;
     fallbackEligible;
-    constructor(code, message, fallbackEligible = code !== "budget" && code !== "security") {
+    constructor(code, message, fallbackEligible = code !== "budget" && code !== "security" && code !== "resource") {
         super(message);
         this.name = "LlamaExecutionError";
         this.code = code;
@@ -453,19 +454,22 @@ async function runCli(config, settings, task, prompt, maxOutput) {
         throw new LlamaExecutionError("process", "llama.cpp cliArgs must include {{PROMPT_FILE}}");
     const args = commandArgs(settings, settings.cliArgs, variables);
     const executable = await pinnedExecutable(settings.cliBinary, settings.cliBinarySha256, "llama.cpp cliBinary");
+    if (!task.resourceProfile)
+        throw new LlamaExecutionError("resource", "llama.cpp task has no frozen DEC-003 resource profile", false);
+    const wrapped = await resourceWrappedCommand(config, `llama-cli-${task.id}`, executable, args, task.resourceProfile);
     const started = Date.now();
     try {
-        const result = await runProcess(executable, args, {
+        const result = await runProcess(wrapped.command, wrapped.args, {
             cwd: settings.workingDirectory ?? task.worktreePath,
-            env: localModelEnvironment(config),
-            timeoutMs: Math.min(task.runtimeSeconds, settings.requestTimeoutSeconds) * 1_000,
+            env: { ...localModelEnvironment(config), ...wrapped.env, HOME: runtimeRoot(config) },
+            timeoutMs: Math.min(task.runtimeSeconds, settings.requestTimeoutSeconds, task.resourceProfile.commandTimeoutSeconds) * 1_000,
             maxCaptureChars: Math.max(1_000_000, settings.maxFileBytes * settings.maxFilesPerTask * 2),
             killProcessGroup: true,
         });
         if (result.stderr)
             await writeFile(task.stderrPath, `[llama-cli ${commandDisplay(executable, args)}]\n${result.stderr}\n`, { encoding: "utf8", mode: 0o600, flag: "a" });
         if (result.timedOut)
-            throw new LlamaExecutionError("timeout", `llama-cli exceeded ${Math.min(task.runtimeSeconds, settings.requestTimeoutSeconds)} seconds`);
+            throw new LlamaExecutionError("timeout", `llama-cli exceeded ${Math.min(task.runtimeSeconds, settings.requestTimeoutSeconds, task.resourceProfile.commandTimeoutSeconds)} seconds`);
         if (result.code !== 0)
             throw new LlamaExecutionError("process", `llama-cli exited with code ${result.code}: ${result.stderr.slice(-2_000)}`);
         const content = await pathExists(outputPath) ? await readFile(outputPath, "utf8") : result.stdout;

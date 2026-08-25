@@ -21,6 +21,7 @@ interface PendingRequest {
 
 export class StdioMcpClient {
   readonly child: ChildProcessWithoutNullStreams;
+  initializeResult?: unknown;
   #nextId = 1;
   #pending = new Map<number, PendingRequest>();
   #stderr = "";
@@ -65,7 +66,7 @@ export class StdioMcpClient {
   static async connect(command: string, args: string[], env: NodeJS.ProcessEnv, timeoutMs = 15_000): Promise<StdioMcpClient> {
     const child = spawn(command, args, { env, stdio: ["pipe", "pipe", "pipe"] });
     const client = new StdioMcpClient(child);
-    await client.request("initialize", {
+    client.initializeResult = await client.request("initialize", {
       protocolVersion: "2025-06-18",
       capabilities: {},
       clientInfo: { name: "codex-harness-local-client", version: "0.6.6" },

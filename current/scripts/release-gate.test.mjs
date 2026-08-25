@@ -14,6 +14,7 @@ import {
   releaseIntegrity,
 } from "./release-integrity.mjs";
 import {
+  nonCyclicSealReadyBinding,
   REQUIRED_ARCHIVE_CHECKS,
   REQUIRED_STABLE_SOURCE_GATES,
   verifyReleaseGate,
@@ -91,16 +92,42 @@ async function writeSourceFixture(root, version) {
     rlimitFsizeBytes: 1_073_741_824,
     commandTimeoutSeconds: 1_800,
   };
+  const profiles = {
+    local_or_flash_trivial_small: { memoryMaxBytes: 2_147_483_648, cpuQuotaPercent: 100, tasksMax: 128, ioWeight: 100, worktreeMaxBytes: 2_147_483_648, rlimitNoFile: 2_048, rlimitNproc: 2_048, rlimitFsizeBytes: 536_870_912, commandTimeoutSeconds: 900 },
+    flash_medium: { ...profile },
+    pro_large: { memoryMaxBytes: 8_589_934_592, cpuQuotaPercent: 400, tasksMax: 512, ioWeight: 100, worktreeMaxBytes: 8_589_934_592, rlimitNoFile: 8_192, rlimitNproc: 8_192, rlimitFsizeBytes: 2_147_483_648, commandTimeoutSeconds: 3_600 },
+    authoritative_verification: { ...profile },
+  };
+  const owner = { decidedBy: "zyc14588", decidedAt: "2026-08-26T01:22:12+10:00", implementationVerified: true };
+  const decisions = {
+    "DEC-001": "B_PUBLIC_AFTER_FULL_REPOSITORY_AND_HISTORY_AUDIT",
+    "DEC-002": "A_ACCEPT_REPOSITORY_AND_HISTORY_READ_BOUNDARY",
+    "DEC-003": "D_TIERED_RESOURCE_PROFILES",
+    "DEC-004": "A_USE_COMMIT_SUFFIXED_CANDIDATE_PATH",
+  };
+  const configPath = path.join(root, "config/config.example.json");
+  const config = JSON.parse(await readFile(configPath, "utf8"));
+  config.harnessIsolation.resourceProfiles = profiles;
+  await writeFile(configPath, json(config));
   await writeRelative(root, "docs/OWNER_DECISIONS.json", json({
-    schemaVersion: 1,
+    schemaVersion: 2,
     version: STABLE_VERSION,
+    ...owner,
     decisions: {
-      "DEC-001": { status: "APPROVED", selected: "A", options: ["A"], decidedBy: "fixture-owner", decidedAt: "2026-08-24T00:00:01.000Z" },
-      "DEC-002": { status: "APPROVED", selected: "A", options: ["A", "B"], implementationVerified: true, decidedBy: "fixture-owner", decidedAt: "2026-08-24T00:00:01.000Z" },
-      "DEC-003": { status: "APPROVED", selected: "A", options: ["A", "B"], approvedProfile: profile, decidedBy: "fixture-owner", decidedAt: "2026-08-24T00:00:01.000Z" },
-      "DEC-004": { status: "APPROVED", selected: "A", options: ["A", "B"], decidedBy: "fixture-owner", decidedAt: "2026-08-24T00:00:01.000Z" },
+      "DEC-001": { status: "APPROVED", selected: decisions["DEC-001"], options: [decisions["DEC-001"]], ...owner },
+      "DEC-002": { status: "APPROVED", selected: decisions["DEC-002"], options: [decisions["DEC-002"]], ...owner },
+      "DEC-003": { status: "APPROVED", selected: decisions["DEC-003"], options: [decisions["DEC-003"]], profiles, ...owner },
+      "DEC-004": { status: "APPROVED", selected: decisions["DEC-004"], options: [decisions["DEC-004"]], pathPattern: "0.6.6-candidate-<implementationCommit12>", ...owner },
     },
   }));
+  await writeRelative(root, "docs/REPOSITORY_HISTORY_DISCLOSURE_BOUNDARY_ZH.md", "accepted disclosure boundary for configured remote model\n");
+  await writeRelative(root, "evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json", json({
+    schemaVersion: 1,
+    auditPolicy: "DEC-001-full-repository-and-history-audit-v1",
+    result: "PASS_PUBLICATION_ELIGIBILITY_AUDIT",
+    blockers: [],
+  }));
+  await writeRelative(root, "bridge/src/brokered-tool-host.ts", "// gitHistoryArguments MODEL_VISIBLE_TEXT_MAX_BYTES\n");
   await writeRelative(root, "docs/fixture.md", `qualification fixture ${version}\n`);
   await writeRelative(root, "harness/minimal/MANAGED_MARKER.json", json({ managedBy: "fixture", version }));
   await writeRelative(root, "schemas/fixture.json", json({}));
@@ -191,13 +218,13 @@ function externalEvidence(releaseTarget) {
     generatedAt: "2026-08-24T00:02:00.000Z",
     repository: releaseTarget.repository,
     targetBranch: releaseTarget.branch,
-    targetCommit: releaseTarget.sealCommit,
-    targetTree: releaseTarget.sealTree,
+    targetCommit: releaseTarget.qualificationCommit,
+    targetTree: releaseTarget.qualificationTree,
     workflow: releaseTarget.workflow,
     actionsRun: {
       runId: 12345,
       runAttempt: 1,
-      headSha: releaseTarget.sealCommit,
+      headSha: releaseTarget.qualificationCommit,
       workflowRef: `${releaseTarget.repository}/.github/workflows/ci.yml@refs/heads/${releaseTarget.branch}`,
       status: "completed",
       conclusion: "success",
@@ -208,7 +235,7 @@ function externalEvidence(releaseTarget) {
         environment: "deepseek-provider-smoke",
         artifact: {
           id: 12348,
-          name: `codex-harness-provider-evidence-${releaseTarget.sealCommit}.tar`,
+          name: `codex-harness-provider-evidence-${releaseTarget.qualificationCommit}.tar`,
           url: `https://github.com/${releaseTarget.repository}/actions/runs/12345/artifacts/12348`,
           sha256: "e".repeat(64),
           attestation: {
@@ -263,6 +290,8 @@ async function stableFixture() {
   const releaseTarget = {
     repository: "zyc14588/codex-harness-skill",
     branch: "repair/0.6.6-pre-release-audit-r1",
+    qualificationCommit: "5".repeat(40),
+    qualificationTree: "6".repeat(40),
     sealCommit: "7".repeat(40),
     sealTree: "8".repeat(40),
     workflow: {
@@ -455,7 +484,7 @@ test("GitHub evidence is required, exact-tip bound, protected, and non-observati
   await rewriteBoundEvidence(wrongHead.root, evidencePaths.external, (evidence) => { evidence.actionsRun.headSha = "f".repeat(40); });
   await assert.rejects(
     verifyReleaseGate({ root: wrongHead.root, auditPackageStaging: true, skipSelfTests: false, requireArchive: false }),
-    /exact seal head/u,
+    /exact qualification head/u,
   );
 
   const wrongWorkflow = await stableFixture();
@@ -544,6 +573,37 @@ test("post-implementation metadata is an exact allowlist", async () => {
   assert.equal(binding.exact, true);
   assert.equal(binding.allowedMetadataOnly, false);
   assert.deepEqual(binding.unauthorizedMetadataChanges, ["unscoped-release-note.txt"]);
+});
+
+test("seal-ready binding is non-cyclic and derives the metadata seal identity from Git", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "release-noncyclic-seal-"));
+  await writeSourceFixture(root, STABLE_VERSION);
+  runGit(root, ["init", "-q"]);
+  runGit(root, ["config", "user.name", "Release Gate Fixture"]);
+  runGit(root, ["config", "user.email", "release-gate@example.invalid"]);
+  runGit(root, ["add", "."]);
+  runGit(root, ["commit", "-qm", "implementation and qualification"]);
+  const qualificationCommit = runGit(root, ["rev-parse", "HEAD"]);
+  const qualificationTree = runGit(root, ["rev-parse", "HEAD^{tree}"]);
+  const target = {
+    qualificationCommit,
+    qualificationTree,
+    sealMode: "current_checked_out_metadata_commit",
+    sealCommit: null,
+    sealTree: null,
+  };
+  await writeRelative(root, "release-status.json", `${JSON.stringify({ releaseStatus: "seal_ready", releaseTarget: target }, null, 2)}\n`);
+  runGit(root, ["add", "release-status.json"]);
+  runGit(root, ["commit", "-qm", "metadata-only seal"]);
+  const integrity = await releaseIntegrity(root);
+  const binding = nonCyclicSealReadyBinding({ releaseStatus: "seal_ready", releaseTarget: target }, integrity);
+  assert.equal(binding.qualificationCommit, qualificationCommit);
+  assert.equal(binding.sealCommit, runGit(root, ["rev-parse", "HEAD"]));
+  assert.notEqual(binding.sealCommit, binding.qualificationCommit);
+  assert.throws(() => nonCyclicSealReadyBinding({
+    releaseStatus: "seal_ready",
+    releaseTarget: { ...target, sealCommit: binding.sealCommit },
+  }, integrity), /without self-referential seal fields/u);
 });
 
 test("stable releases reject source changes and evidence predating implementation", async () => {

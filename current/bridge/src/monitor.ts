@@ -408,8 +408,9 @@ export async function buildMonitorSnapshot(config: BridgeConfig, limit = 100, li
   grandLiveUsd = rounded(grandLiveUsd);
 
   const snapshot: Record<string, unknown> = {
-    schemaVersion: 6,
+    schemaVersion: 7,
     serviceVersion: "0.6.6",
+    installationIdentity: config.installation ?? { status: "source_or_legacy_runtime_without_candidate_binding" },
     generatedAt: nowIso(),
     pricingAsOf: config.monitor.pricingAsOf,
     costSemantics: "configured_pricing_estimate_cny_primary",

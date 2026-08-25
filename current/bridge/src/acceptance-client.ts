@@ -164,12 +164,16 @@ try {
   assert.equal(rendered.code, 0, rendered.stderr || rendered.stdout);
 
   const serverPath = fileURLToPath(new URL("./index.js", import.meta.url));
+  const implementationCommit = "a".repeat(40);
   const client = await StdioMcpClient.connect(process.execPath, [serverPath], {
     PATH: process.env.PATH ?? "/usr/local/bin:/usr/bin:/bin",
     HOME: process.env.HOME ?? os.homedir(),
     CODEX_HARNESS_CONFIG: configPath,
+    CODEX_HARNESS_IMPLEMENTATION_COMMIT: implementationCommit,
   });
   try {
+    const initialize = client.initializeResult as { serverInfo?: { implementationCommit?: string } };
+    assert.equal(initialize.serverInfo?.implementationCommit, implementationCommit);
     const listed = await client.listTools() as { tools?: Array<{ name?: string }> };
     const toolNames = new Set((listed.tools ?? []).map((tool) => tool.name));
     for (const required of [

@@ -64,7 +64,10 @@ export async function inspectMinimalPresetBrokerComposition(presetDirectory, tru
     };
 }
 async function gitCommonDirectory(worktree) {
-    const result = await runProcess("/usr/bin/git", ["-C", worktree, "rev-parse", "--path-format=absolute", "--git-common-dir"], {
+    const result = await runProcess("/usr/bin/git", [
+        "-c", "core.hooksPath=/dev/null", "-c", "commit.gpgSign=false", "-c", "tag.gpgSign=false", "-c", "core.fsmonitor=false",
+        "-C", worktree, "rev-parse", "--path-format=absolute", "--git-common-dir",
+    ], {
         timeoutMs: 10_000,
         maxCaptureChars: 16_000,
     });
@@ -136,9 +139,12 @@ export async function prepareHarnessSandbox(config, task, launcher, profile, sel
     if (!activeAttempt?.id || activeAttempt.completedAt !== undefined || !/^[A-Za-z0-9._-]{1,160}$/u.test(activeAttempt.id)) {
         throw new Error("Harness task has no active route-safe execution attempt");
     }
+    if (!task.resourceProfile || activeAttempt.resourceProfile?.resourceProfileHash !== task.resourceProfile.resourceProfileHash) {
+        throw new Error("Harness task/attempt resource profile is missing or changed");
+    }
     if (!PROFILE_NAME.test(profile))
         throw new Error(`unsafe Harness profile name: ${profile}`);
-    await assertControlledResourceProfile(config);
+    await assertControlledResourceProfile(config, task.resourceProfile);
     const bwrap = await sha256Executable(config.harnessIsolation.bubblewrapBinary);
     if (bwrap.sha256 !== config.harnessIsolation.bubblewrapSha256) {
         throw new Error(`Bubblewrap SHA-256 mismatch for ${bwrap.realpath}`);
@@ -265,6 +271,15 @@ export async function prepareHarnessSandbox(config, task, launcher, profile, sel
         GIT_TERMINAL_PROMPT: "0",
         GIT_CONFIG_NOSYSTEM: "1",
         GIT_CONFIG_GLOBAL: "/dev/null",
+        GIT_CONFIG_COUNT: "4",
+        GIT_CONFIG_KEY_0: "core.hooksPath",
+        GIT_CONFIG_VALUE_0: "/dev/null",
+        GIT_CONFIG_KEY_1: "commit.gpgSign",
+        GIT_CONFIG_VALUE_1: "false",
+        GIT_CONFIG_KEY_2: "tag.gpgSign",
+        GIT_CONFIG_VALUE_2: "false",
+        GIT_CONFIG_KEY_3: "core.fsmonitor",
+        GIT_CONFIG_VALUE_3: "false",
         CODEX_HARNESS_CONFIG: `${SANDBOX_PATH}/config.json`,
         CODEX_HARNESS_TASK_ID: task.id,
         CODEX_HARNESS_TOOL_CAPABILITIES: JSON.stringify(task.toolCapabilities),
@@ -282,7 +297,7 @@ export async function prepareHarnessSandbox(config, task, launcher, profile, sel
         CODEX_HARNESS_LAUNCH_SPEC: `${SANDBOX_PATH}/launch.json`,
     });
     args.push("--chdir", canonicalWorktree, "--", nodeExecutable, path.join(bridgeDist, "harness-sandbox-entry.js"));
-    const wrapped = await resourceWrappedCommand(config, `harness-${task.id}`, bwrap.realpath, args);
+    const wrapped = await resourceWrappedCommand(config, `harness-${task.id}`, bwrap.realpath, args, task.resourceProfile);
     const evidencePath = path.join(taskDirectory(config, task.id), "harness-isolation.json");
     await atomicWriteJson(evidencePath, {
         schemaVersion: 1,
@@ -314,7 +329,8 @@ export async function prepareHarnessSandbox(config, task, launcher, profile, sel
         modelVisibleLocalSubprocessTools: false,
         brokeredToolExecution: "host_launches_independent_bubblewrap_sibling_without_monitor_socket_or_secret_mounts",
         hostResourceProfile: {
-            ...config.harnessIsolation.resourceProfile,
+            ...task.resourceProfile,
+            probe: activeAttempt.resourceProbe,
             cgroupEnforced: wrapped.cgroupEnforced,
             rlimitsEnforced: wrapped.rlimitsEnforced,
             unit: wrapped.unit,

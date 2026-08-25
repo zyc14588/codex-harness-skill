@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 import test from "node:test";
 import { prepareHarnessSandbox, cleanupHarnessSandbox } from "../harness-isolation.js";
 import { sha256Executable } from "../process-identity.js";
+import { freezeHostResourceProfile } from "../resource-controls.js";
 import { ensureOperatorToken, monitorSocketPath } from "../security.js";
 import { createTask, taskDirectory, updateTask } from "../store.js";
 import { createExecutionAttempt } from "../thinking-policy.js";
@@ -284,9 +285,12 @@ await writeFile(${JSON.stringify(path.join(worktree, "isolation-report.json"))},
           prlimitBinary: prlimit.realpath,
           prlimitSha256: prlimit.sha256,
         },
+        resourceProfiles: base.harnessIsolation.resourceProfiles,
       },
       llamaCpp: { ...base.llamaCpp, enabled: false, fallbackEnabled: false },
     };
+    const frozenResourceProfile = freezeHostResourceProfile(config, "local_or_flash_trivial_small");
+    attempt.resourceProfile = frozenResourceProfile;
     await mkdir(path.dirname(config.provider.apiKeyFile), { recursive: true, mode: 0o700 });
     await writeFile(config.provider.apiKeyFile, `${providerKey}\n`, { mode: 0o600 });
     await writeFile(configPath, `${JSON.stringify(config, null, 2)}\n`, { mode: 0o600 });
@@ -305,6 +309,7 @@ await writeFile(${JSON.stringify(path.join(worktree, "isolation-report.json"))},
       routingReason: "isolation test",
       complexity: "small",
       harnessMode: "standard",
+      resourceProfile: frozenResourceProfile,
       dependsOn: [],
       toolCapabilities: [],
       taskFamily: "security/harness-isolation",
@@ -354,6 +359,7 @@ await writeFile(${JSON.stringify(path.join(worktree, "isolation-report.json"))},
     await createTask(config, task);
     await writeFile(task.promptPath, "bounded isolation test\n", { mode: 0o600 });
     const toolAttempt = createExecutionAttempt("harness", "deepseek-v4-flash", 1, attemptStartedAt);
+    toolAttempt.resourceProfile = frozenResourceProfile;
     assert.ok(toolAttempt.id);
     const toolTaskDir = taskDirectory(config, toolTaskId);
     const toolTask: TaskRecord = {
@@ -523,6 +529,7 @@ await writeFile(${JSON.stringify(path.join(worktree, "isolation-report.json"))},
     assert.equal(await fileExists(cancelledWrite), false, "brokered command wrote after task cancellation");
 
     const nextAttempt = createExecutionAttempt("harness", "deepseek-v4-flash", 2, new Date().toISOString());
+    nextAttempt.resourceProfile = frozenResourceProfile;
     assert.ok(nextAttempt.id);
     await updateTask(config, toolTaskId, (current) => {
       current.status = "running";
@@ -540,6 +547,7 @@ await writeFile(${JSON.stringify(path.join(worktree, "isolation-report.json"))},
     const staleAttemptRequest = socketRaw(monitorSocketPath(config), attemptRoute, toolTask.toolToken!, attemptBody).catch(() => 0);
     await waitUntil("brokered stale-attempt process", async () => (await processIdsContaining(attemptMarker)).length > 0);
     const replacementAttempt = createExecutionAttempt("harness", "deepseek-v4-flash", 3, new Date().toISOString());
+    replacementAttempt.resourceProfile = frozenResourceProfile;
     assert.ok(replacementAttempt.id);
     await updateTask(config, toolTaskId, (current) => { current.executionAttempts = [nextAttempt, replacementAttempt]; });
     await Promise.race([

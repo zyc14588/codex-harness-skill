@@ -21,6 +21,20 @@ const progressiveDefinitions = {
     parameters: {
       pattern: { type: 'string', required: true },
       paths: { type: 'array', items: { type: 'string' } },
+      offset_bytes: { type: 'integer' },
+      max_bytes: { type: 'integer', description: 'Maximum returned combined output bytes (256-49152).' },
+    },
+  },
+  git_history: {
+    description: 'Read bounded, paginated Git history through the Broker. Supports all-ref log, commit show, and historical blob reads; never exposes host paths or Git write access.',
+    parameters: {
+      operation: { type: 'string', enum: ['log', 'show', 'blob'] },
+      scope: { type: 'string', enum: ['all_refs', 'current'] },
+      revision: { type: 'string' },
+      file_path: { type: 'string' },
+      max_commits: { type: 'integer' },
+      offset_bytes: { type: 'integer', description: 'UTF-8 byte offset within regenerated bounded output.' },
+      max_bytes: { type: 'integer', description: 'Maximum returned combined output bytes (256-49152).' },
     },
   },
   run_verification: {
@@ -28,17 +42,20 @@ const progressiveDefinitions = {
     parameters: {
       command_index: { type: 'integer', required: true },
       timeout_seconds: { type: 'integer' },
+      max_bytes: { type: 'integer', description: 'Maximum returned combined output bytes (256-49152).' },
     },
   },
   git_status: {
     description: 'Inspect read-only porcelain Git status in the task worktree.',
-    parameters: {},
+    parameters: { offset_bytes: { type: 'integer' }, max_bytes: { type: 'integer' } },
   },
   git_diff: {
     description: 'Inspect a bounded working-tree diff.',
     parameters: {
       file_path: { type: 'string' },
       stat_only: { type: 'boolean' },
+      offset_bytes: { type: 'integer' },
+      max_bytes: { type: 'integer' },
     },
   },
 }
@@ -102,6 +119,7 @@ export function apply(ctx) {
   register(shell, 'Run one bounded command in a separate Bridge-owned Bubblewrap sibling. The command has no network, Provider, broker-socket, host-state, or parent-/proc capability.', {
     command: { type: 'string', required: true },
     timeout_seconds: { type: 'integer' },
+    max_bytes: { type: 'integer', description: 'Maximum returned combined output bytes (256-49152).' },
   })
   register('str_replace_editor', 'View, create, replace, or insert text through the separate Bridge tool broker. Mutations are restricted to the frozen write lease.', {
     command: { type: 'string', required: true, enum: ['view', 'create', 'str_replace', 'insert'] },

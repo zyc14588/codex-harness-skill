@@ -1,6 +1,7 @@
 import { lstat, readFile, realpath } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { exactOwnerResourceLimits, OWNER_RESOURCE_LIMITS, RESOURCE_PROFILE_IDS } from "./resource-controls.js";
 import { expandHome, isWithin, pathExists, runProcess } from "./util.js";
 const DEFAULT_PASS_ENVIRONMENT = [
     "PATH", "LANG", "LC_ALL", "TERM", "COLORTERM", "NO_COLOR",
@@ -53,6 +54,39 @@ function integer(value, fallback, field, min, max) {
         throw new Error(`${field} must be an integer from ${min} to ${max}`);
     }
     return Number(selected);
+}
+const RESOURCE_LIMIT_KEYS = [
+    "memoryMaxBytes", "cpuQuotaPercent", "tasksMax", "ioWeight", "worktreeMaxBytes",
+    "rlimitNoFile", "rlimitNproc", "rlimitFsizeBytes", "commandTimeoutSeconds",
+];
+function ownerResourceProfiles(value) {
+    const raw = record(value);
+    if (Object.keys(raw).length > 0) {
+        const actualIds = Object.keys(raw).sort();
+        const expectedIds = [...RESOURCE_PROFILE_IDS].sort();
+        if (JSON.stringify(actualIds) !== JSON.stringify(expectedIds)) {
+            throw new Error(`harnessIsolation.resourceProfiles must contain the exact Owner-approved ids: ${expectedIds.join(", ")}`);
+        }
+    }
+    const output = {};
+    for (const id of RESOURCE_PROFILE_IDS) {
+        const expected = OWNER_RESOURCE_LIMITS[id];
+        const candidateRaw = record(raw[id]);
+        if (Object.keys(candidateRaw).length > 0) {
+            const actualKeys = Object.keys(candidateRaw).sort();
+            const expectedKeys = [...RESOURCE_LIMIT_KEYS].sort();
+            if (JSON.stringify(actualKeys) !== JSON.stringify(expectedKeys)) {
+                throw new Error(`harnessIsolation.resourceProfiles.${id} must contain only the exact numeric limit fields`);
+            }
+        }
+        const candidate = {};
+        for (const key of RESOURCE_LIMIT_KEYS) {
+            candidate[key] = integer(candidateRaw[key], expected[key], `harnessIsolation.resourceProfiles.${id}.${key}`, expected[key], expected[key]);
+        }
+        exactOwnerResourceLimits(id, candidate);
+        output[id] = candidate;
+    }
+    return output;
 }
 function positiveNumber(value, fallback, field) {
     const selected = value === undefined ? fallback : value;
@@ -388,6 +422,11 @@ export async function loadConfig(explicitPath) {
     if (isolationRaw.rejectEnvFiles === false)
         throw new Error("harnessIsolation.rejectEnvFiles is immutable and must remain true");
     const resourceRaw = record(isolationRaw.resourceProfile);
+    const resourceProfiles = ownerResourceProfiles(isolationRaw.resourceProfiles);
+    for (const key of RESOURCE_LIMIT_KEYS) {
+        const expected = resourceProfiles.authoritative_verification[key];
+        integer(resourceRaw[key], expected, `harnessIsolation.resourceProfile.${key}`, expected, expected);
+    }
     const resourceEnforcement = resourceRaw.enforcement ?? "required";
     if (resourceEnforcement !== "required" && resourceEnforcement !== "audit_only") {
         throw new Error("harnessIsolation.resourceProfile.enforcement must be required or audit_only");
@@ -424,19 +463,32 @@ export async function loadConfig(explicitPath) {
                 systemdRunSha256: sha256Digest(resourceRaw.systemdRunSha256, "harnessIsolation.resourceProfile.systemdRunSha256", true),
                 prlimitBinary: path.resolve(expandHome(stringValue(resourceRaw.prlimitBinary, "/usr/bin/prlimit", "harnessIsolation.resourceProfile.prlimitBinary"))),
                 prlimitSha256: sha256Digest(resourceRaw.prlimitSha256, "harnessIsolation.resourceProfile.prlimitSha256", true),
-                memoryMaxBytes: integer(resourceRaw.memoryMaxBytes, 4_294_967_296, "harnessIsolation.resourceProfile.memoryMaxBytes", 67_108_864, 1_099_511_627_776),
-                cpuQuotaPercent: integer(resourceRaw.cpuQuotaPercent, 200, "harnessIsolation.resourceProfile.cpuQuotaPercent", 10, 800),
-                tasksMax: integer(resourceRaw.tasksMax, 256, "harnessIsolation.resourceProfile.tasksMax", 16, 32_768),
-                ioWeight: integer(resourceRaw.ioWeight, 100, "harnessIsolation.resourceProfile.ioWeight", 1, 10_000),
-                worktreeMaxBytes: integer(resourceRaw.worktreeMaxBytes, 4_294_967_296, "harnessIsolation.resourceProfile.worktreeMaxBytes", 16_777_216, 1_099_511_627_776),
-                rlimitNoFile: integer(resourceRaw.rlimitNoFile, 4_096, "harnessIsolation.resourceProfile.rlimitNoFile", 64, 1_048_576),
-                rlimitNproc: integer(resourceRaw.rlimitNproc, 4_096, "harnessIsolation.resourceProfile.rlimitNproc", 16, 32_768),
-                rlimitFsizeBytes: integer(resourceRaw.rlimitFsizeBytes, 1_073_741_824, "harnessIsolation.resourceProfile.rlimitFsizeBytes", 1_048_576, 1_099_511_627_776),
-                commandTimeoutSeconds: integer(resourceRaw.commandTimeoutSeconds, 1_800, "harnessIsolation.resourceProfile.commandTimeoutSeconds", 1, 7_200),
+                ...resourceProfiles.authoritative_verification,
             },
+            resourceProfiles,
         },
         llamaCpp: normalizeLlamaConfig(parsed.llamaCpp),
     };
+    const installationRaw = record(parsed.installation);
+    if (Object.keys(installationRaw).length > 0) {
+        const implementationCommit = stringValue(installationRaw.implementationCommit, "", "installation.implementationCommit");
+        if (!/^[0-9a-f]{40,64}$/u.test(implementationCommit))
+            throw new Error("installation.implementationCommit must be a full Git object id");
+        const runtimeRoot = path.resolve(expandHome(stringValue(installationRaw.runtimeRoot, "", "installation.runtimeRoot")));
+        const candidatePath = stringValue(installationRaw.candidatePath, "", "installation.candidatePath");
+        if (path.basename(runtimeRoot) !== candidatePath || candidatePath !== `0.6.6-candidate-${implementationCommit.slice(0, 12)}`) {
+            throw new Error("installation candidate path is not bound to the implementation commit");
+        }
+        config.installation = { runtimeRoot, implementationCommit, candidatePath };
+    }
+    const registeredImplementationCommit = process.env.CODEX_HARNESS_IMPLEMENTATION_COMMIT?.trim();
+    if (registeredImplementationCommit && !/^[0-9a-f]{40,64}$/u.test(registeredImplementationCommit)) {
+        throw new Error("CODEX_HARNESS_IMPLEMENTATION_COMMIT must be a full Git object id");
+    }
+    if (registeredImplementationCommit && config.installation
+        && registeredImplementationCommit !== config.installation.implementationCommit) {
+        throw new Error("MCP registration implementation commit does not match installed candidate config");
+    }
     if (new Set(config.passEnvironment).size !== config.passEnvironment.length) {
         throw new Error("passEnvironment must not contain duplicate names");
     }
@@ -503,6 +555,19 @@ export function sanitizedEnvironment(config) {
     env.PATH ??= "/usr/local/bin:/usr/bin:/bin";
     env.HOME = path.join(config.stateRoot, "worker-home");
     env.NO_COLOR = "1";
+    env.GIT_OPTIONAL_LOCKS = "0";
+    env.GIT_TERMINAL_PROMPT = "0";
+    env.GIT_CONFIG_NOSYSTEM = "1";
+    env.GIT_CONFIG_GLOBAL = "/dev/null";
+    env.GIT_CONFIG_COUNT = "4";
+    env.GIT_CONFIG_KEY_0 = "core.hooksPath";
+    env.GIT_CONFIG_VALUE_0 = "/dev/null";
+    env.GIT_CONFIG_KEY_1 = "commit.gpgSign";
+    env.GIT_CONFIG_VALUE_1 = "false";
+    env.GIT_CONFIG_KEY_2 = "tag.gpgSign";
+    env.GIT_CONFIG_VALUE_2 = "false";
+    env.GIT_CONFIG_KEY_3 = "core.fsmonitor";
+    env.GIT_CONFIG_VALUE_3 = "false";
     return env;
 }
 //# sourceMappingURL=config.js.map

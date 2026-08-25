@@ -63,4 +63,4 @@ Agent worktree 的 ignored/untracked residue 不进入验证树。验证证据�
 
 ## 发布边界
 
-`current/` 是唯一活动源码。`archive/` 只保存 withdrawn/historical material。candidate 不可受控安装。源码封印先在干净 canonical checkout 上验证实现 commit/tree、精确源码门禁、仓库外 GitHub 证据与仅允许的 seal metadata；归档随后只在隔离 staging 中生成 `package-origin.json`。stable 安装还必须验证归档、sidecar、validation JSON 与 attestation chain。任何源码、critical hash、workflow 或未经许可的后实现元数据改变都会使旧证据失效。
+`current/` 是唯一活动源码。`archive/` 只保存 withdrawn/historical material。candidate 不可受控安装。非循环封印状态机把三个身份分开：candidate 永远绑定 implementation commit；GitHub Actions 与 attestation 绑定 qualification commit/tree；`seal_ready` 提交只可加入白名单元数据，并把自身 `sealCommit/sealTree` 保持为 `null`，由 release gate 从干净 checkout 的 `HEAD`/tree 动态推导，禁止提交自包含自身哈希。归档随后只在隔离 staging 中生成 `package-origin.json`。stable 安装还必须验证归档、sidecar、validation JSON 与 attestation chain。任何源码、critical hash、workflow 或未经许可的后实现元数据改变都会使旧证据失效。

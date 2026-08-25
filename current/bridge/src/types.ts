@@ -21,6 +21,11 @@ export type BudgetGatePolicy = "input_output_tokens";
 export type BudgetCeilingPolicy = "operator_bounded" | "unbounded";
 export type HarnessExecutionMode = "minimal" | "standard";
 export type ProgressiveToolCapability = "repository_read" | "verification" | "git_inspect";
+export type ResourceProfileId =
+  | "local_or_flash_trivial_small"
+  | "flash_medium"
+  | "pro_large"
+  | "authoritative_verification";
 export type ToolProtocolRecoveryKind =
   | "dsml_content_to_tool_calls"
   | "structured_tool_call_delta_normalized"
@@ -37,6 +42,7 @@ export type InfrastructureFailureKind =
   | "provider_protocol"
   | "provider_transport"
   | "provider_credential"
+  | "resource_control"
   | "no_effect";
 export type SplitOutcomeAttribution = "task_shape" | "infrastructure" | "neutral";
 
@@ -217,13 +223,8 @@ export interface ProviderConfig {
   apiKeyFile: string;
 }
 
-/** Mandatory Linux isolation boundary for every Harness execution attempt. */
-export interface HostResourceProfile {
-  enforcement: "required" | "audit_only";
-  systemdRunBinary: string;
-  systemdRunSha256: string;
-  prlimitBinary: string;
-  prlimitSha256: string;
+/** Numeric ceilings frozen by Owner decision DEC-003. */
+export interface HostResourceLimits {
   memoryMaxBytes: number;
   cpuQuotaPercent: number;
   tasksMax: number;
@@ -235,12 +236,31 @@ export interface HostResourceProfile {
   commandTimeoutSeconds: number;
 }
 
+/** Mandatory Linux isolation boundary for every controlled process. */
+export interface HostResourceProfile extends HostResourceLimits {
+  enforcement: "required" | "audit_only";
+  systemdRunBinary: string;
+  systemdRunSha256: string;
+  prlimitBinary: string;
+  prlimitSha256: string;
+}
+
+/** Immutable profile identity and limits copied into each task/attempt. */
+export interface FrozenHostResourceProfile extends HostResourceProfile {
+  resourceProfileId: ResourceProfileId;
+  resourceProfileHash: string;
+  policyVersion: "owner-tiered-resource-profiles-v1";
+}
+
 export interface HarnessIsolationConfig {
   bubblewrapBinary: string;
   bubblewrapSha256: string;
   relayPort: number;
   rejectEnvFiles: true;
+  /** Compatibility/default view of the authoritative verification profile. */
   resourceProfile: HostResourceProfile;
+  /** Exact Owner-approved matrix. Values cannot be raised or lowered by runtime controls. */
+  resourceProfiles: Record<ResourceProfileId, HostResourceLimits>;
 }
 
 /** Identity captured from /proc and bound to one concrete process lifetime. */
@@ -280,8 +300,16 @@ export interface LlamaCppConfig {
   fallbackModel: "deepseek-v4-flash";
 }
 
+/** Immutable identity of an installed commit-suffixed candidate runtime. */
+export interface InstallationIdentity {
+  runtimeRoot: string;
+  implementationCommit: string;
+  candidatePath: string;
+}
+
 export interface BridgeConfig {
   schemaVersion: 7;
+  installation?: InstallationIdentity;
   harnessRoot: string;
   harnessCli?: string;
   harnessBuildRoot?: string;
@@ -336,6 +364,7 @@ export interface ControllerLeaf {
   routingReason: string;
   complexity: TaskComplexity;
   harnessMode: HarnessExecutionMode;
+  resourceProfile: FrozenHostResourceProfile;
   parallelGroup?: string;
   dependsOn: string[];
   toolCapabilities: ProgressiveToolCapability[];
@@ -384,6 +413,8 @@ export interface ExecutionAttempt {
   executor: WorkerExecutor;
   model?: string;
   thinkingPolicy?: AttemptThinkingPolicy;
+  resourceProfile?: FrozenHostResourceProfile;
+  resourceProbe?: Record<string, unknown>;
   startedAt: string;
   completedAt?: string;
   outcome?: "completed" | "failed" | "timed_out" | "cancelled";
@@ -403,6 +434,10 @@ export interface TaskRecord {
   routingReason?: string;
   complexity: TaskComplexity;
   harnessMode: HarnessExecutionMode;
+  /** Optional only for reading pre-DEC-003 historical task records. New tasks always freeze it. */
+  resourceProfile?: FrozenHostResourceProfile;
+  /** Frozen at task creation so durable task and log evidence identifies the implementation. */
+  installationIdentity?: InstallationIdentity;
   parallelGroup?: string;
   dependsOn: string[];
   toolCapabilities: ProgressiveToolCapability[];
@@ -466,6 +501,7 @@ export interface TaskRecord {
   reviewDecision?: ReviewDecision;
   reviewNotes?: string;
   reviewedPaths?: string[];
+  changedFileReadReceipts?: ChangedFileReadReceipt[];
   reviewedAt?: string;
   reviewedFingerprint?: string;
   verificationPassed?: boolean;
@@ -475,6 +511,8 @@ export interface TaskRecord {
   reviewedPatchSha256?: string;
   verificationBaseCommit?: string;
   verificationEvidencePath?: string;
+  verificationResourceProfile?: FrozenHostResourceProfile;
+  verificationResourceProbe?: Record<string, unknown>;
   verificationCleanStart?: boolean;
   verificationIgnoredResidueExcluded?: number;
   verificationResultFingerprint?: string;
@@ -511,6 +549,17 @@ export interface TaskRecord {
   infrastructureFailureKind?: InfrastructureFailureKind;
   infrastructureFailureDetails?: string;
   referenceAlerts?: string[];
+}
+
+export interface ChangedFileReadReceipt {
+  schemaVersion: 1;
+  path: string;
+  changeFingerprint: string;
+  fileSha256: string;
+  totalBytes: number;
+  ranges: Array<{ offsetBytes: number; returnedBytes: number }>;
+  complete: boolean;
+  updatedAt: string;
 }
 
 export type UsageSource = "provider" | "estimated" | "local";

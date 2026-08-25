@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 2,
+  "observedAt": "2026-08-25T16:49:04Z",
+  "repository": "zyc14588/codex-harness-skill",
+  "observationMode": "READ_ONLY_GITHUB_REST_API",
+  "visibility": "public",
+  "private": false,
+  "defaultBranch": "main",
+  "defaultBranchHead": "bd707c75e7c730773fec3f7716847942f9bf27a5",
+  "defaultBranchProtected": false,
+  "branchProtection": {
+    "endpoint": "/repos/zyc14588/codex-harness-skill/branches/main/protection",
+    "httpStatus": 404,
+    "status": "BRANCH_NOT_PROTECTED",
+    "requiredChecksConfigured": false
+  },
+  "rulesets": [],
+  "workflow": {
+    "name": "strict-ci",
+    "path": ".github/workflows/ci.yml",
+    "state": "active",
+    "workflowId": 340826351
+  },
+  "githubSecurityFeatures": {
+    "secretScanning": "disabled",
+    "secretScanningPushProtection": "disabled",
+    "dependabotSecurityUpdates": "disabled"
+  },
+  "releaseGate": {
+    "branchProtectionRequiredChecks": "BLOCKED",
+    "githubActionsExactTip": "BLOCKED_NO_CURRENT_IMPLEMENTATION_TIP_ON_REMOTE",
+    "protectedProviderEvidenceAttestation": "BLOCKED"
+  },
+  "remoteMutationsPerformed": [],
+  "result": "BLOCKED_GITHUB_GOVERNANCE"
+}

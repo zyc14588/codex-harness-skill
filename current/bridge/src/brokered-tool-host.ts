@@ -27,7 +27,7 @@ interface BrokeredToolState {
 }
 
 const CAPABILITY_TOOLS: Record<ProgressiveToolCapability, string[]> = {
-  repository_read: ["repo_read_file", "repo_search"],
+  repository_read: ["repo_read_file", "repo_search", "git_history"],
   verification: ["run_verification"],
   git_inspect: ["git_status", "git_diff"],
 };
@@ -65,6 +65,7 @@ async function audit(config: BridgeConfig, task: TaskRecord, attemptId: string, 
     at: nowIso(),
     taskId: task.id,
     attemptId,
+    installationIdentity: task.installationIdentity ?? config.installation ?? { status: "source_or_legacy_runtime_without_candidate_binding" },
     tool,
     result,
     ...(reason === undefined ? {} : { reason: reason.slice(0, 2_000) }),
@@ -170,7 +171,10 @@ function requestedModelPage(input: Record<string, unknown>, text: string): Model
 }
 
 async function gitCommonDirectory(worktree: string, signal: AbortSignal): Promise<string> {
-  const result = await runProcess("/usr/bin/git", ["-C", worktree, "rev-parse", "--path-format=absolute", "--git-common-dir"], {
+  const result = await runProcess("/usr/bin/git", [
+    "-c", "core.hooksPath=/dev/null", "-c", "commit.gpgSign=false", "-c", "tag.gpgSign=false", "-c", "core.fsmonitor=false",
+    "-C", worktree, "rev-parse", "--path-format=absolute", "--git-common-dir",
+  ], {
     timeoutMs: 10_000,
     maxCaptureChars: 16_000,
     signal,
@@ -200,9 +204,11 @@ async function isolatedCommand(
   signal: AbortSignal,
   onProcessIdentity: (identity: ProcessIdentity) => void | Promise<void>,
   maxCaptureChars = 500_000,
+  pageInput: Record<string, unknown> = {},
 ): Promise<Record<string, unknown>> {
   throwIfAborted(signal);
-  await assertControlledResourceProfile(config);
+  if (!task.resourceProfile) throw new Error("brokered tool task has no frozen DEC-003 resource profile");
+  await assertControlledResourceProfile(config, task.resourceProfile);
   const bwrap = await sha256Executable(config.harnessIsolation.bubblewrapBinary);
   if (bwrap.sha256 !== config.harnessIsolation.bubblewrapSha256) throw new Error(`Bubblewrap SHA-256 mismatch for ${bwrap.realpath}`);
   const worktree = await realpath(task.worktreePath);
@@ -242,10 +248,19 @@ async function isolatedCommand(
     "--setenv", "GIT_TERMINAL_PROMPT", "0",
     "--setenv", "GIT_CONFIG_NOSYSTEM", "1",
     "--setenv", "GIT_CONFIG_GLOBAL", "/dev/null",
+    "--setenv", "GIT_CONFIG_COUNT", "4",
+    "--setenv", "GIT_CONFIG_KEY_0", "core.hooksPath",
+    "--setenv", "GIT_CONFIG_VALUE_0", "/dev/null",
+    "--setenv", "GIT_CONFIG_KEY_1", "commit.gpgSign",
+    "--setenv", "GIT_CONFIG_VALUE_1", "false",
+    "--setenv", "GIT_CONFIG_KEY_2", "tag.gpgSign",
+    "--setenv", "GIT_CONFIG_VALUE_2", "false",
+    "--setenv", "GIT_CONFIG_KEY_3", "core.fsmonitor",
+    "--setenv", "GIT_CONFIG_VALUE_3", "false",
     "--chdir", worktree,
     "--", command, ...args,
   );
-  const profile = config.harnessIsolation.resourceProfile;
+  const profile = task.resourceProfile;
   const initialBytes = await directoryAllocatedBytes(worktree);
   if (initialBytes > profile.worktreeMaxBytes) {
     throw new Error(`task worktree already exceeds ${profile.worktreeMaxBytes} byte resource ceiling`);
@@ -265,7 +280,7 @@ async function isolatedCommand(
       await sleep(250);
     }
   })();
-  const wrapped = await resourceWrappedCommand(config, `tool-${task.id}`, bwrap.realpath, sandboxArgs);
+  const wrapped = await resourceWrappedCommand(config, `tool-${task.id}`, bwrap.realpath, sandboxArgs, profile);
   let result: Awaited<ReturnType<typeof runProcess>>;
   try {
     result = await runProcess(wrapped.command, wrapped.args, {
@@ -284,12 +299,19 @@ async function isolatedCommand(
   }
   if (quotaFailure) throw new Error(quotaFailure);
   if (result.aborted || signal.aborted) throw new Error(`brokered tool process aborted: ${String(signal.reason ?? "aborted")}`);
+  const combined = [
+    result.stdout ? `[stdout]\n${result.stdout}` : "",
+    result.stderr ? `[stderr]\n${result.stderr}` : "",
+  ].filter(Boolean).join("\n");
+  const page = requestedModelPage(pageInput, combined);
   return {
     code: result.code,
     signal: result.signal,
     timedOut: result.timedOut,
-    stdout: result.stdout,
-    stderr: result.stderr,
+    output: page.text,
+    truncation: page.truncation,
+    stdoutBytes: Buffer.byteLength(result.stdout, "utf8"),
+    stderrBytes: Buffer.byteLength(result.stderr, "utf8"),
     stdoutTruncated: result.stdoutTruncated,
     stderrTruncated: result.stderrTruncated,
   };
@@ -320,6 +342,12 @@ async function editor(task: TaskRecord, input: Record<string, unknown>): Promise
   const command = stringArg(input, "command", 32);
   const mutation = command !== "view";
   const target = await resolveToolPath(task, stringArg(input, "path", 4_096), mutation);
+  const quota = task.resourceProfile?.worktreeMaxBytes;
+  if (mutation && quota === undefined) throw new Error("editor task has no frozen DEC-003 worktree quota");
+  if (mutation) {
+    const initialBytes = await directoryAllocatedBytes(target.root);
+    if (initialBytes > quota!) throw new Error(`task worktree already exceeds ${quota} byte resource ceiling (${initialBytes})`);
+  }
   if (command === "view") {
     const info = await lstat(target.absolute);
     if (info.isSymbolicLink()) throw new Error("editor refuses symbolic links");
@@ -347,6 +375,11 @@ async function editor(task: TaskRecord, input: Record<string, unknown>): Promise
     if (await pathExists(target.absolute)) throw new Error(`editor create refuses existing path: ${target.relative}`);
     const text = stringArg(input, "file_text", 5_000_000);
     await atomicTextWrite(target.absolute, text);
+    const bytes = await directoryAllocatedBytes(target.root);
+    if (bytes > quota!) {
+      await rm(target.absolute, { force: true });
+      throw new Error(`editor create would exceed aggregate worktree quota ${quota} (${bytes})`);
+    }
     return { path: target.relative, command, bytes: Buffer.byteLength(text) };
   }
   const info = await lstat(target.absolute);
@@ -374,7 +407,17 @@ async function editor(task: TaskRecord, input: Record<string, unknown>): Promise
     throw new Error(`unsupported editor command: ${command}`);
   }
   await atomicTextWrite(canonical, after, info.mode & 0o777);
+  const aggregateBytes = await directoryAllocatedBytes(target.root);
+  if (aggregateBytes > quota!) {
+    await atomicTextWrite(canonical, before, info.mode & 0o777);
+    throw new Error(`editor mutation would exceed aggregate worktree quota ${quota} (${aggregateBytes})`);
+  }
   return { path: target.relative, command, bytesBefore: Buffer.byteLength(before), bytesAfter: Buffer.byteLength(after) };
+}
+
+/** Unit-test seam for aggregate quota/rollback behavior; production calls remain broker-authorized through invoke(). */
+export async function editorForTest(task: TaskRecord, input: Record<string, unknown>): Promise<Record<string, unknown>> {
+  return await editor(task, input);
 }
 
 function capabilityArg(input: Record<string, unknown>): ProgressiveToolCapability {
@@ -383,6 +426,42 @@ function capabilityArg(input: Record<string, unknown>): ProgressiveToolCapabilit
     throw new Error("capability must be repository_read, verification, or git_inspect");
   }
   return value;
+}
+
+function gitRevision(input: Record<string, unknown>): string {
+  const value = input.revision === undefined ? "HEAD" : stringArg(input, "revision", 200);
+  if (value.startsWith("-") || !/^[A-Za-z0-9._/@^~{}:+-]{1,200}$/u.test(value)) {
+    throw new Error("revision contains unsupported Git revision characters");
+  }
+  return value;
+}
+
+export function gitHistoryArguments(input: Record<string, unknown>): string[] {
+  const operation = input.operation === undefined ? "log" : stringArg(input, "operation", 16);
+  const selectedPath = typeof input.file_path === "string" ? normalizeRepoRelative(input.file_path) : undefined;
+  if (operation === "log") {
+    const scope = input.scope === undefined ? "all_refs" : stringArg(input, "scope", 16);
+    if (scope !== "all_refs" && scope !== "current") throw new Error("git_history scope must be all_refs or current");
+    const count = optionalInteger(input, "max_commits", 50, 1, 200);
+    return [
+      "-c", "core.fsmonitor=false",
+      "log", ...(scope === "all_refs" ? ["--all"] : []), `--max-count=${count}`,
+      "--date=iso-strict", "--format=commit %H%nparents %P%nauthor %an <%ae>%nauthorDate %aI%ncommitter %cn <%ce>%ncommitDate %cI%nsubject %s%n",
+      ...(selectedPath ? ["--", selectedPath] : []),
+    ];
+  }
+  const revision = gitRevision(input);
+  if (operation === "show") {
+    return [
+      "-c", "core.fsmonitor=false", "show", "--no-ext-diff", "--no-color", "--format=fuller", revision,
+      ...(selectedPath ? ["--", selectedPath] : []),
+    ];
+  }
+  if (operation === "blob") {
+    if (!selectedPath) throw new Error("git_history blob requires file_path");
+    return ["-c", "core.fsmonitor=false", "show", `${revision}:${selectedPath}`];
+  }
+  throw new Error("git_history operation must be log, show, or blob");
 }
 
 async function invoke(
@@ -415,10 +494,10 @@ async function invoke(
     });
   }
   if (tool === "bash") {
-    return await isolatedCommand(config, task, "/bin/bash", ["-lc", stringArg(input, "command")], optionalInteger(input, "timeout_seconds", 300, 1, 7_200) * 1_000, signal, onProcessIdentity);
+    return await isolatedCommand(config, task, "/bin/bash", ["-lc", stringArg(input, "command")], optionalInteger(input, "timeout_seconds", 300, 1, 7_200) * 1_000, signal, onProcessIdentity, 5_000_000, input);
   }
   if (tool === "pwsh") {
-    return await isolatedCommand(config, task, "/usr/bin/pwsh", ["-NoLogo", "-NoProfile", "-Command", stringArg(input, "command")], optionalInteger(input, "timeout_seconds", 300, 1, 7_200) * 1_000, signal, onProcessIdentity);
+    return await isolatedCommand(config, task, "/usr/bin/pwsh", ["-NoLogo", "-NoProfile", "-Command", stringArg(input, "command")], optionalInteger(input, "timeout_seconds", 300, 1, 7_200) * 1_000, signal, onProcessIdentity, 5_000_000, input);
   }
   if (tool === "str_replace_editor") {
     const result = await editor(task, input);
@@ -458,18 +537,21 @@ async function invoke(
     const rawPaths = input.paths ?? [];
     if (!Array.isArray(rawPaths) || rawPaths.length > 20 || !rawPaths.every((value) => typeof value === "string")) throw new Error("paths must be a bounded string array");
     const paths = rawPaths.map((value) => normalizeRepoRelative(String(value)));
-    return await isolatedCommand(config, task, "/usr/bin/git", ["grep", "-n", "--no-color", "-I", "-e", pattern, "--", ...(paths.length ? paths : ["."])], 60_000, signal, onProcessIdentity, 200_000);
+    return await isolatedCommand(config, task, "/usr/bin/git", ["-c", "core.fsmonitor=false", "grep", "-n", "--no-color", "-I", "-e", pattern, "--", ...(paths.length ? paths : ["."])], 60_000, signal, onProcessIdentity, 5_000_000, input);
+  }
+  if (tool === "git_history") {
+    return await isolatedCommand(config, task, "/usr/bin/git", gitHistoryArguments(input), 120_000, signal, onProcessIdentity, 5_000_000, input);
   }
   if (tool === "run_verification") {
     const index = optionalInteger(input, "command_index", -1, 0, 99);
     const command = task.verificationCommands[index];
     if (command === undefined) throw new Error(`verification command index out of range: ${index}`);
-    return await isolatedCommand(config, task, "/bin/bash", ["-lc", command], optionalInteger(input, "timeout_seconds", 1_800, 1, 7_200) * 1_000, signal, onProcessIdentity);
+    return await isolatedCommand(config, task, "/bin/bash", ["-lc", command], optionalInteger(input, "timeout_seconds", 1_800, 1, 7_200) * 1_000, signal, onProcessIdentity, 5_000_000, input);
   }
-  if (tool === "git_status") return await isolatedCommand(config, task, "/usr/bin/git", ["status", "--short", "--branch"], 60_000, signal, onProcessIdentity, 100_000);
+  if (tool === "git_status") return await isolatedCommand(config, task, "/usr/bin/git", ["-c", "core.fsmonitor=false", "status", "--short", "--branch"], 60_000, signal, onProcessIdentity, 5_000_000, input);
   const selected = typeof input.file_path === "string" ? normalizeRepoRelative(input.file_path) : undefined;
-  const args = ["diff", "--no-ext-diff", "--no-color", ...(input.stat_only === true ? ["--stat"] : []), "--", ...(selected ? [selected] : [])];
-  return await isolatedCommand(config, task, "/usr/bin/git", args, 60_000, signal, onProcessIdentity, 500_000);
+  const args = ["-c", "core.fsmonitor=false", "diff", "--no-ext-diff", "--no-color", ...(input.stat_only === true ? ["--stat"] : []), "--", ...(selected ? [selected] : [])];
+  return await isolatedCommand(config, task, "/usr/bin/git", args, 60_000, signal, onProcessIdentity, 5_000_000, input);
 }
 
 export interface BrokeredToolExecutionOptions {

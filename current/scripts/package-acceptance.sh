@@ -4,6 +4,12 @@ umask 077
 
 SOURCE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VERSION="$(node -e 'const p=require(process.argv[1]); if(typeof p.version!=="string")process.exit(2); process.stdout.write(p.version)' "$SOURCE_ROOT/bridge/package.json")"
+IMPLEMENTATION_COMMIT="$(node -e 'const p=require(process.argv[1]); process.stdout.write(p.implementation?.commit ?? "")' "$SOURCE_ROOT/release-status.json")"
+[[ "$IMPLEMENTATION_COMMIT" =~ ^[0-9a-f]{40,64}$ ]] || { echo "Invalid implementation commit in release-status.json" >&2; exit 1; }
+PACKAGE_RELEASE_STATUS="$(node -e 'const p=require(process.argv[1]); process.stdout.write(p.releaseStatus ?? "")' "$SOURCE_ROOT/release-status.json")"
+CANDIDATE_BASENAME="${VERSION}-candidate-${IMPLEMENTATION_COMMIT:0:12}"
+INSTALL_BASENAME="$VERSION"
+[[ "$PACKAGE_RELEASE_STATUS" == "candidate" ]] && INSTALL_BASENAME="$CANDIDATE_BASENAME"
 export CODEX_HARNESS_PACKAGE_VERSION="$VERSION"
 for bin in node git python3 sha256sum timeout stat; do
   command -v "$bin" >/dev/null 2>&1 || { echo "Missing required command: $bin" >&2; exit 1; }
@@ -18,7 +24,7 @@ HARNESS_ROOT="$TEMP_ROOT/deepseek-harness"
 DSH_HOME_DIR="$HOME_DIR/.dsh"
 MINIMAL_PROFILE_DIR="$DSH_HOME_DIR/profiles/codex-minimal-headless"
 MINIMAL_PRESET_DIR="$DSH_HOME_DIR/.agent-presets/codex-bridge-minimal"
-INSTALL_ROOT="$TEMP_ROOT/xdg-data/codex-harness-bridge/$VERSION"
+INSTALL_ROOT="$TEMP_ROOT/xdg-data/codex-harness-bridge/$INSTALL_BASENAME"
 CONFIG_PATH="$TEMP_ROOT/xdg-config/codex-harness-bridge/config.json"
 CODEX_HOME_DIR="$HOME_DIR/.codex"
 PROVIDER_KEY_FILE="$TEMP_ROOT/provider.key"
@@ -128,6 +134,12 @@ export GIT_CONFIG_NOSYSTEM=1
 export CODEX_HARNESS_INSTALL_ROOT="$INSTALL_ROOT"
 export CODEX_HARNESS_CONFIG="$CONFIG_PATH"
 
+# A different commit-suffixed candidate must coexist untouched throughout the
+# selected candidate's reinstall/uninstall lifecycle.
+SIBLING_CANDIDATE="$TEMP_ROOT/xdg-data/codex-harness-bridge/${VERSION}-candidate-000000000000"
+mkdir -p "$SIBLING_CANDIDATE"
+printf '%s\n' 'coexistence-sentinel' > "$SIBLING_CANDIDATE/sentinel"
+
 INSTALL_ARGS=(
   --harness-root "$HARNESS_ROOT"
   --allowed-root "$TEMP_ROOT"
@@ -168,7 +180,7 @@ fi
 tree_hash() { node "$SOURCE_ROOT/scripts/hash-tree.mjs" "$1"; }
 
 assert_r7_config() {
-  python3 - "$CONFIG_PATH" <<'PY'
+  python3 - "$CONFIG_PATH" "$IMPLEMENTATION_COMMIT" "$INSTALL_ROOT" "$PACKAGE_RELEASE_STATUS" <<'PY'
 import json,sys
 c=json.load(open(sys.argv[1],encoding="utf-8"))
 assert c["schemaVersion"]==7
@@ -200,11 +212,24 @@ assert rp["enforcement"] in ("audit_only","required")
 assert len(rp["systemdRunSha256"])==64 and len(rp["prlimitSha256"])==64
 assert rp["memoryMaxBytes"]>0 and rp["cpuQuotaPercent"]>0 and rp["tasksMax"]>0 and rp["ioWeight"]>0
 assert rp["worktreeMaxBytes"]>0 and rp["rlimitNoFile"]>0 and rp["rlimitNproc"]>0 and rp["rlimitFsizeBytes"]>0 and rp["commandTimeoutSeconds"]>0
+assert c["harnessIsolation"]["resourceProfiles"]=={
+  "local_or_flash_trivial_small":{"memoryMaxBytes":2147483648,"cpuQuotaPercent":100,"tasksMax":128,"ioWeight":100,"worktreeMaxBytes":2147483648,"rlimitNoFile":2048,"rlimitNproc":2048,"rlimitFsizeBytes":536870912,"commandTimeoutSeconds":900},
+  "flash_medium":{"memoryMaxBytes":4294967296,"cpuQuotaPercent":200,"tasksMax":256,"ioWeight":100,"worktreeMaxBytes":4294967296,"rlimitNoFile":4096,"rlimitNproc":4096,"rlimitFsizeBytes":1073741824,"commandTimeoutSeconds":1800},
+  "pro_large":{"memoryMaxBytes":8589934592,"cpuQuotaPercent":400,"tasksMax":512,"ioWeight":100,"worktreeMaxBytes":8589934592,"rlimitNoFile":8192,"rlimitNproc":8192,"rlimitFsizeBytes":2147483648,"commandTimeoutSeconds":3600},
+  "authoritative_verification":{"memoryMaxBytes":4294967296,"cpuQuotaPercent":200,"tasksMax":256,"ioWeight":100,"worktreeMaxBytes":4294967296,"rlimitNoFile":4096,"rlimitNproc":4096,"rlimitFsizeBytes":1073741824,"commandTimeoutSeconds":1800},
+}
 assert c["passEnvironment"]==["PATH","LANG","LC_ALL","TERM","COLORTERM","NO_COLOR","NODE_EXTRA_CA_CERTS","SSL_CERT_FILE"]
 assert "{{PROMPT_FILE}}" in c["llamaCpp"]["cliArgs"]
 assert all("{{PROMPT}}" not in value for value in c["llamaCpp"]["cliArgs"])
 assert c["llamaCpp"]["enabled"] is False
 assert c["llamaCpp"]["fallbackModel"]=="deepseek-v4-flash"
+if sys.argv[4]=="candidate":
+    identity=c["installation"]
+    assert identity["implementationCommit"]==sys.argv[2]
+    assert identity["runtimeRoot"]==sys.argv[3]
+    assert identity["candidatePath"]==f"0.6.6-candidate-{sys.argv[2][:12]}"
+else:
+    assert "installation" not in c
 PY
 }
 
@@ -233,6 +258,7 @@ grep -F "name: '/sandbox/dsh/profiles/codex-minimal-headless/bridge-brokered-too
 grep -A1 -F -- "- id: session-title-llm" "$MINIMAL_PROFILE_DIR/cordis.patch.yml" | grep -F "disabled: true" >/dev/null
 (cd "$INSTALL_ROOT" && sha256sum -c MANIFEST_SHA256.txt >/dev/null)
 codex mcp get codex_harness >/dev/null
+grep -F "CODEX_HARNESS_IMPLEMENTATION_COMMIT = \"$IMPLEMENTATION_COMMIT\"" "$CODEX_HOME_DIR/config.toml" >/dev/null
 assert_r7_config
 python3 - "$CONFIG_PATH" <<'PY_DEFAULTS'
 import json,sys
@@ -372,17 +398,13 @@ assert_r7_config
 
 echo "[package 8/9] Uninstall preserves evidence/runtime and removes active integration"
 "$INSTALL_ROOT/scripts/uninstall.sh"
-[[ -d "$INSTALL_ROOT" ]]
+[[ ! -e "$INSTALL_ROOT" ]]
+[[ "$(cat "$SIBLING_CANDIDATE/sentinel")" == "coexistence-sentinel" ]]
 [[ -f "$CONFIG_PATH" ]]
 [[ ! -e "$CODEX_HOME_DIR/skills/codex-harness" ]]
 [[ ! -e "$MINIMAL_PROFILE_DIR" ]]
 [[ ! -e "$MINIMAL_PRESET_DIR" ]]
 ! codex mcp get codex_harness >/dev/null 2>&1
-set +e
-CODEX_HARNESS_CONFIG="$CONFIG_PATH" node "$INSTALL_ROOT/bridge/dist/monitor-client.js" status >/dev/null 2>&1
-RC=$?
-set -e
-((RC!=0))
 
 echo "[package 9/9] Source package hygiene and schemas"
 if [[ "${CODEX_HARNESS_EXPECT_PACKAGED_TREE:-0}" == "1" ]]; then

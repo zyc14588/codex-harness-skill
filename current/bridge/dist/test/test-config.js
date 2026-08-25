@@ -1,3 +1,4 @@
+import { OWNER_RESOURCE_LIMITS } from "../resource-controls.js";
 export function testConfig(stateRoot, overrides = {}) {
     const base = {
         schemaVersion: 7,
@@ -64,15 +65,13 @@ export function testConfig(stateRoot, overrides = {}) {
                 systemdRunSha256: "0".repeat(64),
                 prlimitBinary: "/usr/bin/prlimit",
                 prlimitSha256: "0".repeat(64),
-                memoryMaxBytes: 536_870_912,
-                cpuQuotaPercent: 100,
-                tasksMax: 128,
-                ioWeight: 100,
-                worktreeMaxBytes: 1_073_741_824,
-                rlimitNoFile: 1_024,
-                rlimitNproc: 4_096,
-                rlimitFsizeBytes: 268_435_456,
-                commandTimeoutSeconds: 300,
+                ...OWNER_RESOURCE_LIMITS.authoritative_verification,
+            },
+            resourceProfiles: {
+                local_or_flash_trivial_small: { ...OWNER_RESOURCE_LIMITS.local_or_flash_trivial_small },
+                flash_medium: { ...OWNER_RESOURCE_LIMITS.flash_medium },
+                pro_large: { ...OWNER_RESOURCE_LIMITS.pro_large },
+                authoritative_verification: { ...OWNER_RESOURCE_LIMITS.authoritative_verification },
             },
         },
         llamaCpp: {

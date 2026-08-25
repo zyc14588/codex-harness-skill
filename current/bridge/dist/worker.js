@@ -12,11 +12,11 @@ import { effectiveBudget, effectiveLlamaConfig } from "./controls.js";
 import { budgetExceededReason, budgetReferenceAlerts, readBudgetMarker, usageForBudgetGroup, writeUsageSnapshot } from "./telemetry.js";
 import { recordTaskSplitOutcome } from "./split-memory.js";
 import { isWithin, nowIso, pathExists, sleep, tailText } from "./util.js";
-import { attemptInfrastructureAbortReason, classifyMinimalToolPlaneFailure } from "./infrastructure-failure.js";
+import { attemptInfrastructureAbortReason, classifyMinimalToolPlaneFailure, classifyResourceControlFailure } from "./infrastructure-failure.js";
 import { createExecutionAttempt, thinkingPolicyForModel } from "./thinking-policy.js";
 import { cleanupHarnessSandbox, prepareHarnessSandbox } from "./harness-isolation.js";
 import { captureProcessIdentity, signalVerifiedProcessGroup } from "./process-identity.js";
-import { directoryAllocatedBytes } from "./resource-controls.js";
+import { directoryAllocatedBytes, probeHostResourceProfile } from "./resource-controls.js";
 const MAX_WORKER_LOG_BYTES = 20_000_000;
 const ATTEMPT_ABORT_POLL_MS = 100;
 const WORKTREE_QUOTA_POLL_MS = 500;
@@ -95,7 +95,19 @@ function terminateChild(child, identity) {
 async function runHarness(taskId, forcedModel) {
     const config = await loadConfig();
     const task = await loadTask(config, taskId);
-    const resourceProfile = config.harnessIsolation.resourceProfile;
+    const resourceProfile = task.resourceProfile;
+    if (!resourceProfile)
+        throw new Error("task predates the mandatory DEC-003 frozen resource profile and cannot execute");
+    const resourceProbe = await probeHostResourceProfile(config, resourceProfile);
+    await updateTask(config, taskId, (current) => {
+        const active = current.executionAttempts?.at(-1);
+        if (!active || active.completedAt)
+            throw new Error("cannot bind resource probe without an active execution attempt");
+        if (active.resourceProfile?.resourceProfileHash !== resourceProfile.resourceProfileHash) {
+            throw new Error("execution attempt resource profile changed before launch");
+        }
+        active.resourceProbe = resourceProbe;
+    });
     const initialWorktreeBytes = await directoryAllocatedBytes(task.worktreePath);
     if (initialWorktreeBytes > resourceProfile.worktreeMaxBytes) {
         throw new Error(`task worktree already exceeds ${resourceProfile.worktreeMaxBytes} byte resource ceiling (${initialWorktreeBytes})`);
@@ -260,8 +272,12 @@ async function runHarness(taskId, forcedModel) {
         await cleanupHarnessSandbox(prepared.sandboxRoot);
     }
 }
-function attempt(executor, model, ordinal) {
-    return createExecutionAttempt(executor, model, ordinal, nowIso());
+function attempt(executor, model, ordinal, resourceProfile) {
+    const created = createExecutionAttempt(executor, model, ordinal, nowIso());
+    if (!resourceProfile)
+        throw new Error("new execution attempts require a frozen DEC-003 resource profile");
+    created.resourceProfile = structuredClone(resourceProfile);
+    return created;
 }
 async function finishLastAttempt(taskId, outcome, error) {
     const config = await loadConfig();
@@ -387,7 +403,7 @@ async function main() {
         current.workerIdentity = workerIdentity;
         delete current.workerDeadObservedAt;
         current.effectiveExecutor = current.executor;
-        current.executionAttempts = [attempt(current.executor, current.model, 1)];
+        current.executionAttempts = [attempt(current.executor, current.model, 1, current.resourceProfile)];
     });
     if (task.status === "cancelled")
         return;
@@ -408,9 +424,24 @@ async function main() {
         await finishLastAttempt(taskId, timedOut ? "timed_out" : code === 0 && launchError === undefined ? "completed" : "failed", launchError);
     }
     else {
+        if (!task.resourceProfile)
+            throw new Error("llama.cpp task has no frozen DEC-003 resource profile");
+        const localResourceProbe = await probeHostResourceProfile(config, task.resourceProfile);
+        await updateTask(config, taskId, (current) => {
+            const active = current.executionAttempts?.at(-1);
+            if (!active || active.completedAt || active.resourceProfile?.resourceProfileHash !== task.resourceProfile?.resourceProfileHash) {
+                throw new Error("llama.cpp attempt resource profile changed before launch");
+            }
+            active.resourceProbe = localResourceProbe;
+        });
         const localBaseline = await snapshotLocalLeases(config, task);
         try {
             const result = await runLlamaTask(config, task);
+            const localWorktreeBytes = await directoryAllocatedBytes(task.worktreePath);
+            if (localWorktreeBytes > task.resourceProfile.worktreeMaxBytes) {
+                await restoreLocalLeases(config, task, localBaseline);
+                throw new LlamaExecutionError("resource", `llama.cpp task worktree exceeded ${task.resourceProfile.worktreeMaxBytes} byte resource ceiling (${localWorktreeBytes})`, false);
+            }
             await writeFile(task.stdoutPath, `${result.summary}\n`, { encoding: "utf8", mode: 0o600, flag: "a" });
             code = 0;
             await finishLastAttempt(taskId, "completed");
@@ -420,6 +451,12 @@ async function main() {
                 ? error
                 : new LlamaExecutionError("process", error instanceof Error ? error.message : String(error));
             await writeFile(task.stderrPath, `[llama.cpp failed] ${selected.message}\n`, { encoding: "utf8", mode: 0o600, flag: "a" });
+            if (selected.code === "resource") {
+                await updateTask(config, taskId, (current) => {
+                    current.infrastructureFailureKind = "resource_control";
+                    current.infrastructureFailureDetails = selected.message;
+                });
+            }
             await finishLastAttempt(taskId, selected.code === "timeout" ? "timed_out" : "failed", selected.message);
             const llama = await effectiveLlamaConfig(config);
             if (selected.fallbackEligible && llama.fallbackEnabled) {
@@ -436,7 +473,7 @@ async function main() {
                         current.effectiveExecutor = "harness";
                         current.phase = "fallback-harness";
                         const ordinal = (current.executionAttempts?.length ?? 0) + 1;
-                        current.executionAttempts = [...(current.executionAttempts ?? []), attempt("harness", llama.fallbackModel, ordinal)];
+                        current.executionAttempts = [...(current.executionAttempts ?? []), attempt("harness", llama.fallbackModel, ordinal, current.resourceProfile)];
                     });
                     await writeFile(task.stderrPath, `[fallback] switching to Harness model ${llama.fallbackModel}\n`, { encoding: "utf8", mode: 0o600, flag: "a" });
                     const result = await runHarness(taskId, llama.fallbackModel);
@@ -476,6 +513,7 @@ async function main() {
         || latest.infrastructureFailureKind === "minimal_tool_plane_composition"
         || latest.infrastructureFailureKind === "minimal_tool_serialization_mismatch";
     const inferredToolPlaneFailure = classifyMinimalToolPlaneFailure(latest, [launchError, errorSummary].filter((value) => Boolean(value)).join("\n"));
+    const inferredResourceFailure = classifyResourceControlFailure([launchError, errorSummary].filter((value) => Boolean(value)).join("\n"));
     const minimalToolPlaneFailure = latest.executor === "harness"
         && latest.harnessMode === "minimal"
         && (stateToolPlaneFailure || inferredToolPlaneFailure !== undefined);
@@ -522,7 +560,13 @@ async function main() {
         current.stagedPaths = finalStaged;
         current.resultSummary = resultSummary;
         current.referenceAlerts = referenceAlerts;
-        if (minimalToolPlaneFailure && current.infrastructureFailureKind === undefined) {
+        if (inferredResourceFailure && current.infrastructureFailureKind === undefined) {
+            current.infrastructureFailureKind = inferredResourceFailure;
+            current.infrastructureFailureDetails = [launchError, errorSummary]
+                .filter((value) => Boolean(value))
+                .join("\n");
+        }
+        else if (minimalToolPlaneFailure && current.infrastructureFailureKind === undefined) {
             current.infrastructureFailureKind = inferredToolPlaneFailure ?? "minimal_tool_plane_composition";
             current.infrastructureFailureDetails = [launchError, errorSummary]
                 .filter((value) => Boolean(value))
@@ -572,6 +616,10 @@ async function main() {
         else if (leakedToolProtocol || current.infrastructureFailureKind === "tool_protocol") {
             current.status = "failed";
             current.error = current.toolProtocolFailure ?? current.infrastructureFailureDetails ?? "Harness tool protocol failed before an executable tool call was dispatched";
+        }
+        else if (current.infrastructureFailureKind === "resource_control") {
+            current.status = "failed";
+            current.error = current.infrastructureFailureDetails ?? "host resource controller failed closed";
         }
         else if (current.infrastructureFailureKind === "provider_transport") {
             current.status = "failed";
@@ -661,7 +709,7 @@ main().catch(async (error) => {
             const task = await updateTask(config, taskId, (current) => {
                 if (current.status === "cancelled")
                     return;
-                const infrastructureFailureKind = classifyMinimalToolPlaneFailure(current, message);
+                const infrastructureFailureKind = classifyResourceControlFailure(message) ?? classifyMinimalToolPlaneFailure(current, message);
                 current.status = "failed";
                 delete current.workerDeadObservedAt;
                 current.phase = "failed";

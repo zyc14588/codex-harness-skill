@@ -57,17 +57,17 @@ const EXPECTED_ARCHIVE_NAME = "CODEX_HARNESS_BRIDGE_0_6_6_STABLE.zip";
 const EXPECTED_PACKAGE_ORIGIN_KIND = "codex-harness-stable-package-origin";
 
 function usage() {
-  process.stderr.write("Usage: verify-release-gate.mjs --root PATH [--audit-candidate|--seal-ready --external-evidence FILE|--audit-package-staging] [--skip-self-tests] [--require-archive --archive ZIP --sidecar FILE --validation FILE]\n");
+  process.stderr.write("Usage: verify-release-gate.mjs --root PATH [--audit-candidate|--seal-ready --external-evidence FILE --external-subject FILE|--audit-package-staging] [--skip-self-tests] [--require-archive --archive ZIP --sidecar FILE --validation FILE]\n");
 }
 
 function parseArgs(argv) {
   const result = { auditCandidate: false, sealReady: false, auditPackageStaging: false, skipSelfTests: false, requireArchive: false };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
-    if (["--root", "--archive", "--sidecar", "--validation", "--external-evidence"].includes(arg)) {
+    if (["--root", "--archive", "--sidecar", "--validation", "--external-evidence", "--external-subject"].includes(arg)) {
       const value = argv[++index];
       if (!value) throw new Error(`${arg} requires a value`);
-      result[arg === "--external-evidence" ? "externalEvidence" : arg.slice(2)] = path.resolve(value);
+      result[arg === "--external-evidence" ? "externalEvidence" : arg === "--external-subject" ? "externalSubject" : arg.slice(2)] = path.resolve(value);
     } else if (arg === "--audit-candidate") result.auditCandidate = true;
     else if (arg === "--seal-ready") result.sealReady = true;
     else if (arg === "--audit-package-staging") result.auditPackageStaging = true;
@@ -159,6 +159,33 @@ function git(root, args) {
   return spawnSync("git", ["-C", root, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
 }
 
+/**
+ * Resolve a seal-ready identity without asking a commit to contain its own hash.
+ * GitHub qualifies qualificationCommit; the clean checked-out descendant is the
+ * metadata-only seal and its identity is derived from Git at verification time.
+ */
+export function nonCyclicSealReadyBinding(status, integrity) {
+  if (status.releaseStatus !== "seal_ready" || !integrity.git?.available) {
+    throw new Error("non-cyclic seal binding requires a seal-ready Git checkout");
+  }
+  const target = object(status.releaseTarget, "release target binding");
+  const qualificationCommit = gitObjectId(target.qualificationCommit, "release target qualification commit");
+  const qualificationTree = gitObjectId(target.qualificationTree, "release target qualification tree");
+  if (target.sealMode !== "current_checked_out_metadata_commit"
+    || target.sealCommit !== null || target.sealTree !== null) {
+    throw new Error("seal-ready target must derive the seal from the checked-out metadata commit without self-referential seal fields");
+  }
+  const sealCommit = gitObjectId(integrity.git.commit, "checked-out metadata seal commit");
+  const sealTree = gitObjectId(integrity.git.repositoryTree, "checked-out metadata seal tree");
+  const ancestry = git(integrity.git.top, ["merge-base", "--is-ancestor", qualificationCommit, sealCommit]);
+  if (ancestry.status !== 0) throw new Error("qualification commit is not an ancestor of the checked-out metadata seal");
+  const observedQualificationTree = git(integrity.git.top, ["rev-parse", `${qualificationCommit}^{tree}`]);
+  if (observedQualificationTree.status !== 0 || observedQualificationTree.stdout.trim() !== qualificationTree) {
+    throw new Error("qualification commit/tree binding is invalid");
+  }
+  return { qualificationCommit, qualificationTree, sealCommit, sealTree };
+}
+
 function assertSmokeQualification(smoke, status, integrity) {
   if (smoke.result !== "PASS" || smoke.version !== STABLE_VERSION || smoke.currentRevision !== true) {
     throw new Error("current-revision real Provider smoke is not a 0.6.6 PASS");
@@ -214,32 +241,66 @@ function assertStableSourceGates(status) {
 
 async function assertOwnerDecisions(root, config) {
   const document = await jsonFile(path.join(root, "docs/OWNER_DECISIONS.json"), "owner decisions");
-  if (document.schemaVersion !== 1 || document.version !== STABLE_VERSION) throw new Error("owner decisions schema/version is invalid");
+  if (document.schemaVersion !== 2 || document.version !== STABLE_VERSION
+    || document.decidedBy !== "zyc14588" || document.decidedAt !== "2026-08-26T01:22:12+10:00") {
+    throw new Error("owner decisions schema/version/attribution is invalid");
+  }
   const decisions = object(document.decisions, "owner decisions map");
   const required = ["DEC-001", "DEC-002", "DEC-003", "DEC-004"].sort();
+  const expectedSelections = {
+    "DEC-001": "B_PUBLIC_AFTER_FULL_REPOSITORY_AND_HISTORY_AUDIT",
+    "DEC-002": "A_ACCEPT_REPOSITORY_AND_HISTORY_READ_BOUNDARY",
+    "DEC-003": "D_TIERED_RESOURCE_PROFILES",
+    "DEC-004": "A_USE_COMMIT_SUFFIXED_CANDIDATE_PATH",
+  };
   exactKeys(decisions, required, "owner decisions map");
   for (const id of required) {
     const decision = object(decisions[id], `owner decision ${id}`);
-    if (decision.status !== "APPROVED" || typeof decision.selected !== "string"
+    if (decision.status !== "APPROVED" || decision.selected !== expectedSelections[id]
       || !Array.isArray(decision.options) || !decision.options.includes(decision.selected)
-      || typeof decision.decidedBy !== "string" || decision.decidedBy.trim().length === 0
-      || !Number.isFinite(Date.parse(String(decision.decidedAt ?? "")))) {
-      throw new Error(`owner decision ${id} is not explicitly approved and attributable`);
+      || decision.decidedBy !== document.decidedBy || decision.decidedAt !== document.decidedAt
+      || decision.implementationVerified !== true) {
+      throw new Error(`owner decision ${id} is not approved, exact, attributable, and implementation-verified`);
     }
   }
-  if (decisions["DEC-002"].implementationVerified !== true) {
-    throw new Error("repository/history read-boundary owner decision is not implementation-verified");
+  const publicAudit = await jsonFile(path.join(root, "evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json"), "public repository/history audit");
+  if (publicAudit.result !== "PASS_PUBLICATION_ELIGIBILITY_AUDIT"
+    || !Array.isArray(publicAudit.blockers) || publicAudit.blockers.length !== 0
+    || publicAudit.auditPolicy !== "DEC-001-full-repository-and-history-audit-v1") {
+    throw new Error("DEC-001/DEC-002 require a complete PASS public repository/history audit");
+  }
+  const disclosure = await readFile(path.join(root, "docs/REPOSITORY_HISTORY_DISCLOSURE_BOUNDARY_ZH.md"), "utf8");
+  if (!disclosure.includes("accepted disclosure boundary") || !disclosure.includes("configured remote model")) {
+    throw new Error("DEC-002 disclosure-boundary documentation is incomplete");
+  }
+  const brokerSource = await readFile(path.join(root, "bridge/src/brokered-tool-host.ts"), "utf8");
+  if (!brokerSource.includes("gitHistoryArguments") || !brokerSource.includes("MODEL_VISIBLE_TEXT_MAX_BYTES")) {
+    throw new Error("DEC-002 Broker-bound paginated Git history implementation is missing");
   }
   const runtimeProfile = object(config.harnessIsolation, "config Harness isolation").resourceProfile;
   const profile = object(runtimeProfile, "config controlled resource profile");
   if (profile.enforcement !== "required") throw new Error("stable controlled resource profile must use required enforcement");
-  const approvedProfile = object(decisions["DEC-003"].approvedProfile, "approved controlled resource profile");
+  const approvedProfiles = object(decisions["DEC-003"].profiles, "approved controlled resource profiles");
+  const runtimeProfiles = object(config.harnessIsolation.resourceProfiles, "runtime controlled resource profiles");
+  const profileIds = ["local_or_flash_trivial_small", "flash_medium", "pro_large", "authoritative_verification"];
+  exactKeys(approvedProfiles, [...profileIds].sort(), "approved controlled resource profiles");
+  exactKeys(runtimeProfiles, [...profileIds].sort(), "runtime controlled resource profiles");
   const fields = [
     "memoryMaxBytes", "cpuQuotaPercent", "tasksMax", "ioWeight", "worktreeMaxBytes",
     "rlimitNoFile", "rlimitNproc", "rlimitFsizeBytes", "commandTimeoutSeconds",
   ];
-  if (fields.some((field) => approvedProfile[field] !== profile[field])) {
-    throw new Error("runtime controlled resource profile differs from the owner-approved defaults");
+  for (const id of profileIds) {
+    const approvedProfile = object(approvedProfiles[id], `approved resource profile ${id}`);
+    const runtimeTier = object(runtimeProfiles[id], `runtime resource profile ${id}`);
+    if (fields.some((field) => approvedProfile[field] !== runtimeTier[field])) {
+      throw new Error(`runtime resource profile ${id} differs from the owner-approved exact matrix`);
+    }
+  }
+  if (fields.some((field) => approvedProfiles.authoritative_verification[field] !== profile[field])) {
+    throw new Error("compatibility verification profile differs from authoritative_verification");
+  }
+  if (decisions["DEC-004"].pathPattern !== "0.6.6-candidate-<implementationCommit12>") {
+    throw new Error("DEC-004 candidate identity pattern is invalid");
   }
 }
 
@@ -250,17 +311,16 @@ async function assertExternalEvidence(evidence, status, integrity) {
   const target = object(status.releaseTarget, "release target binding");
   const repository = String(target.repository ?? "");
   const branch = String(target.branch ?? "");
-  const sealCommit = integrity.git.available
-    ? gitObjectId(integrity.git.commit, "checked-out seal commit")
-    : gitObjectId(target.sealCommit, "release target seal commit");
-  const sealTree = integrity.git.available
-    ? gitObjectId(integrity.git.repositoryTree, "checked-out repository seal tree")
-    : gitObjectId(target.sealTree, "release target seal tree");
+  const qualificationCommit = gitObjectId(target.qualificationCommit, "release target qualification commit");
+  const qualificationTree = gitObjectId(target.qualificationTree, "release target qualification tree");
   const workflow = object(target.workflow, "release workflow binding");
   if (repository !== "zyc14588/codex-harness-skill" || !branch.startsWith("repair/0.6.6-")) {
     throw new Error("release target repository/branch binding is invalid");
   }
   if (workflow.path !== ".github/workflows/ci.yml") throw new Error("release workflow path binding is invalid");
+  if (status.releaseStatus === "seal_ready") {
+    nonCyclicSealReadyBinding(status, integrity);
+  }
   let workflowSha256 = sha256(workflow.sha256, "release workflow SHA-256");
   if (integrity.git.available) {
     const workflowPath = path.join(integrity.git.top, workflow.path);
@@ -269,8 +329,8 @@ async function assertExternalEvidence(evidence, status, integrity) {
     workflowSha256 = checkedOutWorkflowSha256;
   }
   if (evidence.repository !== repository || evidence.targetBranch !== branch
-    || evidence.targetCommit !== sealCommit || evidence.targetTree !== sealTree) {
-    throw new Error("GitHub external evidence repository/branch/exact head/tree mismatch");
+    || evidence.targetCommit !== qualificationCommit || evidence.targetTree !== qualificationTree) {
+    throw new Error("GitHub external evidence repository/branch/exact qualification head/tree mismatch");
   }
   const evidenceWorkflow = object(evidence.workflow, "GitHub workflow evidence");
   if (evidenceWorkflow.path !== workflow.path || evidenceWorkflow.sha256 !== workflowSha256) {
@@ -280,9 +340,9 @@ async function assertExternalEvidence(evidence, status, integrity) {
   const expectedWorkflowRef = `${repository}/.github/workflows/ci.yml@refs/heads/${branch}`;
   if (!Number.isSafeInteger(run.runId) || run.runId <= 0
     || !Number.isSafeInteger(run.runAttempt) || run.runAttempt <= 0
-    || run.headSha !== sealCommit || run.workflowRef !== expectedWorkflowRef
+    || run.headSha !== qualificationCommit || run.workflowRef !== expectedWorkflowRef
     || run.status !== "completed" || run.conclusion !== "success") {
-    throw new Error("GitHub Actions run does not bind a successful exact seal head");
+    throw new Error("GitHub Actions run does not bind a successful exact qualification head");
   }
   const strict = object(run.strictLocalGates, "strict-local-gates job evidence");
   if (!Number.isSafeInteger(strict.jobId) || strict.jobId <= 0 || strict.conclusion !== "success") {
@@ -294,7 +354,7 @@ async function assertExternalEvidence(evidence, status, integrity) {
     throw new Error("protected Provider smoke was skipped or did not conclude success in the protected environment");
   }
   const artifact = object(protectedSmoke.artifact, "protected Provider evidence artifact");
-  const expectedArtifactName = `codex-harness-provider-evidence-${sealCommit}.tar`;
+  const expectedArtifactName = `codex-harness-provider-evidence-${qualificationCommit}.tar`;
   const expectedArtifactUrl = `https://github.com/${repository}/actions/runs/${String(run.runId)}/artifacts/${String(artifact.id)}`;
   if (!Number.isSafeInteger(artifact.id) || artifact.id <= 0 || artifact.name !== expectedArtifactName
     || artifact.url !== expectedArtifactUrl) {
@@ -318,7 +378,37 @@ async function assertExternalEvidence(evidence, status, integrity) {
   }
 }
 
-async function assertSourceAndEvidence(root, status, { requireGit, externalEvidence: externalEvidencePath }) {
+async function cryptographicallyVerifyExternalSubject(evidence, status, subjectPath) {
+  if (!subjectPath) throw new Error("seal-ready source requires the downloaded attested Provider evidence subject");
+  const suppliedInfo = await lstat(subjectPath);
+  if (!suppliedInfo.isFile() || suppliedInfo.isSymbolicLink()) {
+    throw new Error("external attestation subject must be a regular non-symlink file");
+  }
+  const canonical = await realpath(subjectPath);
+  const info = await lstat(canonical);
+  if (!info.isFile()) throw new Error("external attestation subject must resolve to a regular file");
+  const repository = String(object(status.releaseTarget, "release target binding").repository ?? "");
+  const artifact = object(object(object(evidence.actionsRun, "GitHub Actions run evidence").protectedRealProviderSmoke, "protected Provider smoke evidence").artifact, "protected Provider evidence artifact");
+  const expectedSha256 = sha256(artifact.sha256, "protected Provider evidence artifact SHA-256");
+  if (await sha256File(canonical) !== expectedSha256) throw new Error("downloaded external subject SHA-256 differs from GitHub artifact evidence");
+  const verified = spawnSync("gh", ["attestation", "verify", canonical, "--repo", repository, "--format", "json"], {
+    encoding: "utf8",
+    timeout: 120_000,
+    maxBuffer: 10_000_000,
+    env: { PATH: process.env.PATH, HOME: process.env.HOME, GH_TOKEN: process.env.GH_TOKEN, GITHUB_TOKEN: process.env.GITHUB_TOKEN, NO_COLOR: "1" },
+  });
+  if (verified.status !== 0) {
+    throw new Error(`GitHub/Sigstore cryptographic attestation verification failed: ${String(verified.stderr || verified.stdout).trim()}`);
+  }
+  let proof;
+  try { proof = JSON.parse(verified.stdout); } catch { throw new Error("gh attestation verify did not return JSON proof"); }
+  if ((Array.isArray(proof) && proof.length === 0) || (!Array.isArray(proof) && (!proof || typeof proof !== "object"))) {
+    throw new Error("gh attestation verify returned an empty proof set");
+  }
+  return { subjectSha256: expectedSha256, verifierOutputSha256: sha256Text(verified.stdout) };
+}
+
+async function assertSourceAndEvidence(root, status, { requireGit, externalEvidence: externalEvidencePath, externalSubject }) {
   assertStableSourceGates(status);
   const implementation = object(status.implementation, "implementation binding");
   gitObjectId(implementation.commit, "implementation commit");
@@ -338,6 +428,14 @@ async function assertSourceAndEvidence(root, status, { requireGit, externalEvide
     }
     if (sourceBinding.allowedMetadataOnly !== true) {
       throw new Error(`unauthorized post-implementation metadata changed: ${sourceBinding.unauthorizedMetadataChanges.join(",")}`);
+    }
+    if (status.releaseStatus === "seal_ready") {
+      const target = object(status.releaseTarget, "release target binding");
+      const qualificationCommit = gitObjectId(target.qualificationCommit, "release target qualification commit");
+      const qualificationBinding = implementationScopeBinding(root, qualificationCommit);
+      if (qualificationBinding.exact !== true || qualificationBinding.allowedMetadataOnly !== true) {
+        throw new Error("checked-out seal contains changes beyond the exact post-qualification metadata allowlist");
+      }
     }
     const sourceTreeAtImplementation = git(root, ["rev-parse", `${implementation.commit}:${integrity.git.relative}`]);
     if (sourceTreeAtImplementation.status !== 0 || sourceTreeAtImplementation.stdout.trim() !== implementation.tree) {
@@ -409,6 +507,7 @@ async function assertSourceAndEvidence(root, status, { requireGit, externalEvide
     if (!Number.isFinite(Date.parse(String(external.generatedAt ?? ""))) || Date.parse(external.generatedAt) <= implementationTime) {
       throw new Error("repository-external GitHub evidence predates or lacks the implementation timestamp");
     }
+    await cryptographicallyVerifyExternalSubject(external, status, externalSubject);
   }
   assertSmokeQualification(smoke, status, integrity);
   await assertExternalEvidence(external, status, integrity);
@@ -514,6 +613,7 @@ export async function verifyReleaseGate(options) {
     const source = await assertSourceAndEvidence(root, status, {
       requireGit: true,
       externalEvidence: options.externalEvidence,
+      externalSubject: options.externalSubject,
     });
     return {
       releaseStatus: "seal_ready",

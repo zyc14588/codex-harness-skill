@@ -25,6 +25,11 @@ import {
 import type { CreateControllerPlanInput, SplitAdviceCandidateInput } from "./service.js";
 import type { ReviewDecision } from "./types.js";
 
+const MCP_IMPLEMENTATION_COMMIT = process.env.CODEX_HARNESS_IMPLEMENTATION_COMMIT?.trim();
+if (MCP_IMPLEMENTATION_COMMIT && !/^[0-9a-f]{40,64}$/u.test(MCP_IMPLEMENTATION_COMMIT)) {
+  throw new Error("CODEX_HARNESS_IMPLEMENTATION_COMMIT must be a full Git object id");
+}
+
 interface JsonRpcRequest {
   jsonrpc: "2.0";
   id?: string | number | null;
@@ -94,7 +99,7 @@ const leafSchema = objectSchema({
   executor: { type: "string", enum: ["auto", "harness", "llama_cpp"], default: "auto" },
   complexity: { type: "string", enum: ["trivial", "small", "medium", "large"] },
   mode: { type: "string", enum: ["implementation", "test", "review", "analysis"], default: "implementation" },
-  harnessMode: { type: "string", enum: ["minimal", "standard"], default: "minimal" },
+  harnessMode: { type: "string", enum: ["minimal"], default: "minimal", description: "0.6.6 disables Harness standard mode." },
   parallelGroup: stringSchema(200),
   dependsOn: { type: "array", items: stringSchema(200), maxItems: 32, default: [] },
   toolCapabilities: { type: "array", items: { type: "string", enum: ["repository_read", "verification", "git_inspect"] }, maxItems: 3 },
@@ -153,7 +158,7 @@ const tools: ToolDefinition[] = [
           taskFamily: stringSchema(500),
           executor: { type: "string", enum: ["auto", "harness", "llama_cpp"], default: "harness" },
           model: stringSchema(512),
-          harnessMode: { type: "string", enum: ["minimal", "standard"], default: "minimal" },
+          harnessMode: { type: "string", enum: ["minimal"], default: "minimal" },
           mode: { type: "string", enum: ["implementation", "test", "review", "analysis"], default: "implementation" },
           complexity: { type: "string", enum: ["trivial", "small", "medium", "large"] },
           proComplex: booleanSchema(false),
@@ -230,10 +235,20 @@ const tools: ToolDefinition[] = [
   },
   {
     name: "harness_read_changed_file",
-    description: "Read one changed text file. Codex must review every changed path before recording a decision.",
+    description: "Read one UTF-8 byte page from a changed text file and persist a fingerprint-bound receipt. Follow nextOffsetBytes until receipt.complete=true for every changed path before approval/revise.",
     annotations: readOnly,
-    inputSchema: objectSchema({ taskId: stringSchema(200), filePath: stringSchema() }, ["taskId", "filePath"]),
-    invoke: async (input) => await readChangedFile(requiredString(input, "taskId"), requiredString(input, "filePath")),
+    inputSchema: objectSchema({
+      taskId: stringSchema(200),
+      filePath: stringSchema(),
+      offsetBytes: integerSchema(0, 5_000_000, 0),
+      maxBytes: integerSchema(256, 49_152, 49_152),
+    }, ["taskId", "filePath"]),
+    invoke: async (input) => await readChangedFile(
+      requiredString(input, "taskId"),
+      requiredString(input, "filePath"),
+      optionalInteger(input, "offsetBytes") ?? 0,
+      optionalInteger(input, "maxBytes") ?? 49_152,
+    ),
   },
   {
     name: "controller_review_task",
@@ -356,7 +371,11 @@ async function handle(request: JsonRpcRequest): Promise<void> {
         result: {
           protocolVersion,
           capabilities: { tools: { listChanged: false } },
-          serverInfo: { name: "codex-harness-bridge", version: "0.6.6" },
+          serverInfo: {
+            name: "codex-harness-bridge",
+            version: "0.6.6",
+            ...(MCP_IMPLEMENTATION_COMMIT ? { implementationCommit: MCP_IMPLEMENTATION_COMMIT } : {}),
+          },
           instructions: "Codex is the controller. Query split memory before decomposition, prefer minimal Harness, launch dependency-ready disjoint leaves in parallel, and review every changed file. Input/output token totals are the only model-use gates; calls and costs are reference telemetry.",
         },
       });

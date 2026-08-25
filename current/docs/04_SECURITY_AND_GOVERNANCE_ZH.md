@@ -26,6 +26,6 @@ task/attempt registry 是 broker 执行的终止权威：取消、attempt rollov
 
 ## 发布
 
-稳定状态不能靠文档声明。release gate 必须从当前树重算 source/lock/critical/evidence/archive bindings，确认 evidence 晚于 implementation commit 且 smoke generation commit/tree 正是当前 critical path。根 workflow 以 full SHA pin actions，并把受保护 Provider evidence 的 artifact digest、run identity、workflow hash 和 GitHub attestation 绑定到精确 seal commit。先完成干净 canonical `seal-ready`，再在隔离 staging 构建归档；canonical checkout 不写打包来源文件。
+稳定状态不能靠文档声明。release gate 必须从当前树重算 source/lock/critical/evidence/archive bindings，确认 evidence 晚于 implementation commit 且 smoke generation commit/tree 正是当前 critical path。根 workflow 以 full SHA pin actions，并把受保护 Provider evidence 的 artifact digest、run identity、workflow hash 和 GitHub attestation 绑定到精确 qualification commit/tree；之后只允许白名单元数据形成 seal，seal 身份从当前干净 Git checkout 推导而不写回自身，消除 strict-ci/self-hash 循环。先完成干净 canonical `seal-ready`，再在隔离 staging 构建归档；canonical checkout 不写打包来源文件。
 
 DEC-001 至 DEC-004 是不可代签的 owner 决策；未批准或批准后未重新纳入实现提交并资格化时，stable gate 必须失败。未取得实际 CI run、protected Provider attestation、branch protection required checks、全 controller 资源证据和最终 archive 证据时保持 candidate；禁止自动 push、merge、tag 或 GitHub Release。

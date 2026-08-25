@@ -1,5 +1,5 @@
 import type { BridgeConfig, TaskRecord } from "./types.js";
-export type LlamaFailureCode = "disabled" | "budget" | "timeout" | "unavailable" | "process" | "http" | "invalid_output" | "security";
+export type LlamaFailureCode = "disabled" | "budget" | "timeout" | "unavailable" | "process" | "http" | "invalid_output" | "security" | "resource";
 export declare class LlamaExecutionError extends Error {
     readonly code: LlamaFailureCode;
     readonly fallbackEligible: boolean;

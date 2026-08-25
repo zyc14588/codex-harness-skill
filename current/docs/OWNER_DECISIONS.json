@@ -1,65 +1,140 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "version": "0.6.6",
-  "policy": "Every decision must be APPROVED in an implementation commit before seal-ready or stable promotion.",
+  "status": "OWNER_DECISIONS_APPROVED_LOCAL_IMPLEMENTATION_IN_PROGRESS",
+  "policy": "Owner approval and implementation verification are independent. Any decision change is an implementation change and invalidates earlier qualification evidence.",
+  "decidedBy": "zyc14588",
+  "decidedAt": "2026-08-26T01:22:12+10:00",
   "decisions": {
     "DEC-001": {
-      "title": "GitHub private branch protection",
-      "status": "PENDING_OWNER",
-      "selected": null,
+      "title": "GitHub public repository governance",
+      "status": "APPROVED",
+      "selected": "B_PUBLIC_AFTER_FULL_REPOSITORY_AND_HISTORY_AUDIT",
       "options": [
-        "A_PRIVATE_PLAN_WITH_BRANCH_PROTECTION",
-        "B_PUBLIC_AFTER_FULL_REPOSITORY_AND_HISTORY_AUDIT",
-        "C_SIGNED_TAG_TWO_PERSON_APPROVAL_IMMUTABLE_ATTESTATION_CONTRACT"
+        "B_PUBLIC_AFTER_FULL_REPOSITORY_AND_HISTORY_AUDIT"
       ],
-      "decidedBy": null,
-      "decidedAt": null
+      "decidedBy": "zyc14588",
+      "decidedAt": "2026-08-26T01:22:12+10:00",
+      "ownerMeaning": "Public visibility is accepted only with a full worktree, all-refs, reachable-history, archive, ZIP, privacy, secret, license, and provenance audit plus actual required-check governance.",
+      "implementationVerified": false,
+      "implementationStatus": "BLOCKED_PUBLIC_HISTORY_REMEDIATION",
+      "verificationEvidence": "evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json"
     },
     "DEC-002": {
       "title": "Repository and Git history read boundary",
-      "status": "PENDING_OWNER",
-      "selected": null,
+      "status": "APPROVED",
+      "selected": "A_ACCEPT_REPOSITORY_AND_HISTORY_READ_BOUNDARY",
       "options": [
-        "A_ACCEPT_REPOSITORY_AND_HISTORY_READ_BOUNDARY",
-        "B_REQUIRE_FILTERED_WORKSPACE_AND_SHALLOW_SANITIZED_HISTORY"
+        "A_ACCEPT_REPOSITORY_AND_HISTORY_READ_BOUNDARY"
       ],
+      "decidedBy": "zyc14588",
+      "decidedAt": "2026-08-26T01:22:12+10:00",
+      "ownerMeaning": "Harness may read the complete task worktree and Git history through the Broker. Repository/history content may be sent to the configured remote model; this is an accepted disclosure boundary, not a confidentiality boundary.",
       "implementationVerified": false,
-      "decidedBy": null,
-      "decidedAt": null
+      "implementationPrerequisites": [
+        "owner decision approved",
+        "disclosure documentation present",
+        "history reads constrained to the current task repository by the Broker",
+        "history output is byte-paginated under the model-visible token ceiling",
+        "public repository/history audit PASS",
+        "negative isolation tests PASS"
+      ],
+      "blockedBy": [
+        "PUBLIC_REPOSITORY_HISTORY_AUDIT_NOT_PASS"
+      ]
     },
     "DEC-003": {
-      "title": "Controlled-use host resource defaults",
-      "status": "PENDING_OWNER",
-      "selected": null,
+      "title": "Tiered controlled-use resource profiles",
+      "status": "APPROVED",
+      "selected": "D_TIERED_RESOURCE_PROFILES",
       "options": [
-        "A_APPROVE_PROPOSED_PROFILE",
-        "B_SUPPLY_REVISED_BOUNDED_PROFILE"
+        "D_TIERED_RESOURCE_PROFILES"
       ],
-      "proposedProfile": {
-        "memoryMaxBytes": 4294967296,
-        "cpuQuotaPercent": 200,
-        "tasksMax": 256,
-        "ioWeight": 100,
-        "worktreeMaxBytes": 4294967296,
-        "rlimitNoFile": 4096,
-        "rlimitNproc": 4096,
-        "rlimitFsizeBytes": 1073741824,
-        "commandTimeoutSeconds": 1800
+      "decidedBy": "zyc14588",
+      "decidedAt": "2026-08-26T01:22:12+10:00",
+      "implementationVerified": true,
+      "implementationStatus": "LOCAL_CODE_AND_NEGATIVE_TESTS_PASS_HOST_CONTROLLED_GATE_BLOCKED",
+      "profiles": {
+        "local_or_flash_trivial_small": {
+          "memoryMaxBytes": 2147483648,
+          "cpuQuotaPercent": 100,
+          "tasksMax": 128,
+          "ioWeight": 100,
+          "worktreeMaxBytes": 2147483648,
+          "rlimitNoFile": 2048,
+          "rlimitNproc": 2048,
+          "rlimitFsizeBytes": 536870912,
+          "commandTimeoutSeconds": 900
+        },
+        "flash_medium": {
+          "memoryMaxBytes": 4294967296,
+          "cpuQuotaPercent": 200,
+          "tasksMax": 256,
+          "ioWeight": 100,
+          "worktreeMaxBytes": 4294967296,
+          "rlimitNoFile": 4096,
+          "rlimitNproc": 4096,
+          "rlimitFsizeBytes": 1073741824,
+          "commandTimeoutSeconds": 1800
+        },
+        "pro_large": {
+          "memoryMaxBytes": 8589934592,
+          "cpuQuotaPercent": 400,
+          "tasksMax": 512,
+          "ioWeight": 100,
+          "worktreeMaxBytes": 8589934592,
+          "rlimitNoFile": 8192,
+          "rlimitNproc": 8192,
+          "rlimitFsizeBytes": 2147483648,
+          "commandTimeoutSeconds": 3600
+        },
+        "authoritative_verification": {
+          "memoryMaxBytes": 4294967296,
+          "cpuQuotaPercent": 200,
+          "tasksMax": 256,
+          "ioWeight": 100,
+          "worktreeMaxBytes": 4294967296,
+          "rlimitNoFile": 4096,
+          "rlimitNproc": 4096,
+          "rlimitFsizeBytes": 1073741824,
+          "commandTimeoutSeconds": 1800
+        }
       },
-      "decidedBy": null,
-      "decidedAt": null
+      "routing": {
+        "llama.cpp or Flash trivial-small": "local_or_flash_trivial_small",
+        "Flash medium": "flash_medium",
+        "Pro large": "pro_large",
+        "authoritative harness_verify": "authoritative_verification"
+      },
+      "policy": {
+        "allRequiredControllersMustBeDynamicallyVerified": true,
+        "missingIoControllerFailsClosed": true,
+        "auditOnlyHostCannotRunControlledProviderSmoke": true,
+        "profileSelectionFrozenPerAttempt": true,
+        "operatorMayLowerWithinSafeBounds": false,
+        "operatorMayRaiseBeyondApprovedProfile": false
+      }
     },
     "DEC-004": {
-      "title": "Candidate audit installation path",
-      "status": "PENDING_OWNER",
-      "selected": null,
+      "title": "Candidate audit installation identity",
+      "status": "APPROVED",
+      "selected": "A_USE_COMMIT_SUFFIXED_CANDIDATE_PATH",
       "options": [
-        "A_USE_COMMIT_SUFFIXED_CANDIDATE_PATH",
-        "B_SUPPLY_ALTERNATIVE_NON_STABLE_PATH_POLICY"
+        "A_USE_COMMIT_SUFFIXED_CANDIDATE_PATH"
       ],
-      "implementedRecommendation": "0.6.6-candidate-<implementation-commit-prefix>",
-      "decidedBy": null,
-      "decidedAt": null
+      "decidedBy": "zyc14588",
+      "decidedAt": "2026-08-26T01:22:12+10:00",
+      "implementationVerified": false,
+      "implementationStatus": "CODE_COMPLETE_FULL_PACKAGE_LIFECYCLE_RERUN_PENDING",
+      "pathPattern": "0.6.6-candidate-<implementationCommit12>",
+      "requirements": [
+        "candidate install is audit-only and controlledUseAllowed remains false",
+        "candidate never overwrites stable or another implementation commit",
+        "reinstall requires identical implementation commit and manifest",
+        "runtime, config, MCP path, doctor, logs, and evidence bind the full implementation commit",
+        "withdrawn candidate is not installable",
+        "uninstall removes only the selected runtime and matching active integration"
+      ]
     }
   }
 }

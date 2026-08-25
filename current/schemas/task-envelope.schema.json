@@ -64,6 +64,63 @@
       },
       "additionalProperties": false
     },
+    "frozenResourceProfile": {
+      "type": "object",
+      "required": [
+        "enforcement", "systemdRunBinary", "systemdRunSha256", "prlimitBinary", "prlimitSha256",
+        "memoryMaxBytes", "cpuQuotaPercent", "tasksMax", "ioWeight", "worktreeMaxBytes",
+        "rlimitNoFile", "rlimitNproc", "rlimitFsizeBytes", "commandTimeoutSeconds",
+        "resourceProfileId", "resourceProfileHash", "policyVersion"
+      ],
+      "properties": {
+        "enforcement": { "enum": ["required", "audit_only"] },
+        "systemdRunBinary": { "type": "string", "pattern": "^/" },
+        "systemdRunSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "prlimitBinary": { "type": "string", "pattern": "^/" },
+        "prlimitSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "memoryMaxBytes": { "type": "integer", "minimum": 1 },
+        "cpuQuotaPercent": { "type": "integer", "minimum": 1 },
+        "tasksMax": { "type": "integer", "minimum": 1 },
+        "ioWeight": { "type": "integer", "minimum": 1 },
+        "worktreeMaxBytes": { "type": "integer", "minimum": 1 },
+        "rlimitNoFile": { "type": "integer", "minimum": 1 },
+        "rlimitNproc": { "type": "integer", "minimum": 1 },
+        "rlimitFsizeBytes": { "type": "integer", "minimum": 1 },
+        "commandTimeoutSeconds": { "type": "integer", "minimum": 1 },
+        "resourceProfileId": {
+          "enum": ["local_or_flash_trivial_small", "flash_medium", "pro_large", "authoritative_verification"]
+        },
+        "resourceProfileHash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "policyVersion": { "const": "owner-tiered-resource-profiles-v1" }
+      },
+      "additionalProperties": false
+    },
+    "changedFileReadReceipt": {
+      "type": "object",
+      "required": ["schemaVersion", "path", "changeFingerprint", "fileSha256", "totalBytes", "ranges", "complete", "updatedAt"],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "path": { "type": "string", "minLength": 1 },
+        "changeFingerprint": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "fileSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "totalBytes": { "type": "integer", "minimum": 0, "maximum": 5000000 },
+        "ranges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["offsetBytes", "returnedBytes"],
+            "properties": {
+              "offsetBytes": { "type": "integer", "minimum": 0 },
+              "returnedBytes": { "type": "integer", "minimum": 0, "maximum": 49152 }
+            },
+            "additionalProperties": false
+          }
+        },
+        "complete": { "type": "boolean" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": false
+    },
     "splitDecision": {
       "type": "object",
       "required": [
@@ -182,6 +239,7 @@
     "executor",
     "complexity",
     "harnessMode",
+    "resourceProfile",
     "dependsOn",
     "toolCapabilities",
     "taskFamily",
@@ -265,10 +323,10 @@
       ]
     },
     "harnessMode": {
-      "enum": [
-        "minimal",
-        "standard"
-      ]
+      "enum": ["minimal", "standard"]
+    },
+    "resourceProfile": {
+      "$ref": "#/$defs/frozenResourceProfile"
     },
     "parallelGroup": {
       "type": "string",
@@ -506,6 +564,26 @@
     "fallbackModel": {
       "type": "string"
     },
+    "executionAttempts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["executor", "resourceProfile", "resourceProbe", "startedAt"],
+        "properties": {
+          "id": { "type": "string" },
+          "ordinal": { "type": "integer", "minimum": 1 },
+          "executor": { "enum": ["harness", "llama_cpp"] },
+          "model": { "type": "string" },
+          "resourceProfile": { "$ref": "#/$defs/frozenResourceProfile" },
+          "resourceProbe": { "type": "object" },
+          "startedAt": { "type": "string", "format": "date-time" },
+          "completedAt": { "type": "string", "format": "date-time" },
+          "outcome": { "enum": ["completed", "failed", "timed_out", "cancelled"] },
+          "error": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
     "reviewDecision": {
       "enum": [
         "approved",
@@ -521,6 +599,10 @@
       "items": {
         "type": "string"
       }
+    },
+    "changedFileReadReceipts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/changedFileReadReceipt" }
     },
     "reviewedAt": {
       "type": "string",
@@ -546,6 +628,12 @@
     "verifiedFingerprint": {
       "type": "string",
       "pattern": "^[0-9a-f]{64}$"
+    },
+    "verificationResourceProfile": {
+      "$ref": "#/$defs/frozenResourceProfile"
+    },
+    "verificationResourceProbe": {
+      "type": "object"
     },
     "bridgeCommit": {
       "type": "string",
@@ -701,7 +789,12 @@
         "minimal_tool_plane",
         "minimal_tool_plane_composition",
         "minimal_tool_serialization_mismatch",
+        "thinking_policy_state",
+        "thinking_replay_state",
+        "provider_protocol",
         "provider_transport",
+        "provider_credential",
+        "resource_control",
         "no_effect"
       ]
     },
@@ -715,5 +808,11 @@
       }
     }
   },
+  "allOf": [
+    {
+      "if": { "properties": { "executor": { "const": "harness" } }, "required": ["executor"] },
+      "then": { "properties": { "harnessMode": { "const": "minimal" } } }
+    }
+  ],
   "additionalProperties": true
 }

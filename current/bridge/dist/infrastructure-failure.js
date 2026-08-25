@@ -9,6 +9,7 @@ export const INFRASTRUCTURE_FAILURE_TAXONOMY = Object.freeze({
     provider_protocol: Object.freeze({ infrastructure: true, attemptAbort: true, retryable: false, attribution: "infrastructure" }),
     provider_transport: Object.freeze({ infrastructure: true, attemptAbort: false, retryable: true, attribution: "infrastructure" }),
     provider_credential: Object.freeze({ infrastructure: true, attemptAbort: true, retryable: false, attribution: "infrastructure" }),
+    resource_control: Object.freeze({ infrastructure: true, attemptAbort: true, retryable: false, attribution: "infrastructure" }),
     no_effect: Object.freeze({ infrastructure: true, attemptAbort: false, retryable: false, attribution: "infrastructure" }),
 });
 export const ATTEMPT_PROTOCOL_FAILURE_HTTP_STATUS = 422;
@@ -54,6 +55,12 @@ export function infrastructureAnomalyLabels(task) {
 }
 export function failureAttribution(kind) {
     return kind === undefined ? undefined : INFRASTRUCTURE_FAILURE_TAXONOMY[kind].attribution;
+}
+/** Classify fail-closed host/controller/quota failures so split memory never blames task shape. */
+export function classifyResourceControlFailure(details) {
+    return /(?:controlled Harness execution requires verified cgroup v2 and RLIMIT controls|resource profile .*?(?:mismatch|approved value)|resource ceiling|aggregate worktree quota|cgroup|MemoryMax|CPUQuota|TasksMax|IOWeight|RLIMIT_|prlimit SHA-256 mismatch|systemd-run SHA-256 mismatch|untrusted user-systemd)/iu.test(details)
+        ? "resource_control"
+        : undefined;
 }
 /**
  * Normalize failures emitted before the managed in-process broker tool plane

@@ -6,6 +6,7 @@ import { spawn } from "node:child_process";
 import { createHash, randomBytes } from "node:crypto";
 import type {
   BridgeConfig,
+  ChangedFileReadReceipt,
   ControllerLeaf,
   ControllerPlan,
   HarnessExecutionMode,
@@ -37,6 +38,7 @@ import {
   ignoredUntrackedPaths,
   applyReviewedPatch,
   readRepoFile,
+  MAX_REVIEW_PAGE_BYTES,
   removeWorktree,
   resolveCommit,
   stagedPaths,
@@ -87,11 +89,30 @@ import {
 import { captureProcessIdentity, processIdentityMatches, signalVerifiedProcessGroup } from "./process-identity.js";
 import { ensureOperatorToken, readProviderApiKey } from "./security.js";
 import { inspectMinimalPresetBrokerComposition } from "./harness-isolation.js";
-import { probeHostResourceProfile } from "./resource-controls.js";
+import {
+  freezeHostResourceProfile,
+  probeHostResourceProfile,
+  RESOURCE_PROFILE_IDS,
+  selectResourceProfileId,
+} from "./resource-controls.js";
+import { runVerificationSandboxCommand } from "./verification-sandbox.js";
 
 const ACCEPTABLE_FOR_ADOPTION = new Set<TaskRecord["status"]>(["completed", "completed_no_changes"]);
 const MAX_TASK_PROMPT_BYTES = 96_000;
 const WORKER_ORPHAN_GRACE_MS = 2_000;
+
+/** New 0.6.6 Harness work is minimal-only; "standard" remains a historical/local-executor enum value. */
+export function governedHarnessMode(
+  executor: "harness" | "llama_cpp",
+  requested: HarnessExecutionMode | undefined,
+  label: string,
+): HarnessExecutionMode {
+  const selected = requested ?? "minimal";
+  if (executor === "harness" && selected !== "minimal") {
+    throw new Error(`${label}: Harness standard mode is disabled for 0.6.6 qualification; use the governed minimal tool plane`);
+  }
+  return executor === "harness" ? "minimal" : "standard";
+}
 
 async function canonicalExisting(target: string, field: string): Promise<string> {
   try {
@@ -633,9 +654,7 @@ async function normalizedLeaf(
   if (executor === "llama_cpp") exactLlamaLeases(harnessWritePaths);
 
   const mode = input.mode ?? "implementation";
-  const harnessMode: HarnessExecutionMode = executor === "harness"
-    ? input.harnessMode ?? (config.controller.preferMinimalHarness ? "minimal" : "standard")
-    : "standard";
+  const harnessMode = governedHarnessMode(executor, input.harnessMode, `leaf ${id}`);
   const toolCapabilities = normalizeToolCapabilities(input.toolCapabilities, executor === "harness" && harnessMode === "minimal");
   if (harnessMode !== "minimal" && toolCapabilities.length > 0) {
     throw new Error(`leaf ${id}: progressive tool capabilities are available only in Harness minimal mode`);
@@ -708,6 +727,7 @@ async function normalizedLeaf(
     routingReason,
     complexity,
     harnessMode,
+    resourceProfile: freezeHostResourceProfile(config, selectResourceProfileId(executor, selectedModel, complexity)),
     ...(parallelGroup ? { parallelGroup } : {}),
     dependsOn,
     toolCapabilities,
@@ -869,9 +889,7 @@ export async function controllerSplitAdvice(repoRootInput: string, candidates: S
     const model = executor === "harness"
       ? candidate.model?.trim() || DEEPSEEK_FLASH_MODEL
       : candidate.model?.trim() || undefined;
-    const harnessMode = executor === "harness"
-      ? candidate.harnessMode ?? (config.controller.preferMinimalHarness ? "minimal" : "standard")
-      : "standard";
+    const harnessMode = governedHarnessMode(executor, candidate.harnessMode, `candidate ${id}`);
     const usePro = candidate.proComplex === true || (candidate.complexity === "large" && model === DEEPSEEK_PRO_MODEL);
     const result = await adviseSplit(config, repoRoot, {
       taskFamily: boundedText(candidate.taskFamily, `candidate ${id} taskFamily`, 500),
@@ -883,7 +901,12 @@ export async function controllerSplitAdvice(repoRootInput: string, candidates: S
       proposedComplexity: candidate.complexity,
       defaultBudget: usePro ? policy.defaultProComplexBudget : policy.defaultHarnessBudget,
     });
-    advice.push({ id, ...result.decision, profile: result.profile });
+    advice.push({
+      id,
+      ...result.decision,
+      profile: result.profile,
+      resourceProfile: freezeHostResourceProfile(config, selectResourceProfileId(executor, model, candidate.complexity)),
+    });
   }
   return {
     repoRoot,
@@ -997,6 +1020,7 @@ export async function doctor(probeHarness: boolean): Promise<unknown> {
   };
   const checks: Record<string, unknown> = {
     configPath: defaultConfigPath(), configReadable: true, stateRoot: config.stateRoot,
+    installation: config.installation ?? { status: "source_or_legacy_config_without_installation_binding" },
     harnessRoot: config.harnessRoot, harnessRootExists: await pathExists(config.harnessRoot),
     harnessProfiles: { standard: config.harnessProfile, minimal: config.harnessMinimalProfile },
     minimalIntegration,
@@ -1031,9 +1055,6 @@ export async function doctor(probeHarness: boolean): Promise<unknown> {
     if (config.enforceHarnessBuildHash && !buildIntegrity.matches) launcherOk = false;
     if (probeHarness) {
       const version = await runProcess(launcher.command, [...launcher.prefixArgs, "--version"], { cwd: config.harnessRoot, env: sanitizedEnvironment(config), timeoutMs: 30_000 });
-      const standardComposition = await runProcess(launcher.command, [...launcher.prefixArgs, "--profile", config.harnessProfile, "--dump-config"], {
-        cwd: config.harnessRoot, env: sanitizedEnvironment(config), timeoutMs: 60_000, maxCaptureChars: 200_000,
-      });
       const minimalComposition = await runProcess(launcher.command, [...launcher.prefixArgs, "--profile", config.harnessMinimalProfile, "--dump-config"], {
         cwd: config.harnessRoot, env: sanitizedEnvironment(config), timeoutMs: 60_000, maxCaptureChars: 200_000,
       });
@@ -1042,12 +1063,12 @@ export async function doctor(probeHarness: boolean): Promise<unknown> {
         && minimalIntegration.brokeredToolPluginExists && minimalIntegration.brokerHostModuleExists
         && minimalIntegration.requestStateModuleExists && minimalPresetBroker.ok;
       const minimalEffectiveComposition = inspectMinimalProfileComposition(minimalComposition.stdout, minimalComposition.stderr);
-      probeOk = version.code === 0 && standardComposition.code === 0 && minimalComposition.code === 0
+      probeOk = version.code === 0 && minimalComposition.code === 0
         && minimalStructureOk && minimalEffectiveComposition.ok;
       checks.harnessProbe = {
         ok: probeOk,
         version: { code: version.code, stdout: version.stdout.trim(), stderr: version.stderr.trim() },
-        standardProfileComposition: { code: standardComposition.code, stdoutChars: standardComposition.stdout.length, stderrChars: standardComposition.stderr.length },
+        standardMode: "disabled_for_0.6.6",
         minimalProfileComposition: { code: minimalComposition.code, stdoutChars: minimalComposition.stdout.length, stderrChars: minimalComposition.stderr.length },
         minimalEffectiveComposition,
         minimalStructureOk,
@@ -1065,17 +1086,25 @@ export async function doctor(probeHarness: boolean): Promise<unknown> {
   }
   const llama = await probeLlamaCpp(config);
   checks.llamaCppProbe = llama;
-  const resourceProbe = await probeHostResourceProfile(config);
+  const resourceProbes: Record<string, unknown> = {};
+  let allResourceProfilesControlled = true;
+  for (const id of RESOURCE_PROFILE_IDS) {
+    const probe = await probeHostResourceProfile(config, freezeHostResourceProfile(config, id));
+    resourceProbes[id] = probe;
+    if (!probe.controlledUseAllowed) allResourceProfilesControlled = false;
+  }
+  const resourceProbe = resourceProbes.authoritative_verification as Awaited<ReturnType<typeof probeHostResourceProfile>>;
   checks.hostResourceProfile = resourceProbe;
+  checks.hostResourceProfiles = resourceProbes;
   const llamaOk = llama.ok === true;
-  const resourceModeOk = config.harnessIsolation.resourceProfile.enforcement === "audit_only" || resourceProbe.controlledUseAllowed;
+  const resourceModeOk = config.harnessIsolation.resourceProfile.enforcement === "audit_only" || allResourceProfilesControlled;
   const ok = node.code === 0 && nodeSupported && git.code === 0 && launcherOk && probeOk && monitorOk && llamaOk
     && minimalPresetBroker.ok && resourceModeOk &&
     rootChecks.every((item) => item.ok === true) && (!config.enforceHarnessPin || revision.matches);
   return {
     ok,
-    controlledUseAllowed: resourceProbe.controlledUseAllowed,
-    executionMode: resourceProbe.controlledUseAllowed ? "controlled" : "audit_only",
+    controlledUseAllowed: allResourceProfilesControlled,
+    executionMode: allResourceProfilesControlled ? "controlled" : "audit_only",
     checks,
   };
 }
@@ -1160,6 +1189,8 @@ export async function startTask(input: StartTaskInput): Promise<unknown> {
         routingReason: leaf.routingReason,
         complexity: leaf.complexity,
         harnessMode: leaf.harnessMode,
+        resourceProfile: leaf.resourceProfile,
+        ...(config.installation ? { installationIdentity: { ...config.installation } } : {}),
         ...(leaf.parallelGroup ? { parallelGroup: leaf.parallelGroup } : {}),
         dependsOn: leaf.dependsOn,
         toolCapabilities: leaf.toolCapabilities,
@@ -1213,6 +1244,7 @@ export async function startTask(input: StartTaskInput): Promise<unknown> {
         status: task.status, workerPid, baseCommit: task.baseCommit, branchName, worktreePath,
         harnessWritePaths: task.harnessWritePaths, codexWritePaths: task.codexWritePaths,
         budget: task.budget, dashboardUrl: task.dashboardUrl, harnessMode: task.harnessMode,
+        installationIdentity: task.installationIdentity ?? config.installation ?? { status: "source_or_legacy_runtime_without_candidate_binding" },
         nextAction: "Codex should immediately execute its disjoint lane. When the worker stops, collect every changed file, record a review decision, then run authoritative verification.",
       };
     } catch (error) {
@@ -1299,6 +1331,7 @@ export async function taskStatus(taskId: string): Promise<unknown> {
     fallbackModel: task.fallbackModel,
     complexity: task.complexity,
     harnessMode: task.harnessMode,
+    installationIdentity: task.installationIdentity ?? config.installation ?? { status: "source_or_legacy_runtime_without_candidate_binding" },
     parallelGroup: task.parallelGroup,
     dependsOn: task.dependsOn,
     toolCapabilities: task.toolCapabilities,
@@ -1417,6 +1450,7 @@ export async function collectTask(taskId: string, includePatch: boolean, maxPatc
       budget: await effectiveBudget(config, task.budget, task.budgetGroupId),
       frozenBudget: task.budget,
       dashboardUrl: task.dashboardUrl,
+      installationIdentity: task.installationIdentity ?? config.installation ?? { status: "source_or_legacy_runtime_without_candidate_binding" },
     };
     if (includePatch) {
       response.patch = patch.length <= capped ? patch : `${patch.slice(0, capped)}\n\n[PATCH TRUNCATED: ${patch.length - capped} characters omitted]`;
@@ -1425,7 +1459,29 @@ export async function collectTask(taskId: string, includePatch: boolean, maxPatc
   });
 }
 
-export async function readChangedFile(taskId: string, filePath: string): Promise<unknown> {
+function mergeReadRanges(ranges: Array<{ offsetBytes: number; returnedBytes: number }>): Array<{ offsetBytes: number; returnedBytes: number }> {
+  const sorted = ranges
+    .filter((range) => range.offsetBytes >= 0 && range.returnedBytes >= 0)
+    .sort((left, right) => left.offsetBytes - right.offsetBytes || left.returnedBytes - right.returnedBytes);
+  const merged: Array<{ offsetBytes: number; returnedBytes: number }> = [];
+  for (const range of sorted) {
+    const end = range.offsetBytes + range.returnedBytes;
+    const previous = merged.at(-1);
+    if (!previous || range.offsetBytes > previous.offsetBytes + previous.returnedBytes) {
+      merged.push({ ...range });
+      continue;
+    }
+    previous.returnedBytes = Math.max(previous.offsetBytes + previous.returnedBytes, end) - previous.offsetBytes;
+  }
+  return merged;
+}
+
+export async function readChangedFile(
+  taskId: string,
+  filePath: string,
+  offsetBytes = 0,
+  maxBytes = MAX_REVIEW_PAGE_BYTES,
+): Promise<unknown> {
   const config = await loadConfig();
   const id = safeTaskId(taskId);
   const initial = await loadTask(config, id);
@@ -1437,7 +1493,31 @@ export async function readChangedFile(taskId: string, filePath: string): Promise
     const normalized = normalizeRepoRelative(filePath);
     const paths = await changedPaths(task.worktreePath, task.baseCommit);
     if (!paths.includes(normalized)) throw new Error("requested path is not part of the task change set");
-    return { taskId: task.id, filePath: normalized, content: await readRepoFile(task.worktreePath, normalized) };
+    const fingerprint = await changeFingerprint(task);
+    const page = await readRepoFile(task.worktreePath, normalized, task.baseCommit, offsetBytes, maxBytes);
+    const existing = task.changedFileReadReceipts?.find((item) => item.path === normalized
+      && item.changeFingerprint === fingerprint && item.fileSha256 === page.fileSha256 && item.totalBytes === page.totalBytes);
+    const ranges = mergeReadRanges([
+      ...(existing?.ranges ?? []),
+      { offsetBytes: page.offsetBytes, returnedBytes: page.returnedBytes },
+    ]);
+    const complete = page.totalBytes === 0 || (ranges.length === 1 && ranges[0]!.offsetBytes === 0 && ranges[0]!.returnedBytes >= page.totalBytes);
+    const receipt: ChangedFileReadReceipt = {
+      schemaVersion: 1,
+      path: normalized,
+      changeFingerprint: fingerprint,
+      fileSha256: page.fileSha256,
+      totalBytes: page.totalBytes,
+      ranges,
+      complete,
+      updatedAt: nowIso(),
+    };
+    task.changedFileReadReceipts = [
+      ...(task.changedFileReadReceipts ?? []).filter((item) => item.path !== normalized),
+      receipt,
+    ].sort((left, right) => left.path.localeCompare(right.path));
+    await saveTask(config, task);
+    return { taskId: task.id, filePath: normalized, ...page, receipt };
   });
 }
 
@@ -1457,6 +1537,14 @@ export async function reviewTask(taskId: string, decision: ReviewDecision, revie
     if (JSON.stringify(supplied) !== JSON.stringify(expected)) {
       throw new Error(`Codex review must acknowledge every changed path exactly once; expected ${expected.join(", ") || "(none)"}`);
     }
+    const fingerprint = await changeFingerprint(task);
+    const completeReceipts = new Set((task.changedFileReadReceipts ?? [])
+      .filter((receipt) => receipt.complete && receipt.changeFingerprint === fingerprint)
+      .map((receipt) => receipt.path));
+    const unread = expected.filter((item) => !completeReceipts.has(item));
+    if (decision !== "rejected" && unread.length > 0) {
+      throw new Error(`approved/revise review requires complete paginated read receipts for every changed file: ${unread.join(", ")}`);
+    }
     const outOfScope = findOutOfScope(paths, task.harnessWritePaths);
     const unsafeSymlinks = await unsafeChangedSymlinkPaths(task.worktreePath, paths);
     const unsafeGitlinks = await unsafeChangedGitlinkPaths(task.worktreePath, paths);
@@ -1465,7 +1553,6 @@ export async function reviewTask(taskId: string, decision: ReviewDecision, revie
       throw new Error("unsafe or out-of-scope changes cannot receive approved/revise review; reject the task");
     }
     const boundedNotes = boundedText(notes || (decision === "approved" ? "Codex reviewed all changed files." : "No review notes supplied."), "review notes", 32_000);
-    const fingerprint = await changeFingerprint(task);
     task.changedPaths = paths;
     task.outOfScopePaths = outOfScope;
     task.unsafeSymlinkPaths = unsafeSymlinks;
@@ -1480,6 +1567,8 @@ export async function reviewTask(taskId: string, decision: ReviewDecision, revie
     delete task.verifiedAt;
     delete task.verifiedCommands;
     delete task.verifiedFingerprint;
+    delete task.verificationResourceProfile;
+    delete task.verificationResourceProbe;
     await saveTask(config, task);
     await updatePlan(config, task.planId, (plan) => {
       const leaf = plan.leaves.find((candidate) => candidate.id === task.leafId);
@@ -1498,7 +1587,16 @@ export async function reviewTask(taskId: string, decision: ReviewDecision, revie
       }
     });
     try { await recordTaskSplitOutcome(config, task, "review"); } catch { /* review result remains authoritative */ }
-    return { taskId: task.id, planId: task.planId, leafId: task.leafId, decision, reviewedPaths: supplied, reviewedFingerprint: fingerprint, notes: boundedNotes };
+    return {
+      taskId: task.id,
+      planId: task.planId,
+      leafId: task.leafId,
+      decision,
+      reviewedPaths: supplied,
+      completeReadReceipts: [...completeReceipts].sort(),
+      reviewedFingerprint: fingerprint,
+      notes: boundedNotes,
+    };
   });
 }
 
@@ -1580,10 +1678,13 @@ export async function repairTask(parentTaskId: string, feedback: string, runtime
       delete task.reviewedPaths;
       delete task.reviewedAt;
       delete task.reviewedFingerprint;
+      delete task.changedFileReadReceipts;
       delete task.verificationPassed;
       delete task.verifiedAt;
       delete task.verifiedCommands;
       delete task.verifiedFingerprint;
+      delete task.verificationResourceProfile;
+      delete task.verificationResourceProbe;
       delete task.bridgeCommit;
       delete task.bridgeCommittedAt;
       delete task.splitOutcomeRecordedAt;
@@ -1684,6 +1785,8 @@ export async function verifyTask(taskId: string, commands?: string[], timeoutSec
     const verificationDirectory = path.join(taskDirectory(config, task.id), `verification-worktree-${randomBytes(8).toString("hex")}`);
     const reviewedPatchPath = path.join(taskDirectory(config, task.id), "reviewed.patch");
     const verificationEvidencePath = path.join(taskDirectory(config, task.id), "verification-evidence.json");
+    const verificationResourceProfile = freezeHostResourceProfile(config, "authoritative_verification");
+    const verificationResourceProbe = await probeHostResourceProfile(config, verificationResourceProfile);
     await writeFile(reviewedPatchPath, reviewedPatch, { encoding: "utf8", mode: 0o600 });
 
     const results: Array<Record<string, unknown>> = [];
@@ -1717,13 +1820,13 @@ export async function verifyTask(taskId: string, commands?: string[], timeoutSec
         throw new Error("fresh verification worktree does not reproduce the reviewed fingerprint");
       }
       for (const command of selected) {
-        const result = await runProcess("bash", ["--noprofile", "--norc", "-lc", command], {
-          cwd: verificationDirectory,
-          env: sanitizedEnvironment(config),
-          timeoutMs: timeoutSeconds * 1_000,
-          maxCaptureChars: 200_000,
-          killProcessGroup: true,
-        });
+        const result = await runVerificationSandboxCommand(
+          config,
+          verificationDirectory,
+          command,
+          timeoutSeconds,
+          verificationResourceProfile,
+        );
         results.push({ command, ...result });
         if (result.code !== 0) break;
       }
@@ -1747,6 +1850,15 @@ export async function verifyTask(taskId: string, commands?: string[], timeoutSec
     const fingerprintStable = finalFingerprint === reviewedFingerprint && currentFingerprint === reviewedFingerprint;
     const passed = cleanStart && verificationWorktreeRemoved && verificationHeadStable
       && results.length === selected.length && results.every((item) => item.code === 0)
+      && results.every((item) => {
+        const sandbox = item.sandbox as Record<string, unknown> | undefined;
+        return sandbox?.bubblewrapSha256 === config.harnessIsolation.bubblewrapSha256
+          && sandbox?.networkNamespace === "private_no_interfaces"
+          && sandbox?.gitCommonMount === "read_only"
+          && sandbox?.hostHomeMounted === false
+          && sandbox?.tmp === "tmpfs"
+          && sandbox?.resourceProfileHash === verificationResourceProfile.resourceProfileHash;
+      })
       && finalViolations.length === 0 && finalUnsafeSymlinks.length === 0
       && finalUnsafeGitlinks.length === 0 && finalStaged.length === 0 && fingerprintStable;
     const verificationResultFingerprint = createHash("sha256").update(JSON.stringify({
@@ -1757,12 +1869,15 @@ export async function verifyTask(taskId: string, commands?: string[], timeoutSec
         code: item.code,
         signal: item.signal,
         timedOut: item.timedOut,
+        sandbox: item.sandbox,
         stdoutSha256: createHash("sha256").update(String(item.stdout ?? "")).digest("hex"),
         stderrSha256: createHash("sha256").update(String(item.stderr ?? "")).digest("hex"),
       })),
       finalFingerprint,
       currentFingerprint,
       verificationHeadStable,
+      verificationResourceProfileId: verificationResourceProfile.resourceProfileId,
+      verificationResourceProfileHash: verificationResourceProfile.resourceProfileHash,
     })).digest("hex");
     task.verificationPassed = passed;
     task.verifiedAt = nowIso();
@@ -1771,6 +1886,8 @@ export async function verifyTask(taskId: string, commands?: string[], timeoutSec
     task.reviewedPatchSha256 = reviewedPatchSha256;
     task.verificationBaseCommit = task.baseCommit;
     task.verificationEvidencePath = verificationEvidencePath;
+    task.verificationResourceProfile = verificationResourceProfile;
+    task.verificationResourceProbe = verificationResourceProbe as unknown as Record<string, unknown>;
     task.verificationCleanStart = cleanStart;
     task.verificationIgnoredResidueExcluded = sourceIgnoredResidue.length;
     task.verificationResultFingerprint = verificationResultFingerprint;
@@ -1784,6 +1901,7 @@ export async function verifyTask(taskId: string, commands?: string[], timeoutSec
     await writeFile(verificationEvidencePath, `${JSON.stringify({
       schemaVersion: 1,
       taskId: task.id,
+      installationIdentity: task.installationIdentity ?? config.installation ?? { status: "source_or_legacy_runtime_without_candidate_binding" },
       baseCommit: task.baseCommit,
       reviewedPatchPath,
       reviewedPatchSha256,
@@ -1795,10 +1913,18 @@ export async function verifyTask(taskId: string, commands?: string[], timeoutSec
       sourceIgnoredResiduePathHash: createHash("sha256").update(sourceIgnoredResidue.join("\0")).digest("hex"),
       cleanStart,
       appliedPaths,
-      commandResults: results.map((item) => ({ command: item.command, code: item.code, signal: item.signal, timedOut: item.timedOut })),
+      commandResults: results.map((item) => ({
+        command: item.command,
+        code: item.code,
+        signal: item.signal,
+        timedOut: item.timedOut,
+        sandbox: item.sandbox,
+      })),
       verificationIgnoredAfterCommands,
       verificationHeadStable,
       verificationWorktreeRemoved,
+      verificationResourceProfile,
+      verificationResourceProbe,
       passed,
       verifiedAt: task.verifiedAt,
     }, null, 2)}\n`, { encoding: "utf8", mode: 0o600 });
@@ -1823,6 +1949,8 @@ export async function verifyTask(taskId: string, commands?: string[], timeoutSec
       reviewedFingerprint, verifiedFingerprint: finalFingerprint,
       currentFingerprint, reviewedPatchSha256, verificationResultFingerprint,
       cleanStart, sourceIgnoredResidueExcluded: sourceIgnoredResidue.length, verificationWorktreeRemoved,
+      verificationResourceProfile, verificationResourceProbe,
+      installationIdentity: task.installationIdentity ?? config.installation ?? { status: "source_or_legacy_runtime_without_candidate_binding" },
       fingerprintStable, outOfScopePaths: finalViolations, unsafeSymlinkPaths: finalUnsafeSymlinks,
       unsafeGitlinkPaths: finalUnsafeGitlinks, stagedPaths: finalStaged, results,
     };

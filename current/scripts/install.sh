@@ -116,12 +116,16 @@ RELEASE_GATE_ARGS=(--root "$SOURCE_ROOT")
 ((AUDIT_PACKAGE_STAGING)) && RELEASE_GATE_ARGS+=(--audit-package-staging)
 ((SKIP_SELF_TESTS)) && RELEASE_GATE_ARGS+=(--skip-self-tests)
 RELEASE_STATUS="$(node -e 'const fs=require("node:fs"); process.stdout.write(JSON.parse(fs.readFileSync(process.argv[1],"utf8")).releaseStatus)' "$SOURCE_ROOT/release-status.json")"
-if [[ "$RELEASE_STATUS" == "candidate" ]] && ((INSTALL_ROOT_EXPLICIT == 0)); then
-  CANDIDATE_COMMIT="$(node -e 'const fs=require("node:fs"); const v=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); process.stdout.write(v.implementation?.commit ?? "")' "$SOURCE_ROOT/release-status.json")"
-  if [[ ! "$CANDIDATE_COMMIT" =~ ^[0-9a-f]{40,64}$ ]]; then
-    CANDIDATE_COMMIT="$(sha256sum "$SOURCE_ROOT/MANIFEST_SHA256.txt" | awk '{print $1}')"
+IMPLEMENTATION_COMMIT="$(node -e 'const fs=require("node:fs"); const v=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); process.stdout.write(v.implementation?.commit ?? "")' "$SOURCE_ROOT/release-status.json")"
+[[ "$IMPLEMENTATION_COMMIT" =~ ^[0-9a-f]{40,64}$ ]] || { echo "release-status implementation commit must be a full Git object id" >&2; exit 1; }
+if [[ "$RELEASE_STATUS" == "candidate" ]]; then
+  CANDIDATE_BASENAME="${VERSION}-candidate-${IMPLEMENTATION_COMMIT:0:12}"
+  if ((INSTALL_ROOT_EXPLICIT == 0)); then
+    INSTALL_ROOT="${XDG_DATA_HOME:-$HOME/.local/share}/codex-harness-bridge/$CANDIDATE_BASENAME"
+  elif [[ "$(basename "$INSTALL_ROOT")" != "$CANDIDATE_BASENAME" ]]; then
+    echo "Candidate install root must end in $CANDIDATE_BASENAME" >&2
+    exit 1
   fi
-  INSTALL_ROOT="${XDG_DATA_HOME:-$HOME/.local/share}/codex-harness-bridge/${VERSION}-candidate-${CANDIDATE_COMMIT:0:12}"
 fi
 if [[ "$RELEASE_STATUS" == "stable" ]] && ((!AUDIT_PACKAGE_STAGING)); then
   ARCHIVE_NAME="$(node -e 'const fs=require("node:fs"); const v=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); process.stdout.write(v.finalArchive?.name ?? "")' "$SOURCE_ROOT/release-status.json")"
@@ -148,6 +152,10 @@ canonical() {
 }
 HARNESS_ROOT="$(canonical "$HARNESS_ROOT")"
 INSTALL_ROOT="$(canonical "$INSTALL_ROOT")"
+if [[ "$RELEASE_STATUS" == "candidate" && "$(basename "$INSTALL_ROOT")" != "$CANDIDATE_BASENAME" ]]; then
+  echo "Canonical candidate install root must end in $CANDIDATE_BASENAME" >&2
+  exit 1
+fi
 CONFIG_PATH="$(canonical "$CONFIG_PATH")"
 STATE_ROOT_DEFAULT="$(canonical "$STATE_ROOT_DEFAULT")"
 SKILL_ROOT="$(canonical "$SKILL_ROOT")"
@@ -338,6 +346,15 @@ rollback() {
 }
 trap rollback EXIT
 
+if [[ -d "$INSTALL_ROOT" && "$RELEASE_STATUS" == "candidate" ]]; then
+  [[ -f "$INSTALL_ROOT/release-status.json" && -f "$INSTALL_ROOT/MANIFEST_SHA256.txt" ]] \
+    || { echo "Refusing to replace an unidentifiable candidate runtime: $INSTALL_ROOT" >&2; exit 1; }
+  EXISTING_COMMIT="$(node -e 'const fs=require("node:fs"); const v=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); process.stdout.write(v.implementation?.commit ?? "")' "$INSTALL_ROOT/release-status.json")"
+  [[ "$EXISTING_COMMIT" == "$IMPLEMENTATION_COMMIT" ]] \
+    || { echo "Refusing to replace candidate runtime bound to a different implementation commit" >&2; exit 1; }
+  cmp -s "$INSTALL_ROOT/MANIFEST_SHA256.txt" "$SOURCE_ROOT/MANIFEST_SHA256.txt" \
+    || { echo "Refusing same-commit reinstall because the candidate manifest differs" >&2; exit 1; }
+fi
 if [[ -d "$INSTALL_ROOT" ]]; then
   RUNTIME_BACKUP="${INSTALL_ROOT}.backup.$$.$RANDOM"
   [[ ! -e "$RUNTIME_BACKUP" ]] || { echo "Runtime backup path already exists: $RUNTIME_BACKUP" >&2; exit 1; }
@@ -353,11 +370,12 @@ echo "[3/14] Installing self-contained prebuilt runtime"
 [[ ! -e "$INSTALL_ROOT/bridge/node_modules" ]] || { echo "Unexpected node_modules in installed runtime" >&2; exit 1; }
 
 mkdir -p "$(dirname "$CONFIG_PATH")"
-python3 - "$CONFIG_PATH" "$STATE_ROOT_DEFAULT" "$HARNESS_ROOT" "$HARNESS_CLI" "$HARNESS_BUILD_ROOT" "$HARNESS_COMMIT" "$HARNESS_BUILD_SHA256" "$ALLOW_DIRTY_HARNESS" "$DSH_HOME_TARGET" "$MONITOR_PORT" "$LLAMA_MODE" "$LLAMA_BASE_URL" "$LLAMA_MODEL" "$BWRAP_BINARY" "$BWRAP_SHA256" "$SYSTEMD_RUN_BINARY" "$SYSTEMD_RUN_SHA256" "$PRLIMIT_BINARY" "$PRLIMIT_SHA256" "$RESOURCE_ENFORCEMENT" "${ALLOWED_ROOTS[@]}" <<'PY'
+python3 - "$CONFIG_PATH" "$STATE_ROOT_DEFAULT" "$HARNESS_ROOT" "$HARNESS_CLI" "$HARNESS_BUILD_ROOT" "$HARNESS_COMMIT" "$HARNESS_BUILD_SHA256" "$ALLOW_DIRTY_HARNESS" "$DSH_HOME_TARGET" "$MONITOR_PORT" "$LLAMA_MODE" "$LLAMA_BASE_URL" "$LLAMA_MODEL" "$BWRAP_BINARY" "$BWRAP_SHA256" "$SYSTEMD_RUN_BINARY" "$SYSTEMD_RUN_SHA256" "$PRLIMIT_BINARY" "$PRLIMIT_SHA256" "$RESOURCE_ENFORCEMENT" "$INSTALL_ROOT" "$IMPLEMENTATION_COMMIT" "$RELEASE_STATUS" "${ALLOWED_ROOTS[@]}" <<'PY'
 import copy, json, os, sys
 (config_path, state_default, harness_root, harness_cli, build_root, commit, build_sha, allow_dirty, dsh_home,
  monitor_port, llama_mode, llama_url, llama_model, bwrap_binary, bwrap_sha256, systemd_run_binary,
- systemd_run_sha256, prlimit_binary, prlimit_sha256, resource_enforcement, *roots) = sys.argv[1:]
+ systemd_run_sha256, prlimit_binary, prlimit_sha256, resource_enforcement, install_root,
+ implementation_commit, release_status, *roots) = sys.argv[1:]
 COMPAT_USD_TO_CNY=7.2
 DEFAULT_BUDGET={"gatePolicy":"input_output_tokens","ceilingPolicy":"operator_bounded","enforcement":"hard","maxApiCalls":12,"maxInputTokens":180000,"maxOutputTokens":24000,"maxCostCny":2.5,"maxCostUsd":0.35}
 MAXIMUM_BUDGET={"gatePolicy":"input_output_tokens","ceilingPolicy":"operator_bounded","enforcement":"hard","maxApiCalls":40,"maxInputTokens":1000000,"maxOutputTokens":128000,"maxCostCny":36.0,"maxCostUsd":5.0}
@@ -397,6 +415,14 @@ config.update({
     "requireCleanRepoAtStart":True,
     "allowDirtyHarnessCheckout":allow_dirty == "1",
 })
+if release_status == "candidate":
+    config["installation"]={
+        "runtimeRoot":os.path.realpath(install_root),
+        "implementationCommit":implementation_commit,
+        "candidatePath":os.path.basename(os.path.realpath(install_root)),
+    }
+else:
+    config.pop("installation",None)
 config.setdefault("stateRoot", os.path.realpath(os.path.expanduser(state_default)))
 config.setdefault("defaultRuntimeSeconds", 3600)
 config.setdefault("maxRuntimeSeconds", 14400)
@@ -432,6 +458,28 @@ config["harnessIsolation"]={
         "rlimitNproc":4096,
         "rlimitFsizeBytes":1073741824,
         "commandTimeoutSeconds":1800,
+    },
+    "resourceProfiles":{
+        "local_or_flash_trivial_small":{
+            "memoryMaxBytes":2147483648,"cpuQuotaPercent":100,"tasksMax":128,"ioWeight":100,
+            "worktreeMaxBytes":2147483648,"rlimitNoFile":2048,"rlimitNproc":2048,
+            "rlimitFsizeBytes":536870912,"commandTimeoutSeconds":900,
+        },
+        "flash_medium":{
+            "memoryMaxBytes":4294967296,"cpuQuotaPercent":200,"tasksMax":256,"ioWeight":100,
+            "worktreeMaxBytes":4294967296,"rlimitNoFile":4096,"rlimitNproc":4096,
+            "rlimitFsizeBytes":1073741824,"commandTimeoutSeconds":1800,
+        },
+        "pro_large":{
+            "memoryMaxBytes":8589934592,"cpuQuotaPercent":400,"tasksMax":512,"ioWeight":100,
+            "worktreeMaxBytes":8589934592,"rlimitNoFile":8192,"rlimitNproc":8192,
+            "rlimitFsizeBytes":2147483648,"commandTimeoutSeconds":3600,
+        },
+        "authoritative_verification":{
+            "memoryMaxBytes":4294967296,"cpuQuotaPercent":200,"tasksMax":256,"ioWeight":100,
+            "worktreeMaxBytes":4294967296,"rlimitNoFile":4096,"rlimitNproc":4096,
+            "rlimitFsizeBytes":1073741824,"commandTimeoutSeconds":1800,
+        },
     },
 }
 
@@ -658,7 +706,10 @@ if ((SKIP_SELF_TESTS)); then STEP_PREFIX="[9/14]"; else STEP_PREFIX="[11/14]"; f
 echo "$STEP_PREFIX Registering required Codex stdio MCP server"
 mkdir -p "$(dirname "$CODEX_CONFIG")"
 if codex_mcp get codex_harness >/dev/null 2>&1; then codex_mcp remove codex_harness >/dev/null; fi
-codex_mcp add codex_harness --env "CODEX_HARNESS_CONFIG=$CONFIG_PATH" -- node "$INSTALL_ROOT/bridge/dist/index.js"
+codex_mcp add codex_harness \
+  --env "CODEX_HARNESS_CONFIG=$CONFIG_PATH" \
+  --env "CODEX_HARNESS_IMPLEMENTATION_COMMIT=$IMPLEMENTATION_COMMIT" \
+  -- node "$INSTALL_ROOT/bridge/dist/index.js"
 echo "  Codex MCP add: PASS"
 python3 - "$CODEX_CONFIG" <<'PY'
 from pathlib import Path
@@ -682,7 +733,7 @@ PY
 echo "  Codex MCP table normalization: PASS"
 codex_mcp get codex_harness >/dev/null
 echo "  Codex MCP get: PASS"
-python3 - "$CODEX_CONFIG" "$CONFIG_PATH" "$INSTALL_ROOT/bridge/dist/index.js" <<'PY'
+python3 - "$CODEX_CONFIG" "$CONFIG_PATH" "$INSTALL_ROOT/bridge/dist/index.js" "$IMPLEMENTATION_COMMIT" <<'PY'
 from pathlib import Path
 import sys
 text=Path(sys.argv[1]).read_text(encoding="utf-8")
@@ -693,6 +744,7 @@ for expected in [
     "required = true",
     sys.argv[2],
     sys.argv[3],
+    sys.argv[4],
 ]:
     if expected not in text: raise SystemExit(f"Codex MCP configuration missing expected value: {expected}")
 PY

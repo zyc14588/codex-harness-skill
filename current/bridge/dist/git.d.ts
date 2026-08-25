@@ -1,4 +1,5 @@
 import type { TaskRecord } from "./types.js";
+export declare const MAX_REVIEW_PAGE_BYTES = 49152;
 export declare function gitTopLevel(repoRoot: string): Promise<string>;
 export declare function workingTreePaths(repoRoot: string): Promise<string[]>;
 export declare function unsafeChangedSymlinkPaths(worktreePath: string, paths: string[]): Promise<string[]>;
@@ -23,7 +24,17 @@ export declare function createDetachedVerificationWorktree(repoRoot: string, wor
 export declare function cleanWorktreeIncludingIgnored(worktreePath: string): Promise<void>;
 export declare function applyReviewedPatch(worktreePath: string, patchPath: string): Promise<void>;
 export declare function commitLog(worktreePath: string, baseCommit: string): Promise<string>;
-export declare function readRepoFile(worktreePath: string, filePath: string): Promise<string>;
+export interface ReviewFilePage {
+    content: string;
+    source: "worktree" | "base_commit_deleted";
+    fileSha256: string;
+    totalBytes: number;
+    requestedOffsetBytes: number;
+    offsetBytes: number;
+    returnedBytes: number;
+    nextOffsetBytes: number | null;
+}
+export declare function readRepoFile(worktreePath: string, filePath: string, baseCommit: string, requestedOffsetBytes?: number, requestedMaxBytes?: number): Promise<ReviewFilePage>;
 export declare function createCommit(worktreePath: string, message: string): Promise<{
     commit: string;
     created: boolean;

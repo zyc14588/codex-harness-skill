@@ -19,6 +19,9 @@ export interface ModelVisibleTextPage {
 }
 /** Byte-accurate, UTF-8-safe model output page with explicit token estimation. */
 export declare function modelVisibleTextPage(text: string, requestedOffsetBytes?: number, requestedMaxBytes?: number): ModelVisibleTextPage;
+/** Unit-test seam for aggregate quota/rollback behavior; production calls remain broker-authorized through invoke(). */
+export declare function editorForTest(task: TaskRecord, input: Record<string, unknown>): Promise<Record<string, unknown>>;
+export declare function gitHistoryArguments(input: Record<string, unknown>): string[];
 export interface BrokeredToolExecutionOptions {
     attemptId: string;
     signal: AbortSignal;

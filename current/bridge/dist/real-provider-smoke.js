@@ -9,7 +9,7 @@ import { cleanupTask, collectTask, commitTask, createControllerPlan, finalizeCon
 import { loadTask } from "./store.js";
 import { runProcess, sha256PathTree, sleep } from "./util.js";
 import { sha256Executable } from "./process-identity.js";
-import { createPinnedHostResourceProfile, probeHostResourceProfile } from "./resource-controls.js";
+import { createPinnedHostResourceProfile, freezeHostResourceProfile, probeHostResourceProfile, RESOURCE_PROFILE_IDS } from "./resource-controls.js";
 import { usageForBudgetGroup } from "./telemetry.js";
 function payload(value) {
     assert.ok(value && typeof value === "object" && !Array.isArray(value));
@@ -359,8 +359,13 @@ try {
     delete process.env.DEEPSEEK_BASE_URL;
     process.env.DEEPSEEK_API_KEY = "parent-provider-secret-must-not-reach-harness";
     process.env.GITHUB_TOKEN = "parent-github-secret-must-not-reach-harness";
-    const resourceProbe = await probeHostResourceProfile(await loadConfig());
-    assert.equal(resourceProbe.controlledUseAllowed, true, `real Provider qualification requires controlled host resources: ${JSON.stringify(resourceProbe)}`);
+    const loadedConfig = await loadConfig();
+    const resourceProbes = {};
+    for (const id of RESOURCE_PROFILE_IDS) {
+        const resourceProbe = await probeHostResourceProfile(loadedConfig, freezeHostResourceProfile(loadedConfig, id));
+        resourceProbes[id] = resourceProbe;
+        assert.equal(resourceProbe.controlledUseAllowed, true, `real Provider qualification requires controlled host resources for ${id}: ${JSON.stringify(resourceProbe)}`);
+    }
     monitorStarted = true;
     const flash = await runLeaf(repo, seed, {
         planId: "stable-real-flash-multiturn-plan",
@@ -405,7 +410,7 @@ try {
         bubblewrapSha256: bwrapIdentity.sha256,
         harnessCommit,
         harnessBuildSha256,
-        hostResourceProfile: resourceProbe,
+        hostResourceProfiles: resourceProbes,
         flash,
         pro,
         mainHeadBefore,

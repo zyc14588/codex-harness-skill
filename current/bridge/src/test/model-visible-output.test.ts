@@ -5,6 +5,7 @@ import test from "node:test";
 import {
   MODEL_VISIBLE_ESTIMATED_TOKEN_MAX,
   MODEL_VISIBLE_TEXT_MAX_BYTES,
+  gitHistoryArguments,
   modelVisibleTextPage,
 } from "../brokered-tool-host.js";
 
@@ -38,5 +39,17 @@ test("model-visible output refuses oversized pages and publishes a fixed token c
 test("managed tool schemas expose byte pagination for repository and editor reads", async () => {
   const plugin = await readFile(fileURLToPath(new URL("../../../harness/minimal/profile/bridge-brokered-tools.mjs", import.meta.url)), "utf8");
   assert.match(plugin, /repo_read_file:[\s\S]*offset_bytes:[\s\S]*max_bytes:/u);
+  assert.match(plugin, /git_history:[\s\S]*operation:[\s\S]*offset_bytes:[\s\S]*max_bytes:/u);
   assert.match(plugin, /register\('str_replace_editor'[\s\S]*offset_bytes:[\s\S]*max_bytes:/u);
+});
+
+test("Git history reads are bounded to explicit safe operations and paths", () => {
+  assert.deepEqual(gitHistoryArguments({ operation: "blob", revision: "HEAD~2", file_path: "docs/old.md" }), [
+    "-c", "core.fsmonitor=false", "show", "HEAD~2:docs/old.md",
+  ]);
+  const all = gitHistoryArguments({ operation: "log", scope: "all_refs", max_commits: 20 });
+  assert.ok(all.includes("--all"));
+  assert.ok(all.includes("--max-count=20"));
+  assert.throws(() => gitHistoryArguments({ operation: "show", revision: "--upload-pack=evil" }), /unsupported Git revision/u);
+  assert.throws(() => gitHistoryArguments({ operation: "blob", revision: "HEAD", file_path: "../secret" }), /traversal|relative/u);
 });

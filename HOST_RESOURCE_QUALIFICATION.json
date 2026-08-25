@@ -1,0 +1,249 @@
+{
+  "schemaVersion": 2,
+  "result": "BLOCKED_CONTROLLED_HOST_CGROUP_IO",
+  "generatedAt": "2026-08-25T16:58:19.625Z",
+  "probeContract": "owner-tiered-required-cgroup-v2-and-rlimit-before-provider-io-v1",
+  "providerRequestsSent": 0,
+  "networkOperationsPerformed": false,
+  "kernelCgroupV2Presence": {
+    "kernelSupportsCgroup2": true,
+    "cgroup2Mounted": true,
+    "processUsesUnifiedHierarchy": true
+  },
+  "delegatedControllers": {
+    "userManagerAvailable": [
+      "cpu",
+      "memory",
+      "pids"
+    ],
+    "userManagerEnabledForChildren": [
+      "cpu",
+      "memory",
+      "pids"
+    ],
+    "appSliceAvailable": [
+      "cpu",
+      "memory",
+      "pids"
+    ],
+    "appSliceEnabledForChildren": [
+      "memory",
+      "pids"
+    ],
+    "currentScopeAvailable": [
+      "memory",
+      "pids"
+    ],
+    "currentScopeEnabledForChildren": []
+  },
+  "resourceProfileMatrixHash": {
+    "algorithm": "sha256-canonical-json-v1",
+    "sha256": "08b1f4e2c4448a7be8861d40a741ec84e9a33e71f93910298e5037dffe8e4cd8"
+  },
+  "launcherIdentities": {
+    "systemdRunBinary": "/usr/bin/systemd-run",
+    "systemdRunSha256": "03a68bafb0ebc0f5eff41cbdf3cbbdf126a3bb87e21140f9147bf78edce36d88",
+    "prlimitBinary": "/usr/bin/prlimit",
+    "prlimitSha256": "00be18793391b9222a041277a088022cc58088690cb0e851383bd8ec73f0fefb"
+  },
+  "profiles": {
+    "local_or_flash_trivial_small": {
+      "result": "BLOCKED_CONTROLLED_HOST_CGROUP_IO",
+      "MemoryMax": {
+        "expected": 2147483648,
+        "observed": "2147483648",
+        "enforced": true
+      },
+      "CPUQuota": {
+        "expected": "100%",
+        "observed": "100000 100000",
+        "enforced": true
+      },
+      "TasksMax": {
+        "expected": 128,
+        "observed": "128",
+        "enforced": true
+      },
+      "IOWeight": {
+        "expected": 100,
+        "observed": null,
+        "enforced": false
+      },
+      "WorktreeMaxBytes": 2147483648,
+      "RLIMIT_NOFILE": {
+        "expected": 2048,
+        "observed": "2048",
+        "enforced": true
+      },
+      "RLIMIT_NPROC": {
+        "expected": 2048,
+        "observed": "2048",
+        "enforced": true
+      },
+      "RLIMIT_FSIZE": {
+        "expected": 536870912,
+        "observed": "536870912",
+        "enforced": true
+      },
+      "RuntimeMaxSec": 900,
+      "resourceProfileHash": "504e1a402db9537cb73bc17daf14c625669137d9c2875d4642cc9aac90b8ca24",
+      "controlledUseAllowed": false,
+      "failedChecks": [
+        "IOWeight"
+      ],
+      "failureReason": "BLOCKED_CONTROLLED_HOST_CGROUP_IO",
+      "probeError": null
+    },
+    "flash_medium": {
+      "result": "BLOCKED_CONTROLLED_HOST_CGROUP_IO",
+      "MemoryMax": {
+        "expected": 4294967296,
+        "observed": "4294967296",
+        "enforced": true
+      },
+      "CPUQuota": {
+        "expected": "200%",
+        "observed": "200000 100000",
+        "enforced": true
+      },
+      "TasksMax": {
+        "expected": 256,
+        "observed": "256",
+        "enforced": true
+      },
+      "IOWeight": {
+        "expected": 100,
+        "observed": null,
+        "enforced": false
+      },
+      "WorktreeMaxBytes": 4294967296,
+      "RLIMIT_NOFILE": {
+        "expected": 4096,
+        "observed": "4096",
+        "enforced": true
+      },
+      "RLIMIT_NPROC": {
+        "expected": 4096,
+        "observed": "4096",
+        "enforced": true
+      },
+      "RLIMIT_FSIZE": {
+        "expected": 1073741824,
+        "observed": "1073741824",
+        "enforced": true
+      },
+      "RuntimeMaxSec": 1800,
+      "resourceProfileHash": "19f0fb59808b0eab9b8f1557b8c8cdcfc78f4b3fa115d52fede5e31cef35ac81",
+      "controlledUseAllowed": false,
+      "failedChecks": [
+        "IOWeight"
+      ],
+      "failureReason": "BLOCKED_CONTROLLED_HOST_CGROUP_IO",
+      "probeError": null
+    },
+    "pro_large": {
+      "result": "BLOCKED_CONTROLLED_HOST_CGROUP_IO",
+      "MemoryMax": {
+        "expected": 8589934592,
+        "observed": "8589934592",
+        "enforced": true
+      },
+      "CPUQuota": {
+        "expected": "400%",
+        "observed": "400000 100000",
+        "enforced": true
+      },
+      "TasksMax": {
+        "expected": 512,
+        "observed": "512",
+        "enforced": true
+      },
+      "IOWeight": {
+        "expected": 100,
+        "observed": null,
+        "enforced": false
+      },
+      "WorktreeMaxBytes": 8589934592,
+      "RLIMIT_NOFILE": {
+        "expected": 8192,
+        "observed": "8192",
+        "enforced": true
+      },
+      "RLIMIT_NPROC": {
+        "expected": 8192,
+        "observed": "8192",
+        "enforced": true
+      },
+      "RLIMIT_FSIZE": {
+        "expected": 2147483648,
+        "observed": "2147483648",
+        "enforced": true
+      },
+      "RuntimeMaxSec": 3600,
+      "resourceProfileHash": "cf2a4c262a8c84c91d44c27a6a2cef48c0be29d7fe3b90a7bdeb2614b44bb5f1",
+      "controlledUseAllowed": false,
+      "failedChecks": [
+        "IOWeight"
+      ],
+      "failureReason": "BLOCKED_CONTROLLED_HOST_CGROUP_IO",
+      "probeError": null
+    },
+    "authoritative_verification": {
+      "result": "BLOCKED_CONTROLLED_HOST_CGROUP_IO",
+      "MemoryMax": {
+        "expected": 4294967296,
+        "observed": "4294967296",
+        "enforced": true
+      },
+      "CPUQuota": {
+        "expected": "200%",
+        "observed": "200000 100000",
+        "enforced": true
+      },
+      "TasksMax": {
+        "expected": 256,
+        "observed": "256",
+        "enforced": true
+      },
+      "IOWeight": {
+        "expected": 100,
+        "observed": null,
+        "enforced": false
+      },
+      "WorktreeMaxBytes": 4294967296,
+      "RLIMIT_NOFILE": {
+        "expected": 4096,
+        "observed": "4096",
+        "enforced": true
+      },
+      "RLIMIT_NPROC": {
+        "expected": 4096,
+        "observed": "4096",
+        "enforced": true
+      },
+      "RLIMIT_FSIZE": {
+        "expected": 1073741824,
+        "observed": "1073741824",
+        "enforced": true
+      },
+      "RuntimeMaxSec": 1800,
+      "resourceProfileHash": "fa40f0bcc3a67131888f0519506acb95bb07df69883ce6c44cffe44393edf6b5",
+      "controlledUseAllowed": false,
+      "failedChecks": [
+        "IOWeight"
+      ],
+      "failureReason": "BLOCKED_CONTROLLED_HOST_CGROUP_IO",
+      "probeError": null
+    }
+  },
+  "controlledUseAllowed": false,
+  "failureReason": "BLOCKED_CONTROLLED_HOST_CGROUP_IO",
+  "qualifiedHostRequirements": [
+    "Linux kernel with a mounted unified cgroup v2 hierarchy",
+    "trusted per-user systemd manager and user scope creation",
+    "delegated memory, cpu, pids, and io controllers in the user app slice",
+    "observable MemoryMax, CPUQuota, TasksMax, and IOWeight values equal to the approved profile",
+    "prlimit enforcement for RLIMIT_NOFILE, RLIMIT_NPROC, and RLIMIT_FSIZE equal to the approved profile",
+    "pinned systemd-run and prlimit executable identities matching the runtime profile"
+  ]
+}

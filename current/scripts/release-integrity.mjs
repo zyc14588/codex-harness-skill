@@ -56,6 +56,9 @@ export const ALLOWED_POST_IMPLEMENTATION_METADATA = [
   "evidence/02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json",
   "evidence/03_CURRENT_REVISION_NEGATIVE_SMOKE.json",
   "evidence/04_GITHUB_EXTERNAL_GATES_2026-08-24.json",
+  "evidence/GITHUB_GOVERNANCE_OBSERVATION.json",
+  "evidence/OWNER_DECISIONS_LOCAL_QUALIFICATION.json",
+  "evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json",
   "package-origin.json",
   "release-status.json",
 ].sort();

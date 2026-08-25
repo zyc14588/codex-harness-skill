@@ -42,11 +42,12 @@ def tighten_tree(root: Path) -> None:
             os.chmod(path, 0o700 if mode & stat.S_IXUSR else 0o600)
 
 
-def write_marker(directory: Path, kind: str) -> None:
+def write_marker(directory: Path, kind: str, runtime: Path) -> None:
     payload = {
         "managedBy": MANAGED_BY,
         "version": VERSION,
         "kind": kind,
+        "runtime": str(runtime),
     }
     (directory / MARKER).write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
@@ -84,8 +85,8 @@ def install(args: argparse.Namespace) -> None:
         broker_sandbox_path = f"/sandbox/dsh/profiles/{profile_name}/bridge-brokered-tools.mjs"
         rendered_source = source.replace(placeholder, broker_sandbox_path)
         (staged_preset / "agent.cordis.yml").write_text(rendered_source, encoding="utf-8")
-        write_marker(staged_profile, "profile")
-        write_marker(staged_preset, "preset")
+        write_marker(staged_profile, "profile", runtime)
+        write_marker(staged_preset, "preset", runtime)
         metadata = {
             "managedBy": MANAGED_BY,
             "version": VERSION,
@@ -113,12 +114,16 @@ def install(args: argparse.Namespace) -> None:
 
 def remove(args: argparse.Namespace) -> None:
     removed: list[str] = []
+    expected_runtime = str(Path(args.expected_runtime).resolve()) if args.expected_runtime else None
     for raw in (args.profile_dir, args.preset_dir):
         directory = Path(raw).resolve()
         if not directory.exists():
             continue
-        if read_marker(directory) is None:
+        marker = read_marker(directory)
+        if marker is None:
             raise SystemExit(f"refusing to remove unmanaged Harness integration directory: {directory}")
+        if expected_runtime is not None and marker.get("runtime") != expected_runtime:
+            raise SystemExit(f"refusing to remove Harness integration owned by another runtime: {directory}")
         shutil.rmtree(directory)
         removed.append(str(directory))
     print(json.dumps({"result": "removed", "paths": removed}))
@@ -155,6 +160,7 @@ def parser() -> argparse.ArgumentParser:
         child = sub.add_parser(name)
         child.add_argument("--profile-dir", required=True)
         child.add_argument("--preset-dir", required=True)
+        child.add_argument("--expected-runtime")
         child.set_defaults(handler=handler)
     return root
 

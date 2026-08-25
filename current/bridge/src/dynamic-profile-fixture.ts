@@ -21,6 +21,7 @@ import type { TaskRecord } from "./types.js";
 import { runProcess, sha256PathTree, sleep } from "./util.js";
 import { sha256Executable } from "./process-identity.js";
 import { createPinnedHostResourceProfile } from "./resource-controls.js";
+import { recordMinimalAdapterRequest } from "./minimal-request-state.js";
 import { monitorSocketPath } from "./security.js";
 
 const EXPECTED_HARNESS_COMMIT = process.env.CODEX_HARNESS_FIXTURE_EXPECTED_COMMIT
@@ -377,6 +378,21 @@ try {
   process.env.CODEX_HARNESS_CONFIG = configPath;
   process.env.DEEPSEEK_API_KEY = "parent-provider-secret-must-not-reach-harness";
   process.env.GITHUB_TOKEN = "parent-github-secret-must-not-reach-harness";
+  await assert.rejects(createControllerPlan({
+    repoRoot: repo,
+    planId: "standard-mode-must-be-rejected",
+    leaves: [{
+      id: "standard-mode-must-be-rejected",
+      objective: "Prove that 0.6.6 refuses the Harness standard tool plane.",
+      executor: "harness",
+      model: "deepseek-v4-flash",
+      complexity: "small",
+      harnessMode: "standard",
+      harnessWritePaths: ["standard-mode-must-not-run.txt"],
+      acceptanceCriteria: ["the leaf is rejected before execution"],
+      verificationCommands: ["false"],
+    }],
+  }), /Harness standard mode is disabled for 0\.6\.6/u);
   await createControllerPlan({
     repoRoot: repo,
     planId: "dynamic-flash-profile-plan",
@@ -463,7 +479,7 @@ try {
     requestedExecutor: "harness",
     executor: "harness",
     model: "deepseek-v4-pro",
-    harnessMode: "standard",
+    harnessMode: "minimal",
     mode: "implementation",
     proposedComplexity: "medium",
     defaultBudget: proStored.budget,
@@ -499,7 +515,7 @@ try {
     budgetGroupId: "dynamic-failure-injection-budget",
     taskFamily: injectionFamily,
     splitDecision: injectionAdvice.decision,
-    harnessMode: "standard",
+    harnessMode: "minimal",
     model: "deepseek-v4-pro",
     status: "running",
     phase: "execution",
@@ -519,6 +535,15 @@ try {
     usagePath: path.join(injectionDir, "usage.jsonl"),
   });
   await createTask(config, injection);
+  // The proxy must first correlate an actual adapter observation.  Model the
+  // Harness session-title auxiliary request so this failure injection reaches
+  // the reasoning replay preflight without bypassing tool-plane enforcement.
+  await recordMinimalAdapterRequest({
+    taskId: injection.id,
+    purpose: "session-title",
+    toolNames: [],
+    reasoningEffort: "high",
+  });
   const providerCallsBeforeInjection = providerRequests.length;
   const injectedResponse = await socketJson(
     monitorSocketPath(config),
@@ -550,7 +575,7 @@ try {
     requestedExecutor: "harness",
     executor: "harness",
     model: "deepseek-v4-pro",
-    harnessMode: "standard",
+    harnessMode: "minimal",
     mode: "implementation",
     proposedComplexity: "medium",
     defaultBudget: proStored.budget,

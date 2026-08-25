@@ -64,6 +64,70 @@
       },
       "additionalProperties": false
     },
+    "ownerResourceProfiles": {
+      "type": "object",
+      "required": [
+        "local_or_flash_trivial_small",
+        "flash_medium",
+        "pro_large",
+        "authoritative_verification"
+      ],
+      "properties": {
+        "local_or_flash_trivial_small": {
+          "const": {
+            "memoryMaxBytes": 2147483648,
+            "cpuQuotaPercent": 100,
+            "tasksMax": 128,
+            "ioWeight": 100,
+            "worktreeMaxBytes": 2147483648,
+            "rlimitNoFile": 2048,
+            "rlimitNproc": 2048,
+            "rlimitFsizeBytes": 536870912,
+            "commandTimeoutSeconds": 900
+          }
+        },
+        "flash_medium": {
+          "const": {
+            "memoryMaxBytes": 4294967296,
+            "cpuQuotaPercent": 200,
+            "tasksMax": 256,
+            "ioWeight": 100,
+            "worktreeMaxBytes": 4294967296,
+            "rlimitNoFile": 4096,
+            "rlimitNproc": 4096,
+            "rlimitFsizeBytes": 1073741824,
+            "commandTimeoutSeconds": 1800
+          }
+        },
+        "pro_large": {
+          "const": {
+            "memoryMaxBytes": 8589934592,
+            "cpuQuotaPercent": 400,
+            "tasksMax": 512,
+            "ioWeight": 100,
+            "worktreeMaxBytes": 8589934592,
+            "rlimitNoFile": 8192,
+            "rlimitNproc": 8192,
+            "rlimitFsizeBytes": 2147483648,
+            "commandTimeoutSeconds": 3600
+          }
+        },
+        "authoritative_verification": {
+          "const": {
+            "memoryMaxBytes": 4294967296,
+            "cpuQuotaPercent": 200,
+            "tasksMax": 256,
+            "ioWeight": 100,
+            "worktreeMaxBytes": 4294967296,
+            "rlimitNoFile": 4096,
+            "rlimitNproc": 4096,
+            "rlimitFsizeBytes": 1073741824,
+            "commandTimeoutSeconds": 1800
+          }
+        }
+      },
+      "additionalProperties": false
+    },
     "pricing": {
       "type": "object",
       "properties": {
@@ -135,6 +199,16 @@
   "properties": {
     "schemaVersion": {
       "const": 7
+    },
+    "installation": {
+      "type": "object",
+      "required": ["runtimeRoot", "implementationCommit", "candidatePath"],
+      "properties": {
+        "runtimeRoot": { "type": "string", "pattern": "^/" },
+        "implementationCommit": { "type": "string", "pattern": "^[0-9a-f]{40,64}$" },
+        "candidatePath": { "type": "string", "pattern": "^0\\.6\\.6-candidate-[0-9a-f]{12}$" }
+      },
+      "additionalProperties": false
     },
     "harnessRoot": {
       "type": "string",
@@ -488,7 +562,8 @@
         "bubblewrapSha256",
         "relayPort",
         "rejectEnvFiles",
-        "resourceProfile"
+        "resourceProfile",
+        "resourceProfiles"
       ],
       "properties": {
         "bubblewrapBinary": {
@@ -592,6 +667,9 @@
             }
           },
           "additionalProperties": false
+        },
+        "resourceProfiles": {
+          "$ref": "#/$defs/ownerResourceProfiles"
         }
       },
       "additionalProperties": false

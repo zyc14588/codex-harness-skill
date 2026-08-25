@@ -215,6 +215,7 @@ test("infrastructure failures are recorded without shrinking split advice", asyn
     for (const [index, kind] of ([
       "minimal_tool_plane_composition",
       "minimal_tool_serialization_mismatch",
+      "resource_control",
     ] as const).entries()) {
       const toolPlaneTask = record(root, `tool-plane-${index}`, "minimal-tool-protocol", initial.decision, "failed");
       toolPlaneTask.infrastructureFailureKind = kind;

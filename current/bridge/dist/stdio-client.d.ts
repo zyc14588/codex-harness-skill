@@ -9,6 +9,7 @@ export interface McpToolResult {
 export declare class StdioMcpClient {
     #private;
     readonly child: ChildProcessWithoutNullStreams;
+    initializeResult?: unknown;
     private constructor();
     static connect(command: string, args: string[], env: NodeJS.ProcessEnv, timeoutMs?: number): Promise<StdioMcpClient>;
     get stderr(): string;

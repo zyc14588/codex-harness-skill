@@ -138,12 +138,20 @@ jobs:
         run: |
           node scripts/update-manifest.mjs .
           git diff --exit-code -- bridge/dist MANIFEST_SHA256.txt
+      - name: Root Manifest fault-injection matrix
+        working-directory: .
+        run: node scripts/root-manifest.test.mjs
+      - name: Root Manifest exact tracked-set verification
+        working-directory: .
+        run: |
+          node scripts/verify-root-manifest.mjs
+          git diff --exit-code -- MANIFEST_SHA256.txt
 
   protected-real-provider-smoke:
     name: protected-real-provider-smoke
     if: github.event_name == 'workflow_dispatch' && inputs.real_provider_smoke
     needs: strict-local-gates
-    runs-on: [self-hosted, linux, codex-harness-provider]
+    runs-on: [self-hosted, linux, codex-harness-provider, ephemeral]
     timeout-minutes: 45
     environment: deepseek-provider-smoke
     permissions:
@@ -157,10 +165,27 @@ jobs:
       artifact-digest: ${{ steps.upload-provider-evidence.outputs.artifact-digest }}
       attestation-id: ${{ steps.attest-provider-evidence.outputs.attestation-id }}
       attestation-url: ${{ steps.attest-provider-evidence.outputs.attestation-url }}
+      cryptographic-verification-sha256: ${{ steps.verify-provider-attestation.outputs.verification-sha256 }}
     defaults:
       run:
         working-directory: current
     steps:
+      - name: Require ephemeral runner and tmpfs credential contract
+        working-directory: .
+        env:
+          RUNNER_EPHEMERAL: ${{ vars.RUNNER_EPHEMERAL }}
+          DEEPSEEK_API_KEY_EXPIRES_AT: ${{ secrets.DEEPSEEK_API_KEY_EXPIRES_AT }}
+        run: |
+          test "$RUNNER_EPHEMERAL" = true
+          test "$(findmnt -n -o FSTYPE /dev/shm)" = tmpfs
+          python3 - "$DEEPSEEK_API_KEY_EXPIRES_AT" <<'PY'
+          import datetime,sys
+          expiry=datetime.datetime.fromisoformat(sys.argv[1].replace('Z','+00:00'))
+          now=datetime.datetime.now(datetime.timezone.utc)
+          seconds=(expiry-now).total_seconds()
+          if not 120 < seconds <= 3600:
+              raise SystemExit('Provider credential expiry must be 2-60 minutes in the future')
+          PY
       - name: Checkout exact qualified commit
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
@@ -182,13 +207,16 @@ jobs:
       - name: Prepare protected credential file
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          CREDENTIAL_FILE: /dev/shm/codex-harness-${{ github.run_id }}-${{ github.run_attempt }}.yaml
         run: |
           test -n "$DEEPSEEK_API_KEY"
           umask 077
-          printf 'DEEPSEEK_API_KEY: %s\n' "$DEEPSEEK_API_KEY" > "$RUNNER_TEMP/codex-harness-deepseek-credentials.yaml"
+          test "$(findmnt -n -o FSTYPE /dev/shm)" = tmpfs
+          printf 'DEEPSEEK_API_KEY: %s\n' "$DEEPSEEK_API_KEY" > "$CREDENTIAL_FILE"
+          test "$(stat -c '%a' "$CREDENTIAL_FILE")" = 600
       - name: Current-revision Flash and Pro smoke
         env:
-          CODEX_REAL_SMOKE_CREDENTIALS: ${{ runner.temp }}/codex-harness-deepseek-credentials.yaml
+          CODEX_REAL_SMOKE_CREDENTIALS: /dev/shm/codex-harness-${{ github.run_id }}-${{ github.run_attempt }}.yaml
           CODEX_REAL_SMOKE_HARNESS_ROOT: ${{ vars.HARNESS_ROOT }}
           CODEX_REAL_SMOKE_PROFILE_MODULES: ${{ vars.DSH_PROFILE_MODULES }}
           CODEX_REAL_SMOKE_EVIDENCE_PATH: ${{ github.workspace }}/current/evidence/02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json
@@ -197,10 +225,10 @@ jobs:
           test -n "$CODEX_REAL_SMOKE_PROFILE_MODULES"
           test "$(jq -r .version bridge/package.json)" = 0.6.6
           node bridge/dist/real-provider-smoke.js
-          jq -e '.result == "PASS" and .version == "0.6.6" and .currentRevision == true and .hostResourceProfile.controlledUseAllowed == true' evidence/02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json >/dev/null
+          jq -e '.result == "PASS" and .version == "0.6.6" and .currentRevision == true and (.hostResourceProfiles | length == 4) and ([.hostResourceProfiles[].controlledUseAllowed] | all)' evidence/02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json >/dev/null
       - name: Build deterministic redacted Provider evidence subject
         env:
-          CREDENTIAL_FILE: ${{ runner.temp }}/codex-harness-deepseek-credentials.yaml
+          CREDENTIAL_FILE: /dev/shm/codex-harness-${{ github.run_id }}-${{ github.run_attempt }}.yaml
           EVIDENCE_FILE: ${{ github.workspace }}/current/evidence/02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json
           EVIDENCE_BUNDLE: ${{ runner.temp }}/codex-harness-provider-evidence
           EVIDENCE_SUBJECT: ${{ runner.temp }}/codex-harness-provider-evidence-${{ github.sha }}.tar
@@ -216,7 +244,8 @@ jobs:
           if len(credential)<24 or credential in raw:
               raise SystemExit('Provider evidence redaction validation failed')
           evidence=json.loads(raw)
-          if evidence.get('result')!='PASS' or evidence.get('sourceCommit')!=head_sha or evidence.get('hostResourceProfile',{}).get('controlledUseAllowed') is not True:
+          profiles=evidence.get('hostResourceProfiles',{})
+          if evidence.get('result')!='PASS' or evidence.get('sourceCommit')!=head_sha or len(profiles)!=4 or not all(v.get('controlledUseAllowed') is True for v in profiles.values()):
               raise SystemExit('Provider evidence exact-revision/resource binding failed')
           open(copy_path,'wb').write(raw)
           workflow_path=os.path.realpath('../.github/workflows/ci.yml')
@@ -235,7 +264,14 @@ jobs:
       - name: Remove protected credential material
         if: always()
         working-directory: .
-        run: rm -f "$RUNNER_TEMP/codex-harness-deepseek-credentials.yaml"
+        env:
+          CREDENTIAL_FILE: /dev/shm/codex-harness-${{ github.run_id }}-${{ github.run_attempt }}.yaml
+        run: |
+          if [[ -f "$CREDENTIAL_FILE" ]]; then
+            size="$(stat -c '%s' "$CREDENTIAL_FILE")"
+            dd if=/dev/zero of="$CREDENTIAL_FILE" bs=1 count="$size" conv=notrunc status=none
+            rm -f "$CREDENTIAL_FILE"
+          fi
       - name: Upload immutable Provider evidence subject
         id: upload-provider-evidence
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -254,3 +290,24 @@ jobs:
         uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4.2.1
         with:
           subject-path: ${{ runner.temp }}/codex-harness-provider-evidence-${{ github.sha }}.tar
+      - name: Cryptographically verify GitHub/Sigstore attestation
+        id: verify-provider-attestation
+        working-directory: .
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVIDENCE_SUBJECT: ${{ runner.temp }}/codex-harness-provider-evidence-${{ github.sha }}.tar
+          VERIFICATION_PROOF: /dev/shm/codex-harness-attestation-${{ github.run_id }}-${{ github.run_attempt }}.json
+        run: |
+          gh attestation verify --help >/dev/null
+          verified=0
+          for attempt in 1 2 3 4 5 6; do
+            if gh attestation verify "$EVIDENCE_SUBJECT" --repo "${{ github.repository }}" --format json > "$VERIFICATION_PROOF"; then
+              verified=1
+              break
+            fi
+            sleep 5
+          done
+          test "$verified" = 1
+          jq -e 'if type == "array" then length > 0 else type == "object" and length > 0 end' "$VERIFICATION_PROOF" >/dev/null
+          printf 'verification-sha256=%s\n' "$(sha256sum "$VERIFICATION_PROOF" | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+          rm -f "$VERIFICATION_PROOF"

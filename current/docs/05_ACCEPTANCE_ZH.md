@@ -7,7 +7,7 @@
 - [ ] 根入口与所有命令唯一指向 `current/`；历史全部位于 `archive/`。
 - [ ] package/plugin/MCP/Dashboard/installer/profile/archive root 为同一版本。
 - [ ] release gate 绑定 implementation commit/tree、package-lock、Harness commit/build、critical paths、当前 smoke 与 archive sidecar。
-- [ ] canonical `seal-ready` checkout 完全干净，implementation 后只有白名单 seal metadata；`package-origin.json` 只在隔离 staging 生成。
+- [ ] canonical `seal-ready` checkout 完全干净，qualification 后只有白名单 seal metadata；`releaseTarget.sealCommit/sealTree` 为 `null`，release gate 从当前 Git checkout 推导非循环 seal 身份；`package-origin.json` 只在隔离 staging 生成。
 - [ ] 最终 archive 实际存在且双构建字节相同；解包后复验通过。
 
 ## Provider 与工具隔离
@@ -48,7 +48,7 @@
 
 - [ ] 根 workflow、full-SHA actions、build/test/direct/security/package/skill/drift/negative/poison 全通过。
 - [ ] 目标 commit 的实际 GitHub Actions run PASS，branch protection required checks 已配置。
-- [ ] protected Provider artifact digest 与 GitHub attestation、run ID/attempt、workflow path/hash、精确 head/tree 一致。
+- [ ] protected Provider artifact digest 与 GitHub attestation、run ID/attempt、workflow path/hash、精确 qualification head/tree 一致。
 - [ ] DEC-001…DEC-004 均由可归属 owner 明确批准，选择值与实现/资源 profile 一致。
 - [ ] fresh install、migration、same/cross rollback、reinstall、uninstall 全通过。
 - [ ] ZIP 无 `.git`、node_modules、symlink、PID、临时状态或凭据；解包后全部重验。

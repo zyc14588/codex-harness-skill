@@ -19,6 +19,8 @@ export interface NormalizedProviderHttpFailure {
 export declare function normalizeProviderHttpFailure(status: number, body: Buffer): NormalizedProviderHttpFailure;
 export declare function infrastructureAnomalyLabels(task: Pick<TaskRecord, "infrastructureFailureKind">): string[];
 export declare function failureAttribution(kind: InfrastructureFailureKind | undefined): SplitOutcomeAttribution | undefined;
+/** Classify fail-closed host/controller/quota failures so split memory never blames task shape. */
+export declare function classifyResourceControlFailure(details: string): "resource_control" | undefined;
 /**
  * Normalize failures emitted before the managed in-process broker tool plane
  * can publish its first runner snapshot. Relying only on Bridge-authored

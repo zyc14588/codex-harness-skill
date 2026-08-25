@@ -16,8 +16,10 @@ node scripts/verify-release-gate.mjs --root . --audit-candidate
 只有审计/测试环境可向安装器传 `--audit-candidate`。普通安装必须拒绝 candidate；禁止 `--skip-self-tests` 绕过 stable 门禁。未显式指定路径时，候选 runtime 使用 commit 区分：
 
 ```text
-~/.local/share/codex-harness-bridge/0.6.6-candidate-<implementation-commit-prefix>
+~/.local/share/codex-harness-bridge/0.6.6-candidate-<implementationCommit12>
 ```
+
+后缀必须是 `release-status.json` 所绑定真实 implementation commit 的前 12 位小写十六进制；metadata-only seal commit 不得充当 candidate identity。MCP 注册、doctor、Dashboard、日志和 evidence 同时记录完整 implementation commit。
 
 只有完整 stable gate 与归档链通过后才能使用 `~/.local/share/codex-harness-bridge/0.6.6`。
 
@@ -50,4 +52,4 @@ node scripts/verify-release-gate.mjs --root . --audit-candidate
 
 ## stable 晋级前
 
-必须完成 fresh install、schema migration、same/cross-version rollback、reinstall/uninstall、资源耗尽与取消负测、确定性 ZIP 双构建、解包 manifest/build/test/install 重验、当前 Flash/Pro/negative smoke、精确 seal commit 的根 GitHub Actions/受保护 Provider attestation，以及实际启用的 branch protection required checks。`docs/OWNER_DECISIONS.json` 的 DEC-001 至 DEC-004 还须由可归属 owner 明确批准并纳入实现提交。任一缺失继续保持 candidate。
+必须完成 fresh install、schema migration、same/cross-version rollback、reinstall/uninstall、资源耗尽与取消负测、确定性 ZIP 双构建、解包 manifest/build/test/install 重验、当前 Flash/Pro/negative smoke、绑定 qualification commit/tree 的根 GitHub Actions 与受保护 Provider attestation，以及实际启用的 branch protection required checks。`seal_ready` 只允许白名单元数据，`releaseTarget.sealCommit/sealTree` 保持 `null`，seal 身份由干净 checkout 动态推导。`docs/OWNER_DECISIONS.json` 的 DEC-001 至 DEC-004 还须由可归属 owner 明确批准并纳入实现提交。任一缺失继续保持 candidate。

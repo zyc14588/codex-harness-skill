@@ -1,5 +1,10 @@
 {
   "schemaVersion": 7,
+  "installation": {
+    "runtimeRoot": "/home/zyc14588/.local/share/codex-harness-bridge/0.6.6-candidate-000000000000",
+    "implementationCommit": "0000000000000000000000000000000000000000",
+    "candidatePath": "0.6.6-candidate-000000000000"
+  },
   "harnessRoot": "/home/zyc14588/deepseek-harness",
   "harnessCli": "/home/zyc14588/deepseek-harness/apps/cli/lib/bin.js",
   "harnessBuildRoot": "/home/zyc14588/deepseek-harness/apps/cli/lib",
@@ -143,6 +148,52 @@
       "rlimitNproc": 4096,
       "rlimitFsizeBytes": 1073741824,
       "commandTimeoutSeconds": 1800
+    },
+    "resourceProfiles": {
+      "local_or_flash_trivial_small": {
+        "memoryMaxBytes": 2147483648,
+        "cpuQuotaPercent": 100,
+        "tasksMax": 128,
+        "ioWeight": 100,
+        "worktreeMaxBytes": 2147483648,
+        "rlimitNoFile": 2048,
+        "rlimitNproc": 2048,
+        "rlimitFsizeBytes": 536870912,
+        "commandTimeoutSeconds": 900
+      },
+      "flash_medium": {
+        "memoryMaxBytes": 4294967296,
+        "cpuQuotaPercent": 200,
+        "tasksMax": 256,
+        "ioWeight": 100,
+        "worktreeMaxBytes": 4294967296,
+        "rlimitNoFile": 4096,
+        "rlimitNproc": 4096,
+        "rlimitFsizeBytes": 1073741824,
+        "commandTimeoutSeconds": 1800
+      },
+      "pro_large": {
+        "memoryMaxBytes": 8589934592,
+        "cpuQuotaPercent": 400,
+        "tasksMax": 512,
+        "ioWeight": 100,
+        "worktreeMaxBytes": 8589934592,
+        "rlimitNoFile": 8192,
+        "rlimitNproc": 8192,
+        "rlimitFsizeBytes": 2147483648,
+        "commandTimeoutSeconds": 3600
+      },
+      "authoritative_verification": {
+        "memoryMaxBytes": 4294967296,
+        "cpuQuotaPercent": 200,
+        "tasksMax": 256,
+        "ioWeight": 100,
+        "worktreeMaxBytes": 4294967296,
+        "rlimitNoFile": 4096,
+        "rlimitNproc": 4096,
+        "rlimitFsizeBytes": 1073741824,
+        "commandTimeoutSeconds": 1800
+      }
     }
   },
   "llamaCpp": {

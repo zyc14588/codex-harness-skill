@@ -1,6 +1,8 @@
 import type { BridgeConfig, HarnessExecutionMode, ProgressiveToolCapability, RequestedExecutor, ReviewDecision, TaskBudget, TaskComplexity } from "./types.js";
 import { resolveHarnessLauncher } from "./config.js";
 import { jsonToolResult } from "./util.js";
+/** New 0.6.6 Harness work is minimal-only; "standard" remains a historical/local-executor enum value. */
+export declare function governedHarnessMode(executor: "harness" | "llama_cpp", requested: HarnessExecutionMode | undefined, label: string): HarnessExecutionMode;
 export declare function assertHarnessProvenance(config: BridgeConfig): Promise<Awaited<ReturnType<typeof resolveHarnessLauncher>>>;
 export interface ControllerLeafInput {
     id: string;
@@ -66,7 +68,7 @@ export interface StartTaskInput {
 export declare function startTask(input: StartTaskInput): Promise<unknown>;
 export declare function taskStatus(taskId: string): Promise<unknown>;
 export declare function collectTask(taskId: string, includePatch: boolean, maxPatchChars: number): Promise<unknown>;
-export declare function readChangedFile(taskId: string, filePath: string): Promise<unknown>;
+export declare function readChangedFile(taskId: string, filePath: string, offsetBytes?: number, maxBytes?: number): Promise<unknown>;
 export declare function reviewTask(taskId: string, decision: ReviewDecision, reviewedPaths: string[], notes: string): Promise<unknown>;
 export declare function repairTask(parentTaskId: string, feedback: string, runtimeSeconds?: number): Promise<unknown>;
 export declare function verifyTask(taskId: string, commands?: string[], timeoutSeconds?: number): Promise<unknown>;

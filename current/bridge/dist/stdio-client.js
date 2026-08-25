@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import { createInterface } from "node:readline";
 export class StdioMcpClient {
     child;
+    initializeResult;
     #nextId = 1;
     #pending = new Map();
     #stderr = "";
@@ -49,7 +50,7 @@ export class StdioMcpClient {
     static async connect(command, args, env, timeoutMs = 15_000) {
         const child = spawn(command, args, { env, stdio: ["pipe", "pipe", "pipe"] });
         const client = new StdioMcpClient(child);
-        await client.request("initialize", {
+        client.initializeResult = await client.request("initialize", {
             protocolVersion: "2025-06-18",
             capabilities: {},
             clientInfo: { name: "codex-harness-local-client", version: "0.6.6" },

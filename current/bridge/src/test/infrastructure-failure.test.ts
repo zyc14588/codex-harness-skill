@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   classifyMinimalToolPlaneFailure,
+  classifyResourceControlFailure,
   failureAttribution,
   infrastructureAnomalyLabels,
 } from "../infrastructure-failure.js";
@@ -13,6 +14,13 @@ test("classifies managed broker plugin startup failure before Provider I/O", () 
     + "failed to apply loader entry bridge-brokered-tools (codex-bridge-brokered-tools): "
     + "brokered tool capability is unavailable";
   assert.equal(classifyMinimalToolPlaneFailure(minimalHarness, details), "minimal_tool_plane_composition");
+});
+
+test("classifies resource controller and aggregate quota failures", () => {
+  assert.equal(classifyResourceControlFailure("controlled Harness execution requires verified cgroup v2 and RLIMIT controls"), "resource_control");
+  assert.equal(classifyResourceControlFailure("editor mutation would exceed aggregate worktree quota 4096"), "resource_control");
+  assert.equal(classifyResourceControlFailure("ordinary unit assertion failed"), undefined);
+  assert.equal(failureAttribution("resource_control"), "infrastructure");
 });
 
 test("classifies Bridge markers while rejecting unrelated execution errors", () => {
