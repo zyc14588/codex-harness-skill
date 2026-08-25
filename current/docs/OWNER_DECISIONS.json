@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "version": "0.6.6",
-  "status": "OWNER_DECISIONS_APPROVED_LOCAL_IMPLEMENTATION_IN_PROGRESS",
+  "status": "OWNER_DECISIONS_IMPLEMENTED_LOCAL_PASS_EXTERNAL_BLOCKED",
   "policy": "Owner approval and implementation verification are independent. Any decision change is an implementation change and invalidates earlier qualification evidence.",
   "decidedBy": "zyc14588",
   "decidedAt": "2026-08-26T01:22:12+10:00",
@@ -124,8 +124,8 @@
       ],
       "decidedBy": "zyc14588",
       "decidedAt": "2026-08-26T01:22:12+10:00",
-      "implementationVerified": false,
-      "implementationStatus": "CODE_COMPLETE_FULL_PACKAGE_LIFECYCLE_RERUN_PENDING",
+      "implementationVerified": true,
+      "implementationStatus": "PASS_FULL_CANDIDATE_INSTALL_MIGRATION_ROLLBACK_REINSTALL_UNINSTALL_LIFECYCLE",
       "pathPattern": "0.6.6-candidate-<implementationCommit12>",
       "requirements": [
         "candidate install is audit-only and controlledUseAllowed remains false",
