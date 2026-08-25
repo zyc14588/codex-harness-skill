@@ -13,7 +13,7 @@ Final archive: null
 
 The repaired implementation passed the bound local qualification and negative-smoke suites. Cancellation now reaches Host-side process groups, resource profiles cover the Harness parent and brokered siblings, the release gate uses exact fail-closed gate sets and a non-circular two-stage seal, protected Provider evidence is designed for artifact upload and attestation, and the two P2 output/audit bounds have local coverage.
 
-This is not a stable or controlled-use release. On the current host, every required resource control except the delegated cgroup v2 I/O controller was observed, so the real Provider smoke stopped before sending any Provider request. The current repair branch has not been pushed and therefore has no exact-tip GitHub Actions run. A read-only check on 2026-08-25 confirmed that the private repository's branch-protection and rulesets APIs still return HTTP 403 for the current GitHub plan. Protected Provider artifact attestation, owner decisions DEC-001 through DEC-004, seal-ready verification, deterministic archive generation, and unpacked archive revalidation remain pending.
+This is not a stable or controlled-use release. On the current host, every required resource control except the delegated cgroup v2 I/O controller was observed, so the real Provider smoke stopped before sending any Provider request. The current repair branch was pushed under explicit user authorization; the final governance tip still requires an exact-tip GitHub Actions conclusion. A read-only check on 2026-08-25 confirmed that the private repository's branch-protection and rulesets APIs still return HTTP 403 for the current GitHub plan. Protected Provider artifact attestation, owner decisions DEC-001 through DEC-004, seal-ready verification, deterministic archive generation, and unpacked archive revalidation remain pending.
 
 The earlier successful CI run on `repair/0.6.6-provider-capability-and-release-integrity` is historical evidence only and is ineligible for the current seal. No stable ZIP, tag, merge, push, or GitHub Release was created.
 
@@ -28,4 +28,4 @@ npm run build
 npm test
 ```
 
-Automatic merge, push, tag, or release is forbidden. A push requires separate explicit user authorization.
+Automatic merge, push, tag, or release is forbidden. The current branch push was performed only in response to explicit user authorization.

@@ -3,7 +3,7 @@
   "version": "0.6.6",
   "canonicalSource": "current/",
   "canonicalProvenance": "current/SOURCE_PROVENANCE.json",
-  "canonicalProvenanceSha256": "acae52f85cae9a38448a6a056c2776b1a1ce261e42ebaf6dbdfb52987c52c996",
+  "canonicalProvenanceSha256": "c4904a05023e3155ab92734eeeff575f1dfb731e9830a480d4305a3c14af5319",
   "repository": "git@github.com:zyc14588/codex-harness-skill.git",
   "repairBranch": "repair/0.6.6-pre-release-audit-r1",
   "repairBaselineHead": "91f8d493c52e972bafd0fc19f0e50a927c35448a",
@@ -13,7 +13,7 @@
   "implementationRepositoryTree": "b1e2bec58911d748928b3bcb5a0cd460602b91ec",
   "implementationCommittedAt": "2026-08-25T02:12:46+10:00",
   "historicalArchive": "archive/",
-  "generatedAt": "2026-08-25T02:33:29+10:00",
+  "generatedAt": "2026-08-25T13:43:11+10:00",
   "qualificationResult": "LOCAL_AND_NEGATIVE_PASS_REAL_PROVIDER_EXTERNAL_OWNER_AND_ARCHIVE_GATES_PENDING",
   "currentRevisionEvidence": {
     "current/evidence/01_CURRENT_REVISION_LOCAL_QUALIFICATION.json": {
@@ -35,19 +35,23 @@
     "eligibleForCurrentSeal": false
   },
   "remoteState": {
-    "currentBranchPushed": false,
-    "exactTipCi": "PENDING_NOT_PUSHED",
+    "currentBranchPushed": true,
+    "exactTipCi": "PENDING_CURRENT_TIP_CONCLUSION",
     "protectedProviderAttestation": "PENDING_NOT_CREATED",
     "branchProtectionRequiredChecks": "BLOCKED_EXTERNAL_GITHUB_PLAN_OR_OWNER_DECISION",
-    "observedAt": "2026-08-25T02:31:22+10:00",
+    "observedAt": "2026-08-25T13:43:11+10:00",
     "repositoryVisibility": "private",
-    "currentRepairBranchRemoteLookup": "ABSENT",
-    "branchProtectionApi": "HTTP_403_PLAN_LIMIT_ON_EXISTING_PREDECESSOR_BRANCH",
-    "rulesetsApi": "HTTP_403_PLAN_LIMIT"
+    "currentRepairBranchRemoteLookup": "PRESENT",
+    "branchProtectionApi": "HTTP_403_PLAN_LIMIT_ON_CURRENT_REPAIR_BRANCH",
+    "rulesetsApi": "HTTP_403_PLAN_LIMIT",
+    "initialAuthorizedPushRunId": 32806143408,
+    "initialAuthorizedPushHead": "0c8eadbcf91da90aeb2133961d597ecc590a9c36",
+    "initialAuthorizedPushRunEligibleForFinalMetadataTip": false
   },
   "automaticPush": "forbidden",
-  "userAuthorizedPush": "not_recorded_for_current_branch",
+  "userAuthorizedPush": "recorded_for_current_branch",
   "userAuthorizedPushPolicy": "allowed_only_after_separate_explicit_authorization",
+  "userAuthorizedPushPerformed": true,
   "automaticMerge": false,
   "tagged": false,
   "githubReleaseCreated": false

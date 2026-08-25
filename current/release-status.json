@@ -5,8 +5,8 @@
   "qualificationStage": "FINAL_VERSION_CURRENT_REVISION_QUALIFICATION",
   "controlledUseAllowed": false,
   "deliverableStatus": "REPAIR_IMPLEMENTED_EXTERNAL_OWNER_AND_ARCHIVE_GATES_PENDING",
-  "generatedAt": "2026-08-25T02:33:29+10:00",
-  "statusReason": "The repaired implementation passed bound local qualification and negative smoke. It remains non-deliverable: this host lacks the delegated cgroup I/O controller, so the real Provider smoke stopped before Provider I/O; the current branch has not been pushed or run by exact-tip GitHub Actions; protected Provider attestation, branch protection, four owner decisions, seal-ready verification, and the final archive are pending.",
+  "generatedAt": "2026-08-25T13:43:11+10:00",
+  "statusReason": "The repaired implementation passed bound local qualification and negative smoke. It remains non-deliverable: this host lacks the delegated cgroup I/O controller, so the real Provider smoke stopped before Provider I/O; the current branch was pushed under explicit user authorization, but the final governance tip still needs an exact-tip GitHub Actions conclusion; protected Provider attestation, branch protection, four owner decisions, seal-ready verification, and the final archive are pending.",
   "canonicalSource": "current/",
   "historicalArchive": "archive/",
   "implementation": {
@@ -56,16 +56,22 @@
     }
   },
   "remoteQualification": {
-    "currentBranchPushed": false,
-    "exactTipCi": "PENDING_NOT_PUSHED",
+    "currentBranchPushed": true,
+    "exactTipCi": "PENDING_CURRENT_TIP_CONCLUSION",
     "protectedProviderSmoke": "PENDING_NOT_RUN",
     "protectedProviderArtifactAttestation": "PENDING_NOT_CREATED",
     "branchProtectionRequiredChecks": "BLOCKED_EXTERNAL_GITHUB_PLAN_OR_OWNER_DECISION",
-    "observedAt": "2026-08-25T02:31:22+10:00",
+    "observedAt": "2026-08-25T13:43:11+10:00",
     "repositoryVisibility": "private",
-    "currentRepairBranchRemoteLookup": "ABSENT",
-    "branchProtectionApi": "HTTP_403_PLAN_LIMIT_ON_EXISTING_PREDECESSOR_BRANCH",
+    "currentRepairBranchRemoteLookup": "PRESENT",
+    "branchProtectionApi": "HTTP_403_PLAN_LIMIT_ON_CURRENT_REPAIR_BRANCH",
     "rulesetsApi": "HTTP_403_PLAN_LIMIT",
+    "initialAuthorizedPushRun": {
+      "headCommit": "0c8eadbcf91da90aeb2133961d597ecc590a9c36",
+      "runId": 32806143408,
+      "statusAtObservation": "in_progress",
+      "eligibleForFinalMetadataTip": false
+    },
     "historicalPredecessorRun": {
       "branch": "repair/0.6.6-provider-capability-and-release-integrity",
       "headCommit": "c8f73753aab70524cb42f3984563c6ae74980fba",
@@ -82,7 +88,7 @@
     "currentRevisionProThinkingSmoke": "PENDING_PROTECTED_PROVIDER_RUN",
     "directAcceptance": "PASS_LOCAL_CURRENT_REVISION",
     "dynamicManagedProfile": "PASS_LOCAL_PINNED_HARNESS",
-    "githubActionsExactTip": "PENDING_NOT_PUSHED",
+    "githubActionsExactTip": "PENDING_CURRENT_TIP_CONCLUSION",
     "ignoredPoisoningVerification": "PASS_LOCAL_CURRENT_REVISION",
     "modelReadOutputBounds": "PASS_LOCAL_CURRENT_REVISION",
     "negativeSmokeSuite": "PASS_LOCAL_CURRENT_REVISION",
@@ -114,7 +120,7 @@
   "artifactBindings": {
     "bindingStatus": "CURRENT_IMPLEMENTATION_LOCAL_AND_NEGATIVE_BOUND_EXTERNAL_SEAL_PENDING",
     "sourceTreeSha256": "f5be77c844b9e0dbf378eb1737c23124e826be56a42ac0660f6196d3b9aa4cac",
-    "sourceProvenanceSha256": "acae52f85cae9a38448a6a056c2776b1a1ce261e42ebaf6dbdfb52987c52c996",
+    "sourceProvenanceSha256": "c4904a05023e3155ab92734eeeff575f1dfb731e9830a480d4305a3c14af5319",
     "packageLockSha256": "c7c2c34eb96aff613a87aa10c13a1b03a87cfc6a6b2320c2c9c3a1d1641433ab",
     "criticalSetSha256": "9c03cc7d05c876499540a8c6ec0bb78fa949adcffbf762da6a794cfda20bc759",
     "criticalPathSha256": {
@@ -149,8 +155,9 @@
   "finalArchive": null,
   "automaticMerge": false,
   "automaticPush": "forbidden",
-  "userAuthorizedPush": "not_recorded_for_current_branch",
+  "userAuthorizedPush": "recorded_for_current_branch",
   "userAuthorizedPushPolicy": "allowed_only_after_separate_explicit_authorization",
+  "userAuthorizedPushPerformed": true,
   "tagged": false,
   "githubReleaseCreated": false
 }

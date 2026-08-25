@@ -72,8 +72,8 @@
   "blockers": [
     {
       "id": "EXT-001",
-      "title": "Current repair branch is not present on origin and has no exact-tip strict CI",
-      "status": "PENDING_USER_AUTHORIZED_PUSH_AND_RUN"
+      "title": "Current repair branch is present on origin; the final governance tip still needs an exact-tip strict CI conclusion",
+      "status": "PENDING_EXACT_TIP_RUN_CONCLUSION"
     },
     {
       "id": "EXT-002",
@@ -107,9 +107,13 @@
     "stablePromotionRequiresImplementationCommitApprovalAndRequalification": true
   },
   "remoteObservation": {
-    "observedAt": "2026-08-25T02:31:22+10:00",
+    "observedAt": "2026-08-25T13:43:11+10:00",
     "repositoryVisibility": "private",
-    "currentRepairBranchPresent": false,
+    "currentRepairBranchPresent": true,
+    "initialAuthorizedPushHead": "0c8eadbcf91da90aeb2133961d597ecc590a9c36",
+    "initialAuthorizedPushRunId": 32806143408,
+    "initialAuthorizedPushRunStatusAtObservation": "in_progress",
+    "initialAuthorizedPushRunEligibleForFinalMetadataTip": false,
     "branchProtectionApi": "HTTP_403_PLAN_LIMIT",
     "rulesetsApi": "HTTP_403_PLAN_LIMIT"
   }

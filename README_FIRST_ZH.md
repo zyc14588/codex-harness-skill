@@ -16,7 +16,7 @@ finalArchive=null
 
 本轮已完成 fail-closed 精确 gate 集合、两阶段 seal、Brokered Tool 端到端取消与 Host process registry、Harness/Tool sibling 资源 profile、protected Provider artifact/attestation 工作流、认证审计轮换与聚合、模型可见读取分页与输出上限。绑定当前实现的本地完整资格化和负向 smoke 均通过。
 
-这不构成稳定版通过。本机缺少已委派的 cgroup v2 I/O controller，真实 Provider smoke 因受控资源门禁在 Provider I/O 前失败，实际发送请求数为 0。当前修复分支尚未推送，因此不存在当前 exact-tip strict CI 或 protected Provider artifact attestation。2026-08-25 的只读核验确认仓库仍为 private，branch-protection 与 rulesets API 均因当前 GitHub 方案返回 HTTP 403。DEC-001 至 DEC-004 尚未由所有者批准，seal-ready、最终 deterministic ZIP 与解包复验也尚未执行。
+这不构成稳定版通过。本机缺少已委派的 cgroup v2 I/O controller，真实 Provider smoke 因受控资源门禁在 Provider I/O 前失败，实际发送请求数为 0。当前修复分支已根据用户明确授权推送；最终治理 tip 的 exact-tip strict CI 结论与 protected Provider artifact attestation 仍待完成。2026-08-25 的只读核验确认仓库仍为 private，当前分支的 branch-protection 与仓库 rulesets API 均因 GitHub 方案返回 HTTP 403。DEC-001 至 DEC-004 尚未由所有者批准，seal-ready、最终 deterministic ZIP 与解包复验也尚未执行。
 
 前一修复分支的成功 CI run `32677107669` 只属于历史 observational evidence，不得用于当前 seal。没有生成 stable ZIP，没有 merge、push、tag 或 GitHub Release。
 
@@ -31,4 +31,4 @@ npm run build
 npm test
 ```
 
-机器可读状态以 `current/release-status.json` 为准，来源绑定以 `current/SOURCE_PROVENANCE.json` 为准，待决事项见 `current/docs/OWNER_DECISIONS.json`。自动 merge、push、tag 和 release 均被禁止；任何 push 都需要用户另行明确授权。
+机器可读状态以 `current/release-status.json` 为准，来源绑定以 `current/SOURCE_PROVENANCE.json` 为准，待决事项见 `current/docs/OWNER_DECISIONS.json`。自动 merge、push、tag 和 release 均被禁止；本次分支 push 仅依据用户本轮明确授权执行。

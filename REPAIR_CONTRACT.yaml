@@ -76,23 +76,25 @@ currentQualification:
   localQualification: PASS_CURRENT_IMPLEMENTATION
   negativeSmoke: PASS_CURRENT_IMPLEMENTATION
   realProviderSmoke: BLOCKED_PRE_PROVIDER_IO_HOST_IO_CONTROLLER
-  exactTipCi: PENDING_NOT_PUSHED
+  exactTipCi: PENDING_CURRENT_TIP_CONCLUSION
   protectedProviderArtifactAttestation: PENDING_NOT_CREATED
   branchProtectionRequiredChecks: BLOCKED_EXTERNAL_GITHUB_PLAN_OR_OWNER_DECISION
   ownerDecisions: PENDING_DEC_001_THROUGH_DEC_004
   deterministicArchive: PENDING_AFTER_SEAL_READY
 externalState:
   repositoryVisibility: private
-  currentRepairBranchPushed: false
+  currentRepairBranchPushed: true
   observedBranchProtectionApi: HTTP_403_PLAN_LIMIT
   observedRulesetsApi: HTTP_403_PLAN_LIMIT
+  initialAuthorizedPushHead: 0c8eadbcf91da90aeb2133961d597ecc590a9c36
+  initialAuthorizedPushRunId: 32806143408
   observationDate: "2026-08-25"
 remoteOperations:
   automaticPush: forbidden
-  userAuthorizedPush: not_recorded_for_current_branch
+  userAuthorizedPush: recorded_for_current_branch
   userAuthorizedPushPolicy: allowed_only_after_separate_explicit_authorization
-  currentBranchPushAuthorizationRecorded: false
-  currentBranchPushPerformed: false
+  currentBranchPushAuthorizationRecorded: true
+  currentBranchPushPerformed: true
   automaticMerge: forbidden
   automaticTag: forbidden
   automaticGitHubRelease: forbidden

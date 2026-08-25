@@ -3,7 +3,7 @@
   "version": "0.6.6",
   "repository": "git@github.com:zyc14588/codex-harness-skill.git",
   "canonicalSource": "current/",
-  "generatedAt": "2026-08-25T02:33:29+10:00",
+  "generatedAt": "2026-08-25T13:43:11+10:00",
   "auditedBaseline": {
     "branch": "repair/0.6.6-provider-capability-and-release-integrity",
     "head": "91f8d493c52e972bafd0fc19f0e50a927c35448a",
@@ -87,13 +87,19 @@
     ]
   },
   "remoteState": {
-    "currentBranchPushed": false,
-    "exactTipCi": "PENDING_NOT_PUSHED",
-    "observedAt": "2026-08-25T02:31:22+10:00",
+    "currentBranchPushed": true,
+    "exactTipCi": "PENDING_CURRENT_TIP_CONCLUSION",
+    "observedAt": "2026-08-25T13:43:11+10:00",
     "repositoryVisibility": "private",
-    "currentRepairBranchRemoteLookup": "ABSENT",
-    "branchProtectionApi": "HTTP_403_PLAN_LIMIT_ON_EXISTING_PREDECESSOR_BRANCH",
+    "currentRepairBranchRemoteLookup": "PRESENT",
+    "branchProtectionApi": "HTTP_403_PLAN_LIMIT_ON_CURRENT_REPAIR_BRANCH",
     "rulesetsApi": "HTTP_403_PLAN_LIMIT",
+    "initialAuthorizedPushRun": {
+      "headCommit": "0c8eadbcf91da90aeb2133961d597ecc590a9c36",
+      "runId": 32806143408,
+      "statusAtObservation": "in_progress",
+      "eligibleForFinalMetadataTip": false
+    },
     "historicalRun": {
       "branch": "repair/0.6.6-provider-capability-and-release-integrity",
       "headCommit": "c8f73753aab70524cb42f3984563c6ae74980fba",
@@ -103,8 +109,9 @@
     }
   },
   "automaticPush": "forbidden",
-  "userAuthorizedPush": "not_recorded_for_current_branch",
+  "userAuthorizedPush": "recorded_for_current_branch",
   "userAuthorizedPushPolicy": "allowed_only_after_separate_explicit_authorization",
+  "userAuthorizedPushPerformed": true,
   "automaticMerge": false,
   "tagged": false,
   "githubReleaseCreated": false
