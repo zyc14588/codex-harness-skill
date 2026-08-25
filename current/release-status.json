@@ -4,36 +4,43 @@
   "releaseStatus": "candidate",
   "qualificationStage": "FINAL_VERSION_CURRENT_REVISION_QUALIFICATION",
   "controlledUseAllowed": false,
-  "deliverableStatus": "REPAIR_IMPLEMENTED_EXTERNAL_OWNER_AND_ARCHIVE_GATES_PENDING",
-  "generatedAt": "2026-08-25T13:43:11+10:00",
-  "statusReason": "The repaired implementation passed bound local qualification and negative smoke. It remains non-deliverable: this host lacks the delegated cgroup I/O controller, so the real Provider smoke stopped before Provider I/O; the current branch was pushed under explicit user authorization, but the final governance tip still needs an exact-tip GitHub Actions conclusion; protected Provider attestation, branch protection, four owner decisions, seal-ready verification, and the final archive are pending.",
+  "deliverableStatus": "OWNER_DECISIONS_IMPLEMENTED_LOCAL_PASS_EXTERNAL_BLOCKED",
+  "generatedAt": "2026-08-26T03:38:29+10:00",
+  "statusReason": "All four Owner decisions and the remaining R2 implementation work are frozen in implementation commit 2ea556dc35d3695be3c5b7bad1b3dc86f07156c5. The exact revision passes 14 local qualification steps and 241 tests, the negative suite, and the full commit-suffixed candidate lifecycle. Publication remains blocked by hash-redacted personal information and historical gitlinks; controlled Provider qualification remains blocked before credentials or network because this host lacks delegated cgroup v2 I/O. The implementation is not pushed, exact-tip CI and protected attestation have not run, and the public default branch has no required-check protection.",
   "canonicalSource": "current/",
   "historicalArchive": "archive/",
   "implementation": {
-    "branch": "repair/0.6.6-pre-release-audit-r1",
-    "baselineHead": "91f8d493c52e972bafd0fc19f0e50a927c35448a",
-    "baselineTree": "0daa23b799bcf07ff318c47720ca0c09e9ae8eae",
-    "commit": "62406f99b7caa8ecb3c8b6deb0d457973f3f9b34",
-    "tree": "a7ebd778dc0a532b5baff49ee23055ad73263cd8",
-    "repositoryTree": "b1e2bec58911d748928b3bcb5a0cd460602b91ec",
-    "committedAt": "2026-08-25T02:12:46+10:00"
+    "branch": "repair/0.6.6-owner-decisions-and-r2-remediation",
+    "baselineHead": "587513fe45f25b9235eb0d430161d675be2adfa7",
+    "baselineTree": "beef11892852f0097f7db6be9a8e8dd82fa2e246",
+    "commit": "2ea556dc35d3695be3c5b7bad1b3dc86f07156c5",
+    "tree": "3da5e552b75318497ce9c3bc840cd1c03fe60599",
+    "repositoryTree": "8491883183bab498365082f83607c5ab64b80f5b",
+    "committedAt": "2026-08-26T03:28:50+10:00",
+    "candidatePath": "0.6.6-candidate-2ea556dc35d3"
   },
   "localQualification": {
     "result": "PASS",
-    "generatedAt": "2026-08-24T16:24:05.153Z",
+    "generatedAt": "2026-08-25T17:35:14.192Z",
     "stepCount": 14,
-    "testCount": 220,
+    "testCount": 241,
     "pinnedHarnessCommit": "141eb6fef83422698aef7a981029e843e8161534",
     "pinnedHarnessBuildSha256": "6a294d72c51e6570852acaf73458cda98f555bd53c9c7ff0b49c568e7cf88a38"
   },
   "realProviderSmoke": "blocked_pre_provider_io_host_resource_gate",
   "realProviderQualification": {
-    "result": "FAIL",
-    "generatedAt": "2026-08-24T16:25:19.131Z",
+    "result": "BLOCKED_CONTROLLED_HOST_CGROUP_IO",
+    "generatedAt": "2026-08-25T17:36:26.699Z",
     "providerRequestsSent": 0,
+    "networkOperationsPerformed": false,
+    "credentialReadRequired": false,
     "blocker": "required cgroup v2 IOWeight could not be established or observed on this host"
   },
   "hostResourceQualification": {
+    "path": "../HOST_RESOURCE_QUALIFICATION.json",
+    "sha256": "4836e9fcf3c31992516ab7d9fc67c24193e1587e104e3732e59ef6dee1dcceb3",
+    "result": "BLOCKED_CONTROLLED_HOST_CGROUP_IO",
+    "generatedAt": "2026-08-25T17:36:26.699Z",
     "controlledUseAllowed": false,
     "cgroupV2": true,
     "memoryMax": true,
@@ -43,29 +50,53 @@
     "rlimitNoFile": true,
     "rlimitNproc": true,
     "rlimitFsize": true,
-    "protectedHostRecheckRequired": true
+    "protectedHostRecheckRequired": true,
+    "allFourOwnerProfilesProbed": true,
+    "resourceProfileMatrixSha256": "08b1f4e2c4448a7be8861d40a741ec84e9a33e71f93910298e5037dffe8e4cd8",
+    "profileHashes": {
+      "local_or_flash_trivial_small": "504e1a402db9537cb73bc17daf14c625669137d9c2875d4642cc9aac90b8ca24",
+      "flash_medium": "19f0fb59808b0eab9b8f1557b8c8cdcfc78f4b3fa115d52fede5e31cef35ac81",
+      "pro_large": "cf2a4c262a8c84c91d44c27a6a2cef48c0be29d7fe3b90a7bdeb2614b44bb5f1",
+      "authoritative_verification": "fa40f0bcc3a67131888f0519506acb95bb07df69883ce6c44cffe44393edf6b5"
+    }
+  },
+  "publicRepositoryHistoryAudit": {
+    "path": "evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json",
+    "sha256": "c8d8373b178b205da8e917e20de711f13af8e28ff3d5f49e4a7a0b826c83aef5",
+    "result": "BLOCKED_PUBLIC_HISTORY_REMEDIATION",
+    "observedAt": "2026-08-25T17:45:37.529Z",
+    "blockers": [
+      "PUBLIC_HISTORY_PERSONAL_INFORMATION",
+      "UNSAFE_SYMLINK_OR_GITLINK_IN_HISTORY"
+    ],
+    "secretsDetected": 0,
+    "personalInformationCandidates": 0,
+    "publicationEligibility": "NOT_ELIGIBLE_UNTIL_BLOCKERS_REMEDIATED_AND_REAUDITED"
   },
   "releaseTarget": {
     "repository": "zyc14588/codex-harness-skill",
-    "branch": "repair/0.6.6-pre-release-audit-r1",
+    "branch": "repair/0.6.6-owner-decisions-and-r2-remediation",
+    "qualificationCommit": null,
+    "qualificationTree": null,
+    "sealMode": "current_checked_out_metadata_commit",
     "sealCommit": null,
     "sealTree": null,
     "workflow": {
       "path": ".github/workflows/ci.yml",
-      "sha256": "52390b9bcaf2a3ca2978becc0d529b91411580721f9e5a2649e3fe3333ce1197"
+      "sha256": "63784b4ffc8d36ffc25e9189564e83270b9dda10f241ece335dfc31ad68fd3d1"
     }
   },
   "remoteQualification": {
-    "currentBranchPushed": true,
-    "exactTipCi": "PENDING_CURRENT_TIP_CONCLUSION",
+    "currentBranchPushed": false,
+    "exactTipCi": "BLOCKED_LOCAL_IMPLEMENTATION_NOT_PUSHED",
     "protectedProviderSmoke": "PENDING_NOT_RUN",
     "protectedProviderArtifactAttestation": "PENDING_NOT_CREATED",
-    "branchProtectionRequiredChecks": "BLOCKED_EXTERNAL_GITHUB_PLAN_OR_OWNER_DECISION",
-    "observedAt": "2026-08-25T13:43:11+10:00",
-    "repositoryVisibility": "private",
-    "currentRepairBranchRemoteLookup": "PRESENT",
-    "branchProtectionApi": "HTTP_403_PLAN_LIMIT_ON_CURRENT_REPAIR_BRANCH",
-    "rulesetsApi": "HTTP_403_PLAN_LIMIT",
+    "branchProtectionRequiredChecks": "BLOCKED_PUBLIC_DEFAULT_BRANCH_UNPROTECTED_REQUIRED_CHECKS_ABSENT",
+    "observedAt": "2026-08-25T16:49:04Z",
+    "repositoryVisibility": "public",
+    "currentRepairBranchRemoteLookup": "ABSENT_NOT_PUSHED",
+    "branchProtectionApi": "HTTP_404_DEFAULT_BRANCH_NOT_PROTECTED_REQUIRED_CHECKS_ABSENT",
+    "rulesetsApi": "HTTP_200_EMPTY_RULESET_LIST",
     "initialAuthorizedPushRun": {
       "headCommit": "0c8eadbcf91da90aeb2133961d597ecc590a9c36",
       "runId": 32806143408,
@@ -81,14 +112,14 @@
     }
   },
   "gates": {
-    "branchProtectionRequiredChecks": "BLOCKED_EXTERNAL_GITHUB_PLAN_OR_OWNER_DECISION",
+    "branchProtectionRequiredChecks": "BLOCKED_PUBLIC_DEFAULT_BRANCH_UNPROTECTED_REQUIRED_CHECKS_ABSENT",
     "brokeredToolCancellationNegatives": "PASS_LOCAL_CURRENT_REVISION",
     "cleanReviewedPatchVerification": "PASS_LOCAL_CURRENT_REVISION",
     "currentRevisionFlashSmoke": "PENDING_PROTECTED_PROVIDER_RUN",
     "currentRevisionProThinkingSmoke": "PENDING_PROTECTED_PROVIDER_RUN",
     "directAcceptance": "PASS_LOCAL_CURRENT_REVISION",
     "dynamicManagedProfile": "PASS_LOCAL_PINNED_HARNESS",
-    "githubActionsExactTip": "PENDING_CURRENT_TIP_CONCLUSION",
+    "githubActionsExactTip": "BLOCKED_LOCAL_IMPLEMENTATION_NOT_PUSHED",
     "ignoredPoisoningVerification": "PASS_LOCAL_CURRENT_REVISION",
     "modelReadOutputBounds": "PASS_LOCAL_CURRENT_REVISION",
     "negativeSmokeSuite": "PASS_LOCAL_CURRENT_REVISION",
@@ -98,7 +129,7 @@
     "protectedProviderEvidenceAttestation": "PENDING_NOT_CREATED",
     "providerCapabilityIsolation": "PASS_LOCAL_NEGATIVE_MATRIX",
     "reasoningReplayFailureInjection": "PASS_LOCAL_CURRENT_REVISION",
-    "repositoryHistoryReadBoundaryDecision": "BLOCKED_OWNER_DECISION_DEC_002",
+    "repositoryHistoryReadBoundaryDecision": "BLOCKED_PUBLIC_HISTORY_AUDIT_PREREQUISITE",
     "resourceControlEnforcement": "BLOCKED_HOST_IO_CONTROLLER_AND_PROTECTED_HOST",
     "resourceExhaustionNegatives": "PASS_LOCAL_CURRENT_REVISION",
     "securityAcceptance": "PASS_LOCAL_CURRENT_REVISION",
@@ -109,33 +140,36 @@
   },
   "ownerDecisions": {
     "path": "docs/OWNER_DECISIONS.json",
-    "sha256": "d833960249bb4f7126e8d1353df2403217e767ec272bbb7315ac3129e822a7f6",
-    "status": "PENDING_OWNER_DEC_001_THROUGH_DEC_004",
+    "sha256": "8c28d2aeacc13fddfbe79a8b35d7f4c70c3714c4335929fa5e42d57ec2315921",
+    "status": "APPROVED_DEC003_DEC004_VERIFIED_DEC001_DEC002_BLOCKED_PUBLIC_HISTORY",
     "approvalChangesRequireNewImplementationCommitAndRequalification": true
   },
   "localQualificationEvidencePath": "evidence/01_CURRENT_REVISION_LOCAL_QUALIFICATION.json",
   "realProviderEvidencePath": "evidence/02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json",
   "negativeSmokeEvidencePath": "evidence/03_CURRENT_REVISION_NEGATIVE_SMOKE.json",
   "externalGateEvidencePath": "evidence/04_GITHUB_EXTERNAL_GATES_2026-08-24.json",
+  "publicHistoryAuditEvidencePath": "evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json",
+  "ownerDecisionQualificationEvidencePath": "evidence/OWNER_DECISIONS_LOCAL_QUALIFICATION.json",
+  "githubGovernanceEvidencePath": "evidence/GITHUB_GOVERNANCE_OBSERVATION.json",
   "artifactBindings": {
-    "bindingStatus": "CURRENT_IMPLEMENTATION_LOCAL_AND_NEGATIVE_BOUND_EXTERNAL_SEAL_PENDING",
-    "sourceTreeSha256": "f5be77c844b9e0dbf378eb1737c23124e826be56a42ac0660f6196d3b9aa4cac",
-    "sourceProvenanceSha256": "c4904a05023e3155ab92734eeeff575f1dfb731e9830a480d4305a3c14af5319",
+    "bindingStatus": "CURRENT_IMPLEMENTATION_LOCAL_AND_NEGATIVE_BOUND_EXTERNAL_BLOCKED",
+    "sourceTreeSha256": "59ca4f30073aaf9828f2aa7037be31375c91549d008041e0095f7660f20ac811",
+    "sourceProvenanceSha256": "1459da59fc08e3dfb8e05434a74b669eaaecb4954ddca41aacf6b706af85bacf",
     "packageLockSha256": "c7c2c34eb96aff613a87aa10c13a1b03a87cfc6a6b2320c2c9c3a1d1641433ab",
-    "criticalSetSha256": "9c03cc7d05c876499540a8c6ec0bb78fa949adcffbf762da6a794cfda20bc759",
+    "criticalSetSha256": "3f7e3e00dfd5cd0135e10062b6278b9d96a49c05210c53f6bb4d864eb2463821",
     "criticalPathSha256": {
       "bridge/src/security.ts": "30012c7559053cfd5ebbb4722d65a02b7c5949e7fd43bb5678c3ff0e43ac4160",
-      "bridge/src/monitor-daemon.ts": "2a9ce0301287fc1bd576814d0be94b8048b7f0bb30b08a671babe8e28e4efe83",
+      "bridge/src/monitor-daemon.ts": "f39fab53ae07289f38afa68ef6b59dea1a27f82ca143b31ffedf3af32f786f59",
       "bridge/src/harness-sandbox-entry.ts": "6d7f472d2835db9294ae7d15bf4a49361168ab6baa4f03943b4770e08e2c4359",
-      "bridge/src/harness-isolation.ts": "8f446f13ae91d64e547cb3fcae85dce2df28c80261f57dbd0bbfbb8401b94935",
-      "bridge/src/brokered-tool-host.ts": "587543e1c6a60a07fb3e6a34cb7de9fbe8c6e656036109402d893ca83488b35e",
+      "bridge/src/harness-isolation.ts": "9ff8c71af655a25cc387cc32c7f22bf53a661a0b8a4ebbdabd0bdef96da56ff3",
+      "bridge/src/brokered-tool-host.ts": "d6da90ac4e65d7561a4ff2ea3c5a68bed97fc01e537983c56a02c92c2de74ac0",
       "bridge/src/thinking-policy.ts": "ff021e0d64fb5bc535387872de7f9d25043dad7e67a29a09cd18d153a3cd75b2",
       "bridge/src/minimal-request-state.ts": "b0c60eaed42e599028602e7dbf4afa946eb2613641db3d377286c028e5d94af4",
       "bridge/src/provider-policy.ts": "aea8b29afd3f98129422d1027a4f7cc2ba1f59ef7abaceec90067d9938520233",
-      "bridge/src/worker.ts": "f6c9baa27916d2c1f7e9ef13d0a6e671dfd560711e0bcb6727701ed8762b706d",
-      "bridge/src/service.ts": "0b2e978517abe995989c1118913924921f5ca192aa3f811f14b6374fa739ff8b",
+      "bridge/src/worker.ts": "47b3282bebf1813595d86e1c8e266b77733ca8e0a725148e710e2512c6ac1ddc",
+      "bridge/src/service.ts": "7d1e4725100bbd8dfc116415609cb76fce4e74dcf404012593fe2ba5c23944dd",
       "harness/minimal/preset/agent.cordis.yml.in": "05945570459b34499ca4fd775642c0fc28696c67e2fa48b42a00ab36416ea29f",
-      "harness/minimal/profile/bridge-brokered-tools.mjs": "bf1e9af573f388ae3f7de1e61b689dead8e6a2bbfb293148179e462164877249",
+      "harness/minimal/profile/bridge-brokered-tools.mjs": "c09e234a823564e0add4079eb0629daa3d9b51dc23b0442e716941f89a88211a",
       "harness/minimal/profile/bridge-headless-runner.mjs": "c647264daeecc37d845de1b42937c328fec22c5c1618f0c830108ab83e74c8c3",
       "harness/minimal/profile/cordis.patch.yml": "e46d24af07c98ce331b17658fa9dce4d68db793d8f5447f43f49c8d2d5b209ce"
     },
@@ -144,9 +178,15 @@
       "buildSha256": "6a294d72c51e6570852acaf73458cda98f555bd53c9c7ff0b49c568e7cf88a38"
     },
     "candidateEvidenceSha256": {
-      "evidence/01_CURRENT_REVISION_LOCAL_QUALIFICATION.json": "c8ed9ce5bfd77cd40fa4bb4314951fad17d6fdeb78efbbe7a08b28ce582cdda7",
-      "evidence/02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json": "4fb3b2d61929944e570ccbe1280aa7f4ee29e169f8fcad215e26dc674c27390c",
-      "evidence/03_CURRENT_REVISION_NEGATIVE_SMOKE.json": "a526f43ba855e7bb50486085948da0566e4339542d5f99295fd3e10e03e27837"
+      "evidence/01_CURRENT_REVISION_LOCAL_QUALIFICATION.json": "b7b4cf08a98e44e0874b74db693ea2d1c85c994aee5f630703f99244deb0c375",
+      "evidence/02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json": "90864729c06680264eccc325feba982753362dff983eee7e053037f93502fe81",
+      "evidence/03_CURRENT_REVISION_NEGATIVE_SMOKE.json": "c102025c879a8d352bb729be4ea3bd1fbaff4135382dca21d76c2413fe8a965f"
+    },
+    "observationalEvidenceSha256": {
+      "evidence/GITHUB_GOVERNANCE_OBSERVATION.json": "edba812f53e289231e61047b6986b3461075474051c5329b69d1e3d0db8873cb",
+      "evidence/OWNER_DECISIONS_LOCAL_QUALIFICATION.json": "b8b4b63fde1fed5f3bd462563514b90fdc29daa047fffd0692dee7913d52a06d",
+      "evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json": "c8d8373b178b205da8e917e20de711f13af8e28ff3d5f49e4a7a0b826c83aef5",
+      "../HOST_RESOURCE_QUALIFICATION.json": "4836e9fcf3c31992516ab7d9fc67c24193e1587e104e3732e59ef6dee1dcceb3"
     },
     "historicalObservationalEvidenceSha256": {
       "evidence/04_GITHUB_EXTERNAL_GATES_2026-08-24.json": "8c5a3675ac80704590643bc6cd66a237b84730e1e616f3acfa41e817faabbdbd"
@@ -155,9 +195,9 @@
   "finalArchive": null,
   "automaticMerge": false,
   "automaticPush": "forbidden",
-  "userAuthorizedPush": "recorded_for_current_branch",
+  "userAuthorizedPush": "not_authorized_for_current_branch",
   "userAuthorizedPushPolicy": "allowed_only_after_separate_explicit_authorization",
-  "userAuthorizedPushPerformed": true,
+  "userAuthorizedPushPerformed": false,
   "tagged": false,
   "githubReleaseCreated": false
 }

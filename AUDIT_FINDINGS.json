@@ -1,120 +1,119 @@
 {
-  "schemaVersion": 3,
-  "auditDate": "2026-08-25",
+  "schemaVersion": 4,
+  "auditDate": "2026-08-26",
   "repository": "zyc14588/codex-harness-skill",
-  "baselineBranch": "repair/0.6.6-provider-capability-and-release-integrity",
-  "repairBranch": "repair/0.6.6-pre-release-audit-r1",
+  "baselineHead": "587513fe45f25b9235eb0d430161d675be2adfa7",
+  "repairBranch": "repair/0.6.6-owner-decisions-and-r2-remediation",
   "canonicalSource": "current/",
-  "verdict": "PRE_RELEASE_REPAIR_BLOCKED",
+  "verdict": "OWNER_DECISIONS_IMPLEMENTED_LOCAL_PASS_EXTERNAL_BLOCKED",
   "releaseStatus": "candidate",
   "stablePromotionAllowed": false,
   "controlledUseAllowed": false,
   "finalArchive": null,
   "implementation": {
-    "commit": "62406f99b7caa8ecb3c8b6deb0d457973f3f9b34",
-    "sourceTree": "a7ebd778dc0a532b5baff49ee23055ad73263cd8",
-    "repositoryTree": "b1e2bec58911d748928b3bcb5a0cd460602b91ec"
+    "commit": "2ea556dc35d3695be3c5b7bad1b3dc86f07156c5",
+    "sourceTree": "3da5e552b75318497ce9c3bc840cd1c03fe60599",
+    "repositoryTree": "8491883183bab498365082f83607c5ab64b80f5b",
+    "sourceTreeSha256": "59ca4f30073aaf9828f2aa7037be31375c91549d008041e0095f7660f20ac811",
+    "criticalSetSha256": "3f7e3e00dfd5cd0135e10062b6278b9d96a49c05210c53f6bb4d864eb2463821"
   },
   "counts": {
-    "P0": 1,
-    "P1": 4,
-    "P2": 2,
-    "externalOrOwnerBlockers": 6,
-    "pendingOwnerDecisions": 4
+    "implementationFindingsClosedLocally": 7,
+    "ownerDecisionsApproved": 4,
+    "ownerDecisionImplementationsVerified": 2,
+    "publicationBlockerClasses": 2,
+    "localQualificationSteps": 14,
+    "localQualificationTests": 241
   },
-  "findings": [
-    {
-      "id": "P0-001",
-      "title": "Stable release gate accepted incomplete gates and used a circular pre-build archive claim",
-      "status": "IMPLEMENTED_LOCAL_VERIFIED",
-      "evidence": "exact source/archive gate sets, required external bindings, two-stage seal and 12 release-gate tests pass",
-      "remainingGate": "protected external seal evidence and deterministic archive attestation"
-    },
-    {
-      "id": "P1-001",
-      "title": "Brokered tool cancellation did not reach Host Bubblewrap subprocesses",
-      "status": "PASS_LOCAL_CURRENT_REVISION",
-      "evidence": "AbortSignal propagation, task/attempt/process registry, TERM-to-KILL quiescence and long-command cancellation tests"
-    },
-    {
-      "id": "P1-002",
-      "title": "Namespace isolation lacked CPU, memory, PID and disk resource ceilings",
-      "status": "IMPLEMENTED_NEGATIVES_PASS_CONTROLLED_BLOCKED_HOST_IO",
-      "evidence": "cgroup/systemd and RLIMIT enforcement with fork, memory, file-size and runtime negatives",
-      "remainingGate": "qualify on a protected host with delegated cgroup v2 I/O control"
-    },
-    {
-      "id": "P1-003",
-      "title": "Protected GitHub Provider evidence was not retained or bound and exact tip lacked CI",
-      "status": "IMPLEMENTED_PENDING_EXTERNAL_RUN",
-      "evidence": "workflow now uploads a direct-file artifact and creates GitHub OIDC attestation with exact run bindings",
-      "remainingGate": "push only after authorization, then run exact-tip strict CI and protected Provider job"
-    },
-    {
-      "id": "P1-004",
-      "title": "Root governance files contradicted the external-gate state",
-      "status": "IMPLEMENTED_LOCAL_EXACT_TIP_CI_PENDING",
-      "evidence": "root/current status, provenance, contract, findings and readmes use one candidate state and unambiguous remote-operation policy"
-    },
-    {
-      "id": "P2-001",
-      "title": "Operator authentication audit was append-only without rotation or size cap",
-      "status": "PASS_LOCAL_CURRENT_REVISION",
-      "evidence": "aggregation, rotation, max-byte/file/retention policy and flood tests"
-    },
-    {
-      "id": "P2-002",
-      "title": "Model-facing repository and editor reads lacked an output-token bound",
-      "status": "PASS_LOCAL_CURRENT_REVISION",
-      "evidence": "UTF-8-safe pagination, 49152-byte bound, estimated-token bound and truncation metadata tests"
-    }
+  "rootManifest": {
+    "result": "PASS",
+    "trackedRegularFileCount": 872,
+    "manifestEntryCount": 871,
+    "mismatch": 0,
+    "missing": 0,
+    "extra": 0,
+    "duplicate": 0,
+    "modeMismatch": 0,
+    "selfReference": 0,
+    "reverseReference": 0
+  },
+  "closedImplementationFindings": [
+    "exact fail-closed release gates and non-circular seal state",
+    "Brokered Tool cancellation through Host process groups",
+    "tiered cgroup, RLIMIT, runtime, file-size and aggregate worktree ceilings",
+    "protected Provider artifact and GitHub/Sigstore verification workflow",
+    "root Git-index manifest generation and strict verification",
+    "operator authentication audit aggregation, rotation and retention",
+    "complete paginated changed-file/history read receipts and model-visible output ceilings"
   ],
-  "blockers": [
+  "ownerDecisions": {
+    "DEC-001": "APPROVED_IMPLEMENTATION_BLOCKED_PUBLIC_HISTORY_REMEDIATION",
+    "DEC-002": "APPROVED_IMPLEMENTATION_BLOCKED_PUBLIC_HISTORY_AUDIT_PREREQUISITE",
+    "DEC-003": "APPROVED_IMPLEMENTATION_VERIFIED",
+    "DEC-004": "APPROVED_IMPLEMENTATION_VERIFIED"
+  },
+  "publicRepositoryHistoryAudit": {
+    "path": "current/evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json",
+    "sha256": "c8d8373b178b205da8e917e20de711f13af8e28ff3d5f49e4a7a0b826c83aef5",
+    "result": "BLOCKED_PUBLIC_HISTORY_REMEDIATION",
+    "coverage": "current worktree, tracked and untracked paths, all refs, all reachable history, deleted historical files, archives, ZIP contents, logs, prompts, evidence, objects, LFS, privacy, secrets, and licensing",
+    "blockers": [
+      "PUBLIC_HISTORY_PERSONAL_INFORMATION",
+      "UNSAFE_SYMLINK_OR_GITLINK_IN_HISTORY"
+    ],
+    "confirmedSecrets": 0,
+    "personalInformationCandidates": 0,
+    "lfsPointers": 0,
+    "archiveIntegrityFindings": 0,
+    "largeObjects": 0,
+    "dependencyLicenseReview": "PASS_CURRENT_DECLARED_DEPENDENCY_LICENSE_REVIEW",
+    "remediationAuthorityRequired": true
+  },
+  "remainingBlockers": [
+    {
+      "id": "PUB-001",
+      "title": "Hash-redacted personal information remains in reachable public history",
+      "status": "BLOCKED_USER_AUTHORIZATION_REQUIRED_FOR_REMEDIATION"
+    },
+    {
+      "id": "PUB-002",
+      "title": "Historical Gitlinks require provenance/remediation before publication eligibility PASS",
+      "status": "BLOCKED_USER_AUTHORIZATION_REQUIRED_FOR_REMEDIATION"
+    },
+    {
+      "id": "HOST-001",
+      "title": "Every Owner resource profile lacks delegated cgroup v2 I/O on this host",
+      "status": "BLOCKED_CONTROLLED_HOST_CGROUP_IO",
+      "providerRequestsSent": 0
+    },
     {
       "id": "EXT-001",
-      "title": "Current repair branch is present on origin; the final governance tip still needs an exact-tip strict CI conclusion",
-      "status": "PENDING_EXACT_TIP_RUN_CONCLUSION"
+      "title": "The current implementation is not pushed and has no exact-tip strict CI conclusion",
+      "status": "BLOCKED_LOCAL_IMPLEMENTATION_NOT_PUSHED"
     },
     {
       "id": "EXT-002",
-      "title": "Protected real-Provider job, redacted artifact and GitHub attestation have not run for the current implementation",
+      "title": "Protected real-Provider artifact and GitHub attestation have not run",
       "status": "PENDING_EXTERNAL_PROTECTED_RUN"
     },
     {
-      "id": "EXT-003",
-      "title": "Private-repository branch protection and rulesets are unavailable under the observed GitHub plan",
-      "status": "BLOCKED_EXTERNAL_GITHUB_PLAN_HTTP_403_OR_OWNER_DECISION_DEC_001"
-    },
-    {
-      "id": "EXT-004",
-      "title": "Current host cannot establish or observe required cgroup v2 I/O control",
-      "status": "BLOCKED_HOST_RESOURCE_CONTROLLER"
-    },
-    {
-      "id": "OWN-001",
-      "title": "Owner decisions DEC-001 through DEC-004 are not approved and attributable",
-      "status": "PENDING_OWNER"
+      "id": "GOV-001",
+      "title": "Public default branch has no branch protection, required checks, or ruleset",
+      "status": "BLOCKED_GITHUB_GOVERNANCE"
     },
     {
       "id": "ART-001",
-      "title": "Seal-ready verification, deterministic stable archive and unpacked revalidation are absent",
-      "status": "PENDING_AFTER_EXTERNAL_AND_OWNER_GATES"
+      "title": "Seal-ready verification and deterministic final archive are gated on all prior blockers",
+      "status": "PENDING_AFTER_ALL_REQUIRED_GATES"
     }
   ],
-  "ownerDecisions": {
-    "path": "current/docs/OWNER_DECISIONS.json",
-    "status": "PENDING_OWNER_DEC_001_THROUGH_DEC_004",
-    "stablePromotionRequiresImplementationCommitApprovalAndRequalification": true
-  },
   "remoteObservation": {
-    "observedAt": "2026-08-25T13:43:11+10:00",
-    "repositoryVisibility": "private",
-    "currentRepairBranchPresent": true,
-    "initialAuthorizedPushHead": "0c8eadbcf91da90aeb2133961d597ecc590a9c36",
-    "initialAuthorizedPushRunId": 32806143408,
-    "initialAuthorizedPushRunStatusAtObservation": "in_progress",
-    "initialAuthorizedPushRunEligibleForFinalMetadataTip": false,
-    "branchProtectionApi": "HTTP_403_PLAN_LIMIT",
-    "rulesetsApi": "HTTP_403_PLAN_LIMIT"
-  }
+    "observedAt": "2026-08-25T16:49:04Z",
+    "repositoryVisibility": "public",
+    "defaultBranch": "main",
+    "currentRepairBranchPresent": false,
+    "branchProtectionApi": "HTTP_404_DEFAULT_BRANCH_NOT_PROTECTED_REQUIRED_CHECKS_ABSENT",
+    "rulesetsApi": "HTTP_200_EMPTY_RULESET_LIST"
+  },
+  "remoteMutationPerformed": false
 }

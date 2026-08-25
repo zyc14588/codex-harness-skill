@@ -2,26 +2,26 @@
   "schemaVersion": 1,
   "result": "PASS",
   "version": "0.6.6",
-  "generatedAt": "2026-08-24T16:24:41.407Z",
+  "generatedAt": "2026-08-25T17:36:02.018Z",
   "currentRevision": true,
-  "sourceCommit": "62406f99b7caa8ecb3c8b6deb0d457973f3f9b34",
-  "sourceTree": "a7ebd778dc0a532b5baff49ee23055ad73263cd8",
-  "sourceTreeSha256": "f5be77c844b9e0dbf378eb1737c23124e826be56a42ac0660f6196d3b9aa4cac",
-  "sourceFileCount": 320,
-  "criticalSetSha256": "9c03cc7d05c876499540a8c6ec0bb78fa949adcffbf762da6a794cfda20bc759",
+  "sourceCommit": "2ea556dc35d3695be3c5b7bad1b3dc86f07156c5",
+  "sourceTree": "3da5e552b75318497ce9c3bc840cd1c03fe60599",
+  "sourceTreeSha256": "59ca4f30073aaf9828f2aa7037be31375c91549d008041e0095f7660f20ac811",
+  "sourceFileCount": 338,
+  "criticalSetSha256": "3f7e3e00dfd5cd0135e10062b6278b9d96a49c05210c53f6bb4d864eb2463821",
   "criticalPathSha256": {
     "bridge/src/security.ts": "30012c7559053cfd5ebbb4722d65a02b7c5949e7fd43bb5678c3ff0e43ac4160",
-    "bridge/src/monitor-daemon.ts": "2a9ce0301287fc1bd576814d0be94b8048b7f0bb30b08a671babe8e28e4efe83",
+    "bridge/src/monitor-daemon.ts": "f39fab53ae07289f38afa68ef6b59dea1a27f82ca143b31ffedf3af32f786f59",
     "bridge/src/harness-sandbox-entry.ts": "6d7f472d2835db9294ae7d15bf4a49361168ab6baa4f03943b4770e08e2c4359",
-    "bridge/src/harness-isolation.ts": "8f446f13ae91d64e547cb3fcae85dce2df28c80261f57dbd0bbfbb8401b94935",
-    "bridge/src/brokered-tool-host.ts": "587543e1c6a60a07fb3e6a34cb7de9fbe8c6e656036109402d893ca83488b35e",
+    "bridge/src/harness-isolation.ts": "9ff8c71af655a25cc387cc32c7f22bf53a661a0b8a4ebbdabd0bdef96da56ff3",
+    "bridge/src/brokered-tool-host.ts": "d6da90ac4e65d7561a4ff2ea3c5a68bed97fc01e537983c56a02c92c2de74ac0",
     "bridge/src/thinking-policy.ts": "ff021e0d64fb5bc535387872de7f9d25043dad7e67a29a09cd18d153a3cd75b2",
     "bridge/src/minimal-request-state.ts": "b0c60eaed42e599028602e7dbf4afa946eb2613641db3d377286c028e5d94af4",
     "bridge/src/provider-policy.ts": "aea8b29afd3f98129422d1027a4f7cc2ba1f59ef7abaceec90067d9938520233",
-    "bridge/src/worker.ts": "f6c9baa27916d2c1f7e9ef13d0a6e671dfd560711e0bcb6727701ed8762b706d",
-    "bridge/src/service.ts": "0b2e978517abe995989c1118913924921f5ca192aa3f811f14b6374fa739ff8b",
+    "bridge/src/worker.ts": "47b3282bebf1813595d86e1c8e266b77733ca8e0a725148e710e2512c6ac1ddc",
+    "bridge/src/service.ts": "7d1e4725100bbd8dfc116415609cb76fce4e74dcf404012593fe2ba5c23944dd",
     "harness/minimal/preset/agent.cordis.yml.in": "05945570459b34499ca4fd775642c0fc28696c67e2fa48b42a00ab36416ea29f",
-    "harness/minimal/profile/bridge-brokered-tools.mjs": "bf1e9af573f388ae3f7de1e61b689dead8e6a2bbfb293148179e462164877249",
+    "harness/minimal/profile/bridge-brokered-tools.mjs": "c09e234a823564e0add4079eb0629daa3d9b51dc23b0442e716941f89a88211a",
     "harness/minimal/profile/bridge-headless-runner.mjs": "c647264daeecc37d845de1b42937c328fec22c5c1618f0c830108ab83e74c8c3",
     "harness/minimal/profile/cordis.patch.yml": "e46d24af07c98ce331b17658fa9dce4d68db793d8f5447f43f49c8d2d5b209ce"
   },
@@ -32,7 +32,7 @@
       "exitCode": 0,
       "signal": null,
       "testCount": 1,
-      "outputSha256": "344ec95b2c9f350a0b6f023d8a43ee10267d9d03935a2671fb35ef7f82f6959b"
+      "outputSha256": "6149222faa6197fefc4d6a5f793eeaf1905d8a4eb57c19fcb87c8fe912fa239e"
     },
     {
       "testFile": "bridge/dist/test/brokered-tool-registry.test.js",
@@ -40,7 +40,7 @@
       "exitCode": 0,
       "signal": null,
       "testCount": 2,
-      "outputSha256": "190154d611033b96eb9bddd138ca833e819c4227247fd05998b042e6b7a05aec"
+      "outputSha256": "42b31fa0e06d884816bda86804b94b83dd01b6dc3ce1bcb1704376467168decd"
     },
     {
       "testFile": "bridge/dist/test/process-group.test.js",
@@ -48,23 +48,23 @@
       "exitCode": 0,
       "signal": null,
       "testCount": 3,
-      "outputSha256": "54ee2544841c8643de08e7527982de32972f755e00b86b5eec4af6c7afcb5eda"
+      "outputSha256": "3edda5a221fbdb889ff9057de84faabaa63c2ff73bbbf7edd8bdbef0df63c3e9"
     },
     {
       "testFile": "bridge/dist/test/resource-controls.test.js",
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "testCount": 4,
-      "outputSha256": "b8d4554c497e7cce56891a6460ca77a4ecdc69f9e0cf08a6e4f7d557072a4454"
+      "testCount": 9,
+      "outputSha256": "565a4a82984333b7b9eb350d7f55cbfc8e73201f43727560ceff3a6d4c088369"
     },
     {
       "testFile": "bridge/dist/test/model-visible-output.test.js",
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "testCount": 3,
-      "outputSha256": "6544b231da764b12a540eae5a83c96ed8613c86836a17541d053d066d8294b57"
+      "testCount": 4,
+      "outputSha256": "8543808775b3f2f8027dabed2d7316e774f155856deb913a4359e290d78a24a5"
     },
     {
       "testFile": "bridge/dist/test/security.test.js",
@@ -72,7 +72,7 @@
       "exitCode": 0,
       "signal": null,
       "testCount": 6,
-      "outputSha256": "a9e37920753771bf8eb1d55f128c1d6986b48f7deb5b8071f8ae95c49cd4932f"
+      "outputSha256": "64f2141060390ef1b3bb5b4d2c8ea10dbf08451b2d5f16a423882349f93b7c61"
     },
     {
       "testFile": "bridge/dist/test/provider-protocol-fail-fast.test.js",
@@ -80,7 +80,7 @@
       "exitCode": 0,
       "signal": null,
       "testCount": 2,
-      "outputSha256": "6f663abaf5fa60ef6fb4ad74e1fa32b7e02dd27e7036d7203b5045c5bb2194c5"
+      "outputSha256": "17ed4ec595af90465bd1893d367ffc01f1800e131b02dfb90e2581049bbe3cb6"
     },
     {
       "testFile": "bridge/dist/test/verification-isolation.test.js",
@@ -88,7 +88,7 @@
       "exitCode": 0,
       "signal": null,
       "testCount": 1,
-      "outputSha256": "50db29834fba9ee4f35cd88885035f91f1b07cb490fa984a1103b6ce6cf55254"
+      "outputSha256": "0f8502cd1b6ab6146d6461af9e20c1511f1e43e2da50dd0af4c7efe4304ad1fb"
     }
   ],
   "assertions": {

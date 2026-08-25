@@ -1,0 +1,245 @@
+{
+  "schemaVersion": 1,
+  "auditPolicy": "DEC-001-full-repository-and-history-audit-v1",
+  "observedAt": "2026-08-25T17:45:37.529Z",
+  "repositoryRootSha256": "87ba41cc80e598a5650be19f62710571e13d8a310c5ef10770a22c5e2e8269a6",
+  "head": "2ea556dc35d3695be3c5b7bad1b3dc86f07156c5",
+  "result": "BLOCKED_PUBLIC_HISTORY_REMEDIATION",
+  "blockers": [
+    "PUBLIC_HISTORY_PERSONAL_INFORMATION",
+    "UNSAFE_SYMLINK_OR_GITLINK_IN_HISTORY"
+  ],
+  "coverage": {
+    "refs": 15,
+    "commits": 31,
+    "objects": 1390,
+    "blobs": 1109,
+    "scannedTextBlobs": 1097,
+    "skippedBinaryBlobs": 12,
+    "oversizedBlobs": 0,
+    "trackedWorktreePaths": 872,
+    "scannedTrackedWorktreeFiles": 871,
+    "untrackedPaths": 0,
+    "ignoredPaths": 241,
+    "archivePaths": 328,
+    "evidencePaths": 41,
+    "logPaths": 2,
+    "promptPaths": 18,
+    "zipBlobs": 6,
+    "zipEntries": 3288,
+    "selfEvidenceContentExclusions": 1
+  },
+  "refs": [
+    {
+      "name": "refs/heads/evidence/0.6.5-stable",
+      "oid": "ae5b46c0b86ac6dae830fb0080d8a47c08fae0f2"
+    },
+    {
+      "name": "refs/heads/main",
+      "oid": "bd707c75e7c730773fec3f7716847942f9bf27a5"
+    },
+    {
+      "name": "refs/heads/release/0.6.5-hotfix-r2",
+      "oid": "3eb20bd54967512f42a1353b8ceda78d45a2c5a8"
+    },
+    {
+      "name": "refs/heads/release/0.6.5-hotfix-r3",
+      "oid": "49da0dbdb6f375961f077df1dd101470a29f930f"
+    },
+    {
+      "name": "refs/heads/release/0.6.5-hotfix-r4",
+      "oid": "10a70fc0e59ad93fce387c6a1660596d9f01ad7f"
+    },
+    {
+      "name": "refs/heads/repair/0.6.6-owner-decisions-and-r2-remediation",
+      "oid": "2ea556dc35d3695be3c5b7bad1b3dc86f07156c5"
+    },
+    {
+      "name": "refs/heads/repair/0.6.6-pre-release-audit-r1",
+      "oid": "587513fe45f25b9235eb0d430161d675be2adfa7"
+    },
+    {
+      "name": "refs/heads/repair/0.6.6-provider-capability-and-release-integrity",
+      "oid": "91f8d493c52e972bafd0fc19f0e50a927c35448a"
+    },
+    {
+      "name": "refs/heads/repair/0.6.6-r2-acceptance-remediation-r1",
+      "oid": "587513fe45f25b9235eb0d430161d675be2adfa7"
+    },
+    {
+      "name": "refs/remotes/origin/HEAD",
+      "oid": "bd707c75e7c730773fec3f7716847942f9bf27a5"
+    },
+    {
+      "name": "refs/remotes/origin/main",
+      "oid": "bd707c75e7c730773fec3f7716847942f9bf27a5"
+    },
+    {
+      "name": "refs/remotes/origin/release/0.6.5-hotfix-r4",
+      "oid": "10a70fc0e59ad93fce387c6a1660596d9f01ad7f"
+    },
+    {
+      "name": "refs/remotes/origin/repair/0.6.6-pre-release-audit-r1",
+      "oid": "587513fe45f25b9235eb0d430161d675be2adfa7"
+    },
+    {
+      "name": "refs/remotes/origin/repair/0.6.6-provider-capability-and-release-integrity",
+      "oid": "91f8d493c52e972bafd0fc19f0e50a927c35448a"
+    },
+    {
+      "name": "refs/stash",
+      "oid": "5964720b48de7a1575640f3335a3863dd1b904fa"
+    }
+  ],
+  "worktree": {
+    "trackedPathSetSha256": "9940ed40a71cb9bfbcb777f894a62e9dac632e048dda75d1f02b47642b3fde73",
+    "untrackedPathSetSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "ignoredPathSetSha256": "cfb2619e226d2237dfd9a7fb3fd2fba28abf23c4d62b5326789f7f8b38f3df59"
+  },
+  "licensing": {
+    "licensePaths": [
+      "archive/r6.4-failure-handoff/recovered-local/runtime/LICENSE",
+      "archive/r6.4-failure-handoff/source/CODEX_HARNESS_BRIDGE_M1_R6_3_BASELINE/LICENSE",
+      "current/LICENSE"
+    ],
+    "present": true,
+    "thirdPartyDependencyReview": {
+      "status": "PASS_CURRENT_DECLARED_DEPENDENCY_LICENSE_REVIEW",
+      "runtimeDependencyCount": 0,
+      "entries": [
+        {
+          "name": "@types/node",
+          "declaredRange": "22.15.0",
+          "installedVersion": "22.15.0",
+          "lockedVersion": "22.15.0",
+          "license": "MIT",
+          "licenseFileSha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383",
+          "runtime": false
+        },
+        {
+          "name": "typescript",
+          "declaredRange": "5.8.3",
+          "installedVersion": "5.8.3",
+          "lockedVersion": "5.8.3",
+          "license": "Apache-2.0",
+          "licenseFileSha256": "a7d00bfd54525bc694b6e32f64c7ebcf5e6b7ae3657be5cc12767bce74654a47",
+          "runtime": false
+        },
+        {
+          "name": "undici-types",
+          "declaredRange": null,
+          "installedVersion": "6.21.0",
+          "lockedVersion": "6.21.0",
+          "license": "MIT",
+          "licenseFileSha256": "a6db8096b2707bc0102d256917d4d33f298ba36d8c3f25de067a2b5bb379db27",
+          "runtime": false
+        }
+      ],
+      "unresolved": []
+    }
+  },
+  "publicationClassification": {
+    "secretsAndCredentials": "NO_CONFIRMED_SECRET_OR_CREDENTIAL_MATERIAL",
+    "credentialShapedFalsePositives": [
+      {
+        "rule": "ssh_remote_user_at_host",
+        "disposition": "EXCLUDED_NOT_AN_EMAIL_OR_CREDENTIAL"
+      },
+      {
+        "rule": "systemd_user_unit_domain_like_suffix",
+        "disposition": "EXCLUDED_NOT_AN_EMAIL_OR_CREDENTIAL"
+      }
+    ],
+    "personalInformation": "BLOCKED_HASH_REDACTED_PERSONAL_INFORMATION_DETECTED",
+    "confidentialOrUnreleasedMaterial": "PROJECT_INTERNAL_PROVENANCE_PRESENT_NO_CONFIDENTIALITY_MARKER_CONFIRMED",
+    "copyrightAndLicensing": "BLOCKED_LICENSE_PRESENT_BUT_HISTORICAL_GITLINK_PROVENANCE_UNRESOLVED",
+    "conditionallyAcceptableMaterial": [
+      "source_code",
+      "documentation_and_prompts",
+      "hash_redacted_evidence_and_logs",
+      "integrity_validated_archives"
+    ],
+    "publicationEligibility": "NOT_ELIGIBLE_UNTIL_BLOCKERS_REMEDIATED_AND_REAUDITED"
+  },
+  "findings": {
+    "secrets": [],
+    "personalInformation": [
+      {
+        "rule": "personal_local_home",
+        "matchSha256": "d3a748f1f1a97de2f6d7eb99be41e49d74462344b2182c6656b423681f7ab193",
+        "matchedUtf8Bytes": 14,
+        "identityClass": "local_home_account",
+        "occurrenceCount": 136,
+        "representativeLocators": [
+          "git-blob:0216f35bb5e378993f28602549d9b1d7a0c0cdbd:repair-worktree/repaired-source/SOURCE_PROVENANCE.json",
+          "git-blob:034eec3d3aa3c25879612d64021641454a2b587d:current/config/config.example.json",
+          "git-blob:05c83e13fbc963f0287250f5753b908867280999:archive/r6.4-failure-handoff/recovered-local/runtime/config/codex-config.toml.example",
+          "git-blob:0c2d13489e7b8d964bbfac0c5975d93ac2873332:repair-worktree/repaired-source/SOURCE_PROVENANCE.json",
+          "git-blob:0d4d76ed8d3431b7b732ecc995e742b2cd9c6dab:deliverables/CODEX_HARNESS_BRIDGE_0_6_5_STABLE.zip![aggregate-members]"
+        ]
+      },
+      {
+        "rule": "personal_email",
+        "matchSha256": "881d4f00609b244d0ecd74fb464eefa7eb4ca91c123be86ef24c286d8b2bd4a6",
+        "matchedUtf8Bytes": 16,
+        "domain": "qq.com",
+        "occurrenceCount": 62,
+        "representativeLocators": [
+          "commit:2ea556dc35d3695be3c5b7bad1b3dc86f07156c5:authorEmail",
+          "commit:2ea556dc35d3695be3c5b7bad1b3dc86f07156c5:committerEmail",
+          "commit:6348bc57391536583b4e1a747e52212a401a0ff6:authorEmail",
+          "commit:6348bc57391536583b4e1a747e52212a401a0ff6:committerEmail",
+          "commit:b1c2045c060a44eaa55b8bdbeea3124a666661e1:authorEmail"
+        ]
+      }
+    ],
+    "personalInformationCandidates": [],
+    "lfsPointers": [],
+    "unsafeGitObjects": [
+      {
+        "mode": "160000",
+        "type": "commit",
+        "oid": "05773fb6bee92b6f58f0aae6556b014103eebd24",
+        "pathSha256": "3649c39001e50d756152f5ad63349d18be87368f191ced39bb61ec733bff75e0",
+        "treeCount": 16,
+        "representativeTrees": [
+          "32090e896e969ed373ed7ebb3dc0273ff520e5e3",
+          "3468eb8ce22bec2a00df4f126619bdf7ee739ba3",
+          "ab03980dc002a43b5ba74ba6d739ae15096d4223",
+          "ac0045d6cec9bb0c93aadceddc5f9b03cba033cf",
+          "55501d97d953e6510a2b6d52f91bbfd3c9fe9f7a"
+        ]
+      },
+      {
+        "mode": "160000",
+        "type": "commit",
+        "oid": "e2581382415fc167f26d9ce49bb9a6a95a119a04",
+        "pathSha256": "ac6344577639be3dd4e5d796adeff3bf2d97fc5b06d499037c4540df1e057150",
+        "treeCount": 1,
+        "representativeTrees": [
+          "e76b2c512e21bdd03ab6ccc62e8715cb43ee944d"
+        ]
+      },
+      {
+        "mode": "160000",
+        "type": "commit",
+        "oid": "d30d9ac678f143e7bb14ea11a55e8b7cdd7152c8",
+        "pathSha256": "ac6344577639be3dd4e5d796adeff3bf2d97fc5b06d499037c4540df1e057150",
+        "treeCount": 1,
+        "representativeTrees": [
+          "7f43b1acc373264bcdf66a908b4f1c176e1e490c"
+        ]
+      }
+    ],
+    "archiveIntegrity": [],
+    "largeObjects": []
+  },
+  "remediationRequired": true,
+  "remediationAuthorityRequired": true,
+  "notes": [
+    "Findings contain hashes and structural locators only; matching secret or personal values are never emitted.",
+    "current/evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json remains in the exact worktree path-set commitment but its current content is excluded to prevent self-referential audit evidence; prior committed versions remain covered by the all-history blob scan.",
+    "Ignored paths are inventoried but not content-scanned because they are outside the Git-published repository; tracked, untracked, all refs, and all reachable historical blobs are covered.",
+    "No history rewrite, remote deletion, visibility change, branch protection mutation, push, or release action is performed by this audit."
+  ]
+}

@@ -1,33 +1,63 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "version": "0.6.6",
   "canonicalSource": "current/",
   "canonicalProvenance": "current/SOURCE_PROVENANCE.json",
-  "canonicalProvenanceSha256": "c4904a05023e3155ab92734eeeff575f1dfb731e9830a480d4305a3c14af5319",
+  "canonicalProvenanceSha256": "1459da59fc08e3dfb8e05434a74b669eaaecb4954ddca41aacf6b706af85bacf",
   "repository": "git@github.com:zyc14588/codex-harness-skill.git",
-  "repairBranch": "repair/0.6.6-pre-release-audit-r1",
-  "repairBaselineHead": "91f8d493c52e972bafd0fc19f0e50a927c35448a",
-  "repairBaselineTree": "0daa23b799bcf07ff318c47720ca0c09e9ae8eae",
-  "implementationCommit": "62406f99b7caa8ecb3c8b6deb0d457973f3f9b34",
-  "implementationTree": "a7ebd778dc0a532b5baff49ee23055ad73263cd8",
-  "implementationRepositoryTree": "b1e2bec58911d748928b3bcb5a0cd460602b91ec",
-  "implementationCommittedAt": "2026-08-25T02:12:46+10:00",
+  "repairBranch": "repair/0.6.6-owner-decisions-and-r2-remediation",
+  "repairBaselineHead": "587513fe45f25b9235eb0d430161d675be2adfa7",
+  "repairBaselineTree": "beef11892852f0097f7db6be9a8e8dd82fa2e246",
+  "implementationCommit": "2ea556dc35d3695be3c5b7bad1b3dc86f07156c5",
+  "implementationTree": "3da5e552b75318497ce9c3bc840cd1c03fe60599",
+  "implementationRepositoryTree": "8491883183bab498365082f83607c5ab64b80f5b",
+  "implementationCommittedAt": "2026-08-26T03:28:50+10:00",
   "historicalArchive": "archive/",
-  "generatedAt": "2026-08-25T13:43:11+10:00",
-  "qualificationResult": "LOCAL_AND_NEGATIVE_PASS_REAL_PROVIDER_EXTERNAL_OWNER_AND_ARCHIVE_GATES_PENDING",
+  "generatedAt": "2026-08-26T03:38:29+10:00",
+  "qualificationResult": "OWNER_DECISIONS_IMPLEMENTED_LOCAL_PASS_EXTERNAL_BLOCKED",
+  "sourceTreeSha256": "59ca4f30073aaf9828f2aa7037be31375c91549d008041e0095f7660f20ac811",
+  "criticalSetSha256": "3f7e3e00dfd5cd0135e10062b6278b9d96a49c05210c53f6bb4d864eb2463821",
   "currentRevisionEvidence": {
     "current/evidence/01_CURRENT_REVISION_LOCAL_QUALIFICATION.json": {
-      "sha256": "c8ed9ce5bfd77cd40fa4bb4314951fad17d6fdeb78efbbe7a08b28ce582cdda7",
-      "result": "PASS"
+      "sha256": "b7b4cf08a98e44e0874b74db693ea2d1c85c994aee5f630703f99244deb0c375",
+      "result": "PASS",
+      "stepCount": 14,
+      "testCount": 241
     },
     "current/evidence/02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json": {
-      "sha256": "4fb3b2d61929944e570ccbe1280aa7f4ee29e169f8fcad215e26dc674c27390c",
-      "result": "FAIL_PRE_PROVIDER_IO_HOST_IO_CONTROLLER_UNAVAILABLE"
+      "sha256": "90864729c06680264eccc325feba982753362dff983eee7e053037f93502fe81",
+      "result": "FAIL_PRE_PROVIDER_IO_HOST_IO_CONTROLLER_UNAVAILABLE",
+      "providerRequestsSent": 0,
+      "networkOperationsPerformed": false
     },
     "current/evidence/03_CURRENT_REVISION_NEGATIVE_SMOKE.json": {
-      "sha256": "a526f43ba855e7bb50486085948da0566e4339542d5f99295fd3e10e03e27837",
+      "sha256": "c102025c879a8d352bb729be4ea3bd1fbaff4135382dca21d76c2413fe8a965f",
       "result": "PASS"
+    },
+    "current/evidence/OWNER_DECISIONS_LOCAL_QUALIFICATION.json": {
+      "sha256": "b8b4b63fde1fed5f3bd462563514b90fdc29daa047fffd0692dee7913d52a06d",
+      "result": "OWNER_DECISIONS_IMPLEMENTED_LOCAL_PASS_EXTERNAL_BLOCKED"
     }
+  },
+  "publicRepositoryHistoryAudit": {
+    "path": "current/evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json",
+    "sha256": "c8d8373b178b205da8e917e20de711f13af8e28ff3d5f49e4a7a0b826c83aef5",
+    "result": "BLOCKED_PUBLIC_HISTORY_REMEDIATION",
+    "observedAt": "2026-08-25T17:45:37.529Z",
+    "blockers": [
+      "PUBLIC_HISTORY_PERSONAL_INFORMATION",
+      "UNSAFE_SYMLINK_OR_GITLINK_IN_HISTORY"
+    ],
+    "publicationEligibility": "NOT_ELIGIBLE_UNTIL_BLOCKERS_REMEDIATED_AND_REAUDITED",
+    "remediationAuthorityRequired": true
+  },
+  "hostResourceQualification": {
+    "path": "HOST_RESOURCE_QUALIFICATION.json",
+    "sha256": "4836e9fcf3c31992516ab7d9fc67c24193e1587e104e3732e59ef6dee1dcceb3",
+    "result": "BLOCKED_CONTROLLED_HOST_CGROUP_IO",
+    "allFourOwnerProfilesProbed": true,
+    "providerRequestsSent": 0,
+    "networkOperationsPerformed": false
   },
   "historicalExternalEvidence": {
     "path": "current/evidence/04_GITHUB_EXTERNAL_GATES_2026-08-24.json",
@@ -35,23 +65,20 @@
     "eligibleForCurrentSeal": false
   },
   "remoteState": {
-    "currentBranchPushed": true,
-    "exactTipCi": "PENDING_CURRENT_TIP_CONCLUSION",
-    "protectedProviderAttestation": "PENDING_NOT_CREATED",
-    "branchProtectionRequiredChecks": "BLOCKED_EXTERNAL_GITHUB_PLAN_OR_OWNER_DECISION",
-    "observedAt": "2026-08-25T13:43:11+10:00",
-    "repositoryVisibility": "private",
-    "currentRepairBranchRemoteLookup": "PRESENT",
-    "branchProtectionApi": "HTTP_403_PLAN_LIMIT_ON_CURRENT_REPAIR_BRANCH",
-    "rulesetsApi": "HTTP_403_PLAN_LIMIT",
-    "initialAuthorizedPushRunId": 32806143408,
-    "initialAuthorizedPushHead": "0c8eadbcf91da90aeb2133961d597ecc590a9c36",
-    "initialAuthorizedPushRunEligibleForFinalMetadataTip": false
+    "observedAt": "2026-08-25T16:49:04Z",
+    "repositoryVisibility": "public",
+    "defaultBranch": "main",
+    "currentBranchPushed": false,
+    "currentRepairBranchRemoteLookup": "ABSENT_NOT_PUSHED",
+    "exactTipCi": "BLOCKED_LOCAL_IMPLEMENTATION_NOT_PUSHED",
+    "branchProtectionApi": "HTTP_404_DEFAULT_BRANCH_NOT_PROTECTED_REQUIRED_CHECKS_ABSENT",
+    "rulesetsApi": "HTTP_200_EMPTY_RULESET_LIST",
+    "governanceEvidenceSha256": "edba812f53e289231e61047b6986b3461075474051c5329b69d1e3d0db8873cb"
   },
   "automaticPush": "forbidden",
-  "userAuthorizedPush": "recorded_for_current_branch",
+  "userAuthorizedPush": "not_authorized_for_current_branch",
   "userAuthorizedPushPolicy": "allowed_only_after_separate_explicit_authorization",
-  "userAuthorizedPushPerformed": true,
+  "userAuthorizedPushPerformed": false,
   "automaticMerge": false,
   "tagged": false,
   "githubReleaseCreated": false

@@ -1,18 +1,21 @@
-schemaVersion: 2
+schemaVersion: 3
 version: "0.6.6"
 canonicalSource: current/
 historicalArchive: archive/
-baselineBranch: repair/0.6.6-provider-capability-and-release-integrity
-repairBranch: repair/0.6.6-pre-release-audit-r1
+baselineBranch: repair/0.6.6-pre-release-audit-r1
+baselineHead: 587513fe45f25b9235eb0d430161d675be2adfa7
+baselineTree: beef11892852f0097f7db6be9a8e8dd82fa2e246
+repairBranch: repair/0.6.6-owner-decisions-and-r2-remediation
 releaseStatus: candidate
 controlledUseAllowed: false
-deliverableStatus: REPAIR_IMPLEMENTED_EXTERNAL_OWNER_AND_ARCHIVE_GATES_PENDING
+deliverableStatus: OWNER_DECISIONS_IMPLEMENTED_LOCAL_PASS_EXTERNAL_BLOCKED
 qualificationStage: FINAL_VERSION_CURRENT_REVISION_QUALIFICATION
 finalArchive: null
 implementation:
-  commit: 62406f99b7caa8ecb3c8b6deb0d457973f3f9b34
-  sourceTree: a7ebd778dc0a532b5baff49ee23055ad73263cd8
-  repositoryTree: b1e2bec58911d748928b3c8b6deb0d457973f3f9b34
+  commit: 2ea556dc35d3695be3c5b7bad1b3dc86f07156c5
+  sourceTree: 3da5e552b75318497ce9c3bc840cd1c03fe60599
+  repositoryTree: 8491883183bab498365082f83607c5ab64b80f5b
+  candidatePath: 0.6.6-candidate-2ea556dc35d3
 stateMachine:
   phases:
     - candidate
@@ -71,40 +74,45 @@ requirements:
   protectedProviderArtifactAndAttestation: required
   branchProtectionRequiredChecksOrOwnerApprovedReplacement: required
   ownerDecisionsDEC001ThroughDEC004: required
+  publicRepositoryHistoryAuditPass: required
   deterministicArchiveAndUnpackedRevalidation: required
 currentQualification:
+  rootManifest: PASS_ZERO_DRIFT
   localQualification: PASS_CURRENT_IMPLEMENTATION
+  localQualificationStepCount: 14
+  localQualificationTestCount: 241
   negativeSmoke: PASS_CURRENT_IMPLEMENTATION
   realProviderSmoke: BLOCKED_PRE_PROVIDER_IO_HOST_IO_CONTROLLER
-  exactTipCi: PENDING_CURRENT_TIP_CONCLUSION
+  providerRequestsSent: 0
+  publicRepositoryHistoryAudit: BLOCKED_PUBLIC_HISTORY_REMEDIATION
+  exactTipCi: BLOCKED_LOCAL_IMPLEMENTATION_NOT_PUSHED
   protectedProviderArtifactAttestation: PENDING_NOT_CREATED
-  branchProtectionRequiredChecks: BLOCKED_EXTERNAL_GITHUB_PLAN_OR_OWNER_DECISION
-  ownerDecisions: PENDING_DEC_001_THROUGH_DEC_004
+  branchProtectionRequiredChecks: BLOCKED_PUBLIC_DEFAULT_BRANCH_UNPROTECTED_REQUIRED_CHECKS_ABSENT
+  ownerDecisions: APPROVED_DEC003_DEC004_VERIFIED_DEC001_DEC002_BLOCKED_PUBLIC_HISTORY
   deterministicArchive: PENDING_AFTER_SEAL_READY
 externalState:
-  repositoryVisibility: private
-  currentRepairBranchPushed: true
-  observedBranchProtectionApi: HTTP_403_PLAN_LIMIT
-  observedRulesetsApi: HTTP_403_PLAN_LIMIT
-  initialAuthorizedPushHead: 0c8eadbcf91da90aeb2133961d597ecc590a9c36
-  initialAuthorizedPushRunId: 32806143408
+  repositoryVisibility: public
+  defaultBranch: main
+  currentRepairBranchPushed: false
+  observedBranchProtectionApi: HTTP_404_DEFAULT_BRANCH_NOT_PROTECTED
+  observedRulesetsApi: HTTP_200_EMPTY_RULESET_LIST
   observationDate: "2026-08-25"
 remoteOperations:
   automaticPush: forbidden
-  userAuthorizedPush: recorded_for_current_branch
+  userAuthorizedPush: not_authorized_for_current_branch
   userAuthorizedPushPolicy: allowed_only_after_separate_explicit_authorization
-  currentBranchPushAuthorizationRecorded: true
-  currentBranchPushPerformed: true
+  currentBranchPushAuthorizationRecorded: false
+  currentBranchPushPerformed: false
   automaticMerge: forbidden
   automaticTag: forbidden
   automaticGitHubRelease: forbidden
 ownerDecisions:
   path: current/docs/OWNER_DECISIONS.json
-  status: PENDING_OWNER
+  status: APPROVED_DEC003_DEC004_VERIFIED_DEC001_DEC002_BLOCKED_PUBLIC_HISTORY
   approvalsMustBeInImplementationCommit: true
   approvalChangeRequiresFullRequalification: true
 promotion:
-  candidateAuditInstallPath: "0.6.6-candidate-<implementation-commit-prefix>"
+  candidateAuditInstallPath: "0.6.6-candidate-<implementationCommit12>"
   sealReadyControlledUseAllowed: false
   stableVersion: "0.6.6"
   stablePromotionBeforeEveryRequiredGatePass: forbidden

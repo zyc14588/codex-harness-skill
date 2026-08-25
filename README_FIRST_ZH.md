@@ -1,24 +1,24 @@
-# 首先阅读：0.6.6 发布前修复候选
+# 首先阅读：0.6.6 Owner Decisions 实施候选
 
-唯一活动源码是 `current/`。旧 handoff、baseline、withdrawn ZIP、旧 PASS 报告和历史 smoke 全部位于 `archive/`，只能作为历史证据，不能作为安装或发布入口。
+唯一活动源码是 `current/`。旧 handoff、withdrawn ZIP、旧 PASS 报告与历史 smoke 均位于 `archive/`，只能作为历史证据，不能作为安装或发布入口。
 
 当前权威状态：
 
 ```text
 releaseStatus=candidate
 controlledUseAllowed=false
-qualificationStage=FINAL_VERSION_CURRENT_REVISION_QUALIFICATION
-deliverableStatus=REPAIR_IMPLEMENTED_EXTERNAL_OWNER_AND_ARCHIVE_GATES_PENDING
-branch=repair/0.6.6-pre-release-audit-r1
-implementationCommit=62406f99b7caa8ecb3c8b6deb0d457973f3f9b34
+deliverableStatus=OWNER_DECISIONS_IMPLEMENTED_LOCAL_PASS_EXTERNAL_BLOCKED
+branch=repair/0.6.6-owner-decisions-and-r2-remediation
+implementationCommit=2ea556dc35d3695be3c5b7bad1b3dc86f07156c5
+candidatePath=0.6.6-candidate-2ea556dc35d3
 finalArchive=null
 ```
 
-本轮已完成 fail-closed 精确 gate 集合、两阶段 seal、Brokered Tool 端到端取消与 Host process registry、Harness/Tool sibling 资源 profile、protected Provider artifact/attestation 工作流、认证审计轮换与聚合、模型可见读取分页与输出上限。绑定当前实现的本地完整资格化和负向 smoke 均通过。
+四项 Owner Decision 均已按 `zyc14588` 在 `2026-08-26T01:22:12+10:00` 的决定冻结。DEC-003 分级资源 profile 与 DEC-004 commit-suffixed candidate 生命周期已通过本地实现验证；DEC-001 因完整工作树、全部 refs 与全部可达历史审计发现脱敏个人信息和历史 Gitlink 而保持阻断；DEC-002 以该公开历史审计 PASS 为前置条件，因此也保持 `implementationVerified=false`。
 
-这不构成稳定版通过。本机缺少已委派的 cgroup v2 I/O controller，真实 Provider smoke 因受控资源门禁在 Provider I/O 前失败，实际发送请求数为 0。当前修复分支已根据用户明确授权推送；最终治理 tip 的 exact-tip strict CI 结论与 protected Provider artifact attestation 仍待完成。2026-08-25 的只读核验确认仓库仍为 private，当前分支的 branch-protection 与仓库 rulesets API 均因 GitHub 方案返回 HTTP 403。DEC-001 至 DEC-004 尚未由所有者批准，seal-ready、最终 deterministic ZIP 与解包复验也尚未执行。
+精确实现修订已通过 14 个本地资格化步骤、241 个测试、完整 process E2E、固定 Harness 动态 fixture、stdio MCP、安全验收、专项负向 smoke，以及 candidate 安装/迁移/回滚/重装/卸载。根与 `current/` Manifest 在最终元数据封存时重新生成并严格校验。
 
-前一修复分支的成功 CI run `32677107669` 只属于历史 observational evidence，不得用于当前 seal。没有生成 stable ZIP，没有 merge、push、tag 或 GitHub Release。
+这不构成 stable 或 controlled-use PASS。本机对四个 Owner profile 均完成动态探测，但缺少已委派 cgroup v2 I/O controller；真实 Provider 门禁在读取凭据和进行网络 I/O 前停止，请求数为 0。仓库已核验为 public，但默认分支 `main` 未配置 branch protection、required checks 或 ruleset。当前实现未推送，exact-tip CI 与 protected Provider artifact/attestation 未运行；没有 merge、push、tag、GitHub Release 或最终 ZIP。
 
 从这里开始：
 
@@ -31,4 +31,4 @@ npm run build
 npm test
 ```
 
-机器可读状态以 `current/release-status.json` 为准，来源绑定以 `current/SOURCE_PROVENANCE.json` 为准，待决事项见 `current/docs/OWNER_DECISIONS.json`。自动 merge、push、tag 和 release 均被禁止；本次分支 push 仅依据用户本轮明确授权执行。
+机器状态以 `current/release-status.json` 为准；来源绑定见 `current/SOURCE_PROVENANCE.json`；Owner 决策见 `current/docs/OWNER_DECISIONS.json`；公开历史审计见 `current/evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json`。自动 merge、push、tag 和 release 均被禁止；远端变更必须另获用户明确授权。

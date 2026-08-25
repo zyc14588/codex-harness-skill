@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "result": "BLOCKED_CONTROLLED_HOST_CGROUP_IO",
-  "generatedAt": "2026-08-25T16:58:19.625Z",
+  "generatedAt": "2026-08-25T17:36:26.699Z",
   "probeContract": "owner-tiered-required-cgroup-v2-and-rlimit-before-provider-io-v1",
   "providerRequestsSent": 0,
   "networkOperationsPerformed": false,
