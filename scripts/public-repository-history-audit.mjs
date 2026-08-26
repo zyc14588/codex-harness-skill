@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { applyPublicHistoryRiskAcceptance } from "./public-history-risk-acceptance.mjs";
+import { runIsolatedGit, withPublicRefScope } from "./public-ref-scope.mjs";
 
 const MAX_SCANNED_BLOB_BYTES = 10_000_000;
 const LARGE_OBJECT_BYTES = 5_000_000;
@@ -36,28 +37,8 @@ function sha256(value) {
   return createHash("sha256").update(value).digest("hex");
 }
 
-function git(root, args, options = {}) {
-  const result = spawnSync("git", [
-    "-c", "core.hooksPath=/dev/null",
-    "-c", "commit.gpgSign=false",
-    "-c", "tag.gpgSign=false",
-    "-c", "core.fsmonitor=false",
-    "-C", root,
-    ...args,
-  ], { encoding: options.encoding ?? "utf8", maxBuffer: options.maxBuffer ?? 64_000_000 });
-  if (result.status !== 0) throw new Error(`git ${args.join(" ")} failed: ${String(result.stderr || result.stdout).trim()}`);
-  return result.stdout;
-}
-
-function gitStatus(root, args, options = {}) {
-  return spawnSync("git", [
-    "-c", "core.hooksPath=/dev/null",
-    "-c", "commit.gpgSign=false",
-    "-c", "tag.gpgSign=false",
-    "-c", "core.fsmonitor=false",
-    "-C", root,
-    ...args,
-  ], { encoding: options.encoding ?? "utf8", maxBuffer: options.maxBuffer ?? 64_000_000 });
+function compareUtf8(left, right) {
+  return Buffer.compare(Buffer.from(left, "utf8"), Buffer.from(right, "utf8"));
 }
 
 function regularJsonInput(target, label) {
@@ -183,7 +164,8 @@ function inspectZip(data, locator, findings, coverage, inventory) {
 function parseArgs(argv) {
   const result = {
     root: process.cwd(), output: undefined, failOnBlockers: false,
-    ownerAcceptance: undefined, baselineAudit: undefined,
+    ownerAcceptance: undefined, baselineAudit: undefined, legacyBaselineAudit: undefined,
+    baselineSupersession: undefined, scope: undefined, proposedRef: undefined, proposedCommit: undefined,
   };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
@@ -191,6 +173,11 @@ function parseArgs(argv) {
     else if (arg === "--output") result.output = argv[++index];
     else if (arg === "--owner-acceptance") result.ownerAcceptance = argv[++index];
     else if (arg === "--baseline-audit") result.baselineAudit = argv[++index];
+    else if (arg === "--legacy-baseline-audit") result.legacyBaselineAudit = argv[++index];
+    else if (arg === "--baseline-supersession") result.baselineSupersession = argv[++index];
+    else if (arg === "--scope") result.scope = argv[++index];
+    else if (arg === "--proposed-ref") result.proposedRef = argv[++index];
+    else if (arg === "--proposed-commit") result.proposedCommit = argv[++index];
     else if (arg === "--fail-on-blockers") result.failOnBlockers = true;
     else throw new Error(`Unknown argument: ${arg}`);
   }
@@ -273,17 +260,15 @@ function readBlobBatch(root, objectIds) {
   if (!objectIds.length) return new Map();
   const output = new Map();
   const requested = new Set(objectIds);
-  const result = spawnSync("git", ["-c", "core.fsmonitor=false", "-C", root, "cat-file", "--batch-all-objects", "--batch"], {
+  const stdout = runIsolatedGit(root, ["cat-file", "--batch-all-objects", "--batch"], {
     encoding: null, maxBuffer: 256_000_000,
   });
-  if (result.status !== 0 || !Buffer.isBuffer(result.stdout)) {
-    throw new Error(`git cat-file --batch-all-objects failed: ${String(result.stderr ?? "").trim()}`);
-  }
+  if (!Buffer.isBuffer(stdout)) throw new Error("git cat-file --batch-all-objects did not return bytes");
   let offset = 0;
-  while (offset < result.stdout.length) {
-    const newline = result.stdout.indexOf(0x0a, offset);
+  while (offset < stdout.length) {
+    const newline = stdout.indexOf(0x0a, offset);
     if (newline < 0) throw new Error("malformed git cat-file batch header");
-    const header = result.stdout.subarray(offset, newline).toString("utf8");
+    const header = stdout.subarray(offset, newline).toString("utf8");
     const [oid, type, sizeText] = header.split(" ");
     if (!/^(?:blob|commit|tag|tree)$/u.test(type ?? "") || !/^\d+$/u.test(sizeText ?? "")) {
       throw new Error(`unexpected git cat-file batch header: ${header}`);
@@ -291,17 +276,16 @@ function readBlobBatch(root, objectIds) {
     const size = Number(sizeText);
     const start = newline + 1;
     const end = start + size;
-    if (end >= result.stdout.length || result.stdout[end] !== 0x0a) throw new Error(`truncated git object batch response for ${oid}`);
-    if (type === "blob" && requested.has(oid)) output.set(oid, result.stdout.subarray(start, end));
+    if (end >= stdout.length || stdout[end] !== 0x0a) throw new Error(`truncated git object batch response for ${oid}`);
+    if (type === "blob" && requested.has(oid)) output.set(oid, stdout.subarray(start, end));
     offset = end + 1;
   }
   return output;
 }
 
-export function auditPublicRepository(options) {
+function auditPreparedPublicRepository(options, prepared) {
   const root = path.resolve(options.root);
-  const top = path.resolve(String(git(root, ["rev-parse", "--show-toplevel"])).trim());
-  if (top !== root) throw new Error(`audit root must be the Git top level: ${top}`);
+  const historyRoot = prepared.auditRepository;
   const findings = {
     secrets: [], personalInformation: [], personalInformationCandidates: [], lfsPointers: [],
     unsafeGitObjects: [], archiveIntegrity: [], largeObjects: [],
@@ -316,11 +300,12 @@ export function auditPublicRepository(options) {
   };
   const zipInventory = { archiveSha256: new Set(), uniqueArchiveEntries: [] };
 
-  const refs = lines(git(root, ["for-each-ref", "--format=%(refname)%09%(objectname)"]));
-  coverage.refs = refs.length;
-  const commits = lines(git(root, ["rev-list", "--all"]));
+  const refRecords = prepared.scope.refs.map((ref) => ({ ...ref }));
+  const revisionRoots = refRecords.map((ref) => ref.name);
+  coverage.refs = refRecords.length;
+  const commits = lines(runIsolatedGit(historyRoot, ["rev-list", ...revisionRoots])).sort();
   coverage.commits = commits.length;
-  const objectPathLines = lines(git(root, ["rev-list", "--objects", "--all"]));
+  const objectPathLines = lines(runIsolatedGit(historyRoot, ["rev-list", "--objects", ...revisionRoots]));
   progress(`object inventory ${objectPathLines.length}`);
   const objectPaths = new Map();
   for (const line of objectPathLines) {
@@ -330,10 +315,7 @@ export function auditPublicRepository(options) {
     if (!objectPaths.has(oid)) objectPaths.set(oid, objectPath);
   }
   coverage.objects = objectPaths.size;
-  const batch = spawnSync("git", ["-c", "core.fsmonitor=false", "-C", root, "cat-file", "--batch-all-objects", "--batch-check=%(objectname) %(objecttype) %(objectsize)"], {
-    encoding: "utf8", maxBuffer: 64_000_000,
-  });
-  if (batch.status !== 0) throw new Error(`git cat-file --batch-check failed: ${String(batch.stderr).trim()}`);
+  const batch = { stdout: runIsolatedGit(historyRoot, ["cat-file", "--batch-all-objects", "--batch-check=%(objectname) %(objecttype) %(objectsize)"], { maxBuffer: 64_000_000 }) };
   const blobMetadata = [];
   for (const line of lines(batch.stdout)) {
     const [oid, type, sizeText] = line.split(" ");
@@ -351,7 +333,7 @@ export function auditPublicRepository(options) {
     if (size > MAX_SCANNED_BLOB_BYTES) { coverage.oversizedBlobs += 1; continue; }
     blobMetadata.push({ oid, objectPath, locator });
   }
-  const blobData = readBlobBatch(root, blobMetadata.map((item) => item.oid));
+  const blobData = readBlobBatch(historyRoot, blobMetadata.map((item) => item.oid));
   progress(`blob batch loaded ${blobMetadata.length}`);
   for (const { oid, objectPath, locator } of blobMetadata) {
     const buffer = blobData.get(oid);
@@ -365,20 +347,19 @@ export function auditPublicRepository(options) {
     scanText(buffer.toString("utf8"), locator, findings);
   }
 
-  const metadataFormat = "%H%x00%ae%x00%ce%x00";
   progress("blob scans complete");
-  const metadata = zeroSplit(git(root, ["log", "--all", `--format=${metadataFormat}`]));
-  for (let index = 0; index + 2 < metadata.length; index += 3) {
-    const [rawCommit, authorEmail, committerEmail] = metadata.slice(index, index + 3);
-    const commit = rawCommit.trim();
+  for (const commit of commits) {
+    const metadata = zeroSplit(runIsolatedGit(historyRoot, ["show", "-s", "--format=%H%x00%ae%x00%ce%x00", commit]));
+    const [rawCommit, authorEmail, committerEmail] = metadata;
+    if (!rawCommit || authorEmail === undefined || committerEmail === undefined) throw new Error(`incomplete commit metadata for ${commit}`);
     scanText(authorEmail, `commit:${commit}:authorEmail`, findings);
     scanText(committerEmail, `commit:${commit}:committerEmail`, findings);
   }
 
-  const trees = [...new Set(lines(git(root, ["log", "--all", "--format=%T"])))];
+  const trees = [...new Set(commits.map((commit) => String(runIsolatedGit(historyRoot, ["show", "-s", "--format=%T", commit])).trim()))].sort();
   progress(`tree scans start ${trees.length}`);
   for (const tree of trees) {
-    for (const entry of zeroSplit(git(root, ["ls-tree", "-r", "-z", tree]))) {
+    for (const entry of zeroSplit(runIsolatedGit(historyRoot, ["ls-tree", "-r", "-z", tree]))) {
       const tab = entry.indexOf("\t");
       if (tab < 0) continue;
       const [mode, type, oid] = entry.slice(0, tab).split(/\s+/u);
@@ -388,11 +369,10 @@ export function auditPublicRepository(options) {
     }
   }
 
-  const refRecords = refs.map((item) => { const [name, oid] = item.split("\t"); return { name, oid }; });
   const gitmodulesInHistory = [...objectPaths.values()].filter((value) => /(^|\/)\.gitmodules$/iu.test(value));
   const historicalGitlinkMap = new Map();
   for (const commit of [...commits].reverse()) {
-    for (const entry of zeroSplit(git(root, ["ls-tree", "-r", "-z", commit]))) {
+    for (const entry of zeroSplit(runIsolatedGit(historyRoot, ["ls-tree", "-r", "-z", commit]))) {
       const tab = entry.indexOf("\t");
       if (tab < 0) continue;
       const [mode, type, oid] = entry.slice(0, tab).split(/\s+/u);
@@ -405,9 +385,14 @@ export function auditPublicRepository(options) {
     }
   }
   const historicalGitlinks = [...historicalGitlinkMap.values()].map((item) => {
-    const containing = lines(git(root, ["for-each-ref", "--contains", item.commit, "--format=%(refname)"])).sort();
-    const exactRef = refRecords.find((entry) => entry.oid === item.commit)?.name;
-    const targetProbe = gitStatus(root, ["cat-file", "-e", `${item.oid}^{commit}`]);
+    const containing = refRecords.filter((ref) => {
+      const target = ref.peeledOid ?? ref.oid;
+      const targetType = runIsolatedGit(historyRoot, ["cat-file", "-t", target], { allowFailure: true });
+      if (targetType.status !== 0 || String(targetType.stdout).trim() !== "commit") return false;
+      return runIsolatedGit(historyRoot, ["merge-base", "--is-ancestor", item.commit, target], { allowFailure: true }).status === 0;
+    }).map((ref) => ref.name).sort();
+    const exactRef = refRecords.find((entry) => entry.oid === item.commit || entry.peeledOid === item.commit)?.name;
+    const targetProbe = runIsolatedGit(historyRoot, ["cat-file", "-e", `${item.oid}^{commit}`], { allowFailure: true });
     const targetPathPresentInZip = zipInventory.uniqueArchiveEntries.some((entry) => (
       entry === item.path || entry.startsWith(`${item.path}/`) || entry.includes(`/${item.path}/`)
     ));
@@ -434,68 +419,33 @@ export function auditPublicRepository(options) {
     };
   });
 
-  const tracked = zeroSplit(git(root, ["ls-files", "-z"]));
   progress("tree scans complete");
-  const untracked = zeroSplit(git(root, ["ls-files", "--others", "--exclude-standard", "-z"]));
-  const ignored = zeroSplit(git(root, ["ls-files", "--others", "--ignored", "--exclude-standard", "-z"]));
+  const publishedTipEntries = new Map();
+  for (const ref of refRecords) {
+    const target = ref.peeledOid ?? ref.oid;
+    const targetType = runIsolatedGit(historyRoot, ["cat-file", "-t", target], { allowFailure: true });
+    if (targetType.status !== 0 || String(targetType.stdout).trim() !== "commit") continue;
+    for (const entry of zeroSplit(runIsolatedGit(historyRoot, ["ls-tree", "-r", "-z", target]))) {
+      const tab = entry.indexOf("\t");
+      if (tab < 0) continue;
+      const relative = entry.slice(tab + 1);
+      const [mode, type, oid] = entry.slice(0, tab).split(/\s+/u);
+      const key = `${mode}:${type}:${oid}:${relative}`;
+      publishedTipEntries.set(key, { mode, type, oid, relative });
+    }
+  }
+  const tracked = [...new Set([...publishedTipEntries.values()].map((entry) => entry.relative))].sort();
+  const untracked = [];
+  const ignored = [];
   coverage.trackedWorktreePaths = tracked.length;
   coverage.untrackedPaths = untracked.length;
   coverage.ignoredPaths = ignored.length;
-  const activeIndex = zeroSplit(git(root, ["ls-files", "-s", "-z", "--", "current"]));
+  const activeIndex = [...publishedTipEntries.values()].filter((entry) => entry.relative === "current" || entry.relative.startsWith("current/"));
   const activeGitlinks = [];
   const activeGitmodules = [];
   for (const entry of activeIndex) {
-    const tab = entry.indexOf("\t");
-    if (tab < 0) continue;
-    const [mode] = entry.slice(0, tab).split(/\s+/u);
-    const relative = entry.slice(tab + 1);
-    if (mode === "160000") activeGitlinks.push(relative);
-    if (/(^|\/)\.gitmodules$/iu.test(relative)) activeGitmodules.push(relative);
-  }
-  for (const relative of untracked) {
-    if (relative === "current/.gitmodules" || (relative.startsWith("current/") && /(^|\/)\.gitmodules$/iu.test(relative))) {
-      activeGitmodules.push(relative);
-    }
-  }
-  for (const relative of tracked) {
-    if (relative === AUDIT_EVIDENCE_PATH) {
-      coverage.selfEvidenceContentExclusions += 1;
-      continue;
-    }
-    const absolute = path.join(root, relative);
-    let info;
-    try { info = lstatSync(absolute); } catch { continue; }
-    if (info.isSymbolicLink()) {
-      findings.unsafeGitObjects.push({ tree: "WORKTREE", mode: "120000", type: "symlink", oid: "WORKTREE", pathSha256: sha256(relative) });
-      continue;
-    }
-    if (!info.isFile()) continue;
-    coverage.scannedTrackedWorktreeFiles += 1;
-    if (info.size >= LARGE_OBJECT_BYTES) findings.largeObjects.push({ locator: `worktree-tracked:${relative}`, bytes: info.size, source: "worktree_tracked" });
-    if (info.size > MAX_SCANNED_BLOB_BYTES) continue;
-    const data = readFileSync(absolute);
-    if (/\.zip$/iu.test(relative) || (data[0] === 0x50 && data[1] === 0x4b)) {
-      inspectZip(data, `worktree-tracked:${relative}`, findings, coverage, zipInventory);
-    }
-    if (!data.includes(0)) scanText(data.toString("utf8"), `worktree-tracked:${relative}`, findings);
-  }
-  for (const relative of untracked) {
-    if (relative === AUDIT_EVIDENCE_PATH) {
-      coverage.selfEvidenceContentExclusions += 1;
-      continue;
-    }
-    const absolute = path.join(root, relative);
-    let info;
-    try { info = lstatSync(absolute); } catch { continue; }
-    if (info.isSymbolicLink()) {
-      findings.unsafeGitObjects.push({ tree: "WORKTREE_UNTRACKED", mode: "120000", type: "symlink", oid: "WORKTREE", pathSha256: sha256(relative) });
-      continue;
-    }
-    if (!info.isFile()) continue;
-    if (info.size >= LARGE_OBJECT_BYTES) findings.largeObjects.push({ locator: `untracked:${sha256(relative)}`, bytes: info.size, source: "worktree_untracked" });
-    if (info.size > MAX_SCANNED_BLOB_BYTES) continue;
-    const data = readFileSync(absolute);
-    if (!data.includes(0)) scanText(data.toString("utf8"), `untracked:${sha256(relative)}`, findings);
+    if (entry.mode === "160000") activeGitlinks.push(entry.relative);
+    if (/(^|\/)\.gitmodules$/iu.test(entry.relative)) activeGitmodules.push(entry.relative);
   }
 
   const trackedLower = tracked.map((item) => item.toLowerCase());
@@ -509,7 +459,7 @@ export function auditPublicRepository(options) {
   const groupPrivacyFindings = (items) => {
     const groups = new Map();
     for (const item of items) {
-    const key = `${item.rule}:${item.matchSha256}:${item.domain ?? ""}:${item.identityClass ?? ""}`;
+    const key = `${item.rule}:${item.matchSha256}:${item.domain ?? ""}:${item.identityClass ?? ""}:${item.identifierShape ?? ""}`;
       const existing = groups.get(key) ?? {
       rule: item.rule,
       matchSha256: item.matchSha256,
@@ -533,12 +483,13 @@ export function auditPublicRepository(options) {
     }
     return [...groups.values()].map((item) => {
       const value = { ...item };
+      value.representativeLocators = [...value.representativeLocators].sort();
       if (item._commitLocators.size > 0) value.uniqueCommitCount = item._commitLocators.size;
       if (item._historicalZipLocators.size > 0) value.uniqueHistoricalZipCount = item._historicalZipLocators.size;
       delete value._commitLocators;
       delete value._historicalZipLocators;
       return value;
-    });
+    }).sort((left, right) => compareUtf8(`${left.rule}:${left.matchSha256}`, `${right.rule}:${right.matchSha256}`));
   };
   findings.personalInformation = groupPrivacyFindings(findings.personalInformation);
   findings.personalInformationCandidates = groupPrivacyFindings(findings.personalInformationCandidates);
@@ -550,7 +501,12 @@ export function auditPublicRepository(options) {
     if (existing.representativeTrees.length < 5) existing.representativeTrees.push(item.tree);
     gitObjectGroups.set(key, existing);
   }
-  findings.unsafeGitObjects = [...gitObjectGroups.values()];
+  findings.unsafeGitObjects = [...gitObjectGroups.values()]
+    .map((item) => ({ ...item, representativeTrees: [...item.representativeTrees].sort() }))
+    .sort((left, right) => compareUtf8(`${left.mode}:${left.type}:${left.oid}:${left.pathSha256}`, `${right.mode}:${right.type}:${right.oid}:${right.pathSha256}`));
+  for (const key of ["secrets", "personalInformationCandidates", "lfsPointers", "archiveIntegrity", "largeObjects"]) {
+    findings[key].sort((left, right) => compareUtf8(JSON.stringify(left), JSON.stringify(right)));
+  }
   const blockers = [];
   if (findings.secrets.length) blockers.push("HISTORICAL_OR_CURRENT_SECRET_MATERIAL");
   if (findings.personalInformation.length) blockers.push("PUBLIC_HISTORY_PERSONAL_INFORMATION");
@@ -562,16 +518,64 @@ export function auditPublicRepository(options) {
   if (thirdPartyDependencyReview.status === "BLOCKED_THIRD_PARTY_LICENSE_REVIEW_INCOMPLETE") {
     blockers.push("THIRD_PARTY_LICENSE_REVIEW_INCOMPLETE");
   }
+  const privacySignatures = findings.personalInformation.map((item) => JSON.stringify(item.rule === "personal_email" ? {
+    rule: item.rule,
+    matchSha256: item.matchSha256,
+    matchedUtf8Bytes: item.matchedUtf8Bytes,
+    domain: item.domain,
+    identifierShape: item.identifierShape,
+  } : {
+    rule: item.rule,
+    matchSha256: item.matchSha256,
+    matchedUtf8Bytes: item.matchedUtf8Bytes,
+    identityClass: item.identityClass,
+  })).sort();
+  const historicalGitlinkSignatures = findings.unsafeGitObjects
+    .filter((item) => item.mode === "160000" && item.type === "commit")
+    .map((item) => JSON.stringify({ mode: item.mode, type: item.type, oid: item.oid, pathSha256: item.pathSha256 }))
+    .sort();
+  const emailFinding = findings.personalInformation.find((item) => item.rule === "personal_email");
+  const pathFinding = findings.personalInformation.find((item) => item.rule === "personal_local_home");
   const result = {
-    schemaVersion: 2,
-    auditPolicy: "DEC-001-full-repository-and-history-audit-v1",
-    observedAt: new Date().toISOString(),
-    repositoryRootSha256: sha256(root),
-    head: String(git(root, ["rev-parse", "HEAD"])).trim(),
+    schemaVersion: 3,
+    auditPolicy: "DEC-001-public-heads-tags-history-audit-v3",
+    observedAt: prepared.scope.collectedAt,
+    repositoryRootSha256: sha256(prepared.scope.remoteIdentity),
+    head: prepared.proposed?.oid ?? refRecords.find((ref) => ref.name === "refs/heads/main")?.oid ?? null,
+    auditScope: {
+      mode: options.scope,
+      proposedRef: prepared.proposed?.name ?? null,
+      proposedCommit: prepared.proposed?.oid ?? null,
+    },
+    publicRefScope: prepared.scope,
+    isolation: {
+      freshBareRepository: true,
+      sourceWasShallow: prepared.sourceWasShallow,
+      isolatedRepositoryShallow: false,
+      globalGitConfigDisabled: true,
+      systemGitConfigDisabled: true,
+      replaceRefsDisabled: true,
+      graftsInherited: false,
+      alternateObjectDatabasesInherited: false,
+      objectClosureVerified: true,
+    },
     result: blockers.length ? "BLOCKED_PUBLIC_HISTORY_REMEDIATION" : "PASS_PUBLICATION_ELIGIBILITY_AUDIT",
     blockers,
     coverage,
     refs: refRecords,
+    inventory: {
+      reachableCommits: commits,
+      reachableCommitSetSha256: sha256(commits.join("\n")),
+    },
+    summary: {
+      publicRefCount: prepared.scope.refs.length,
+      publicRefSetSha256: prepared.scope.refSetSha256,
+      reachableCommitCount: commits.length,
+      privacySignatureSetSha256: sha256(privacySignatures.join("\n")),
+      emailOccurrenceCount: emailFinding?.occurrenceCount ?? 0,
+      pathOccurrenceCount: pathFinding?.occurrenceCount ?? 0,
+      historicalGitlinkSetSha256: sha256(historicalGitlinkSignatures.join("\n")),
+    },
     activeSource: {
       scope: "current/",
       trackedEntryCount: activeIndex.length,
@@ -616,31 +620,45 @@ export function auditPublicRepository(options) {
     remediationAuthorityRequired: blockers.length > 0,
     notes: [
       "Findings contain hashes and structural locators only; matching secret or personal values are never emitted.",
-      `${AUDIT_EVIDENCE_PATH} remains in the exact worktree path-set commitment but its current content is excluded to prevent self-referential audit evidence; prior committed versions remain covered by the all-history blob scan.`,
-      "Ignored paths are inventoried but not content-scanned because they are outside the Git-published repository; tracked, untracked, all refs, and all reachable historical blobs are covered.",
+      `${AUDIT_EVIDENCE_PATH} is never read from the mutable working tree; committed versions reachable from the explicit public-ref scope remain covered by the historical blob scan.`,
+      "History coverage is derived only from origin public heads/tags (plus an explicit proposed ref in pre-push mode); local-only, remote-tracking, stash, replace, graft, alternate-object, and shallow state cannot expand it.",
+      "Local untracked and ignored paths are outside public-ref scope; proposed unpublished content is covered only through an explicit exact proposed commit.",
       "No history rewrite, remote deletion, visibility change, branch protection mutation, push, or release action is performed by this audit.",
     ],
   };
-  if (options.ownerAcceptance || options.baselineAudit) {
-    if (!options.ownerAcceptance || !options.baselineAudit) {
-      throw new Error("--owner-acceptance and --baseline-audit must be supplied together");
+  if (options.ownerAcceptance || options.baselineAudit || options.legacyBaselineAudit || options.baselineSupersession) {
+    if (!options.ownerAcceptance || !options.baselineAudit || !options.legacyBaselineAudit || !options.baselineSupersession) {
+      throw new Error("--owner-acceptance, --baseline-audit, --legacy-baseline-audit, and --baseline-supersession must be supplied together");
     }
     const owner = regularJsonInput(options.ownerAcceptance, "Owner acceptance");
-    const baseline = regularJsonInput(options.baselineAudit, "baseline public-history audit");
-    result.auditPolicy = "DEC-001-full-repository-and-history-audit-v2-owner-acceptance";
+    const baseline = regularJsonInput(options.baselineAudit, "public-ref baseline audit");
+    const legacyBaseline = regularJsonInput(options.legacyBaselineAudit, "legacy local-scope baseline audit");
+    const supersession = regularJsonInput(options.baselineSupersession, "public-history baseline supersession");
+    result.auditPolicy = "DEC-001-public-heads-tags-history-audit-v3-owner-acceptance";
     applyPublicHistoryRiskAcceptance(result, {
       ownerAcceptance: owner.value,
+      legacyBaselineAudit: legacyBaseline.value,
+      legacyBaselineAuditSha256: legacyBaseline.sha256,
       baselineAudit: baseline.value,
       baselineAuditSha256: baseline.sha256,
+      baselineSupersession: supersession.value,
     });
     result.ownerAcceptance = {
       path: path.relative(root, path.resolve(options.ownerAcceptance)).split(path.sep).join("/"),
       sha256: owner.sha256,
       baselineAuditPath: path.relative(root, path.resolve(options.baselineAudit)).split(path.sep).join("/"),
       baselineAuditSha256: baseline.sha256,
+      legacyBaselineAuditPath: path.relative(root, path.resolve(options.legacyBaselineAudit)).split(path.sep).join("/"),
+      legacyBaselineAuditSha256: legacyBaseline.sha256,
+      baselineSupersessionPath: path.relative(root, path.resolve(options.baselineSupersession)).split(path.sep).join("/"),
+      baselineSupersessionSha256: supersession.sha256,
     };
   }
   return result;
+}
+
+export function auditPublicRepository(options) {
+  return withPublicRefScope(options, (prepared) => auditPreparedPublicRepository(options, prepared));
 }
 
 if (import.meta.url === new URL(`file://${process.argv[1]}`).href) {

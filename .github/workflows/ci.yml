@@ -84,15 +84,39 @@ jobs:
           node current/scripts/release-structure.test.mjs
           node scripts/public-repository-history-audit.mjs \
             --root . \
+            --scope public-remote \
             --output "$RUNNER_TEMP/public-repository-history-audit.json" \
             --owner-acceptance current/evidence/PUBLIC_HISTORY_OWNER_ACCEPTANCE.json \
-            --baseline-audit current/evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT_BASELINE_2026-08-26.json \
+            --baseline-audit current/evidence/PUBLIC_REPOSITORY_PUBLIC_REF_BASELINE.json \
+            --legacy-baseline-audit current/evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT_BASELINE_2026-08-26.json \
+            --baseline-supersession current/evidence/PUBLIC_HISTORY_BASELINE_SUPERSESSION.json \
             --fail-on-blockers
+          jq -r '
+            "public ref count=\(.summary.publicRefCount)",
+            "public ref set SHA-256=\(.summary.publicRefSetSha256)",
+            "reachable commit count=\(.summary.reachableCommitCount)",
+            "privacy signature set SHA-256=\(.summary.privacySignatureSetSha256)",
+            "email occurrence count=\(.summary.emailOccurrenceCount)",
+            "path occurrence count=\(.summary.pathOccurrenceCount)",
+            "historical Gitlink set SHA-256=\(.summary.historicalGitlinkSetSha256)"
+          ' "$RUNNER_TEMP/public-repository-history-audit.json"
           node scripts/public-history-risk-acceptance.mjs \
             --root . \
             --audit "$RUNNER_TEMP/public-repository-history-audit.json" \
+            --baseline-audit current/evidence/PUBLIC_REPOSITORY_PUBLIC_REF_BASELINE.json \
+            --legacy-baseline-audit current/evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT_BASELINE_2026-08-26.json \
+            --baseline-supersession current/evidence/PUBLIC_HISTORY_BASELINE_SUPERSESSION.json \
             --output "$RUNNER_TEMP/public-history-risk-acceptance.json"
           node current/scripts/verify-release-structure.mjs --active-source current
+      - name: Save current public-history audit evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: public-history-audit-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/public-repository-history-audit.json
+            ${{ runner.temp }}/public-history-risk-acceptance.json
+          if-no-files-found: error
+          retention-days: 90
       - name: Reject credentials, environment files, and nested workflows
         run: |
           test ! -e .github/workflows/ci.yml

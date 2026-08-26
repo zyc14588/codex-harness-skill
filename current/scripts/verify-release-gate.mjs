@@ -275,7 +275,16 @@ async function assertOwnerDecisions(root, config) {
       "PUB-HIST-EMAIL-001", "PUB-HIST-PATH-001", "PUB-HIST-GITLINK-001",
     ])
     || !Array.isArray(publicAudit.blockers) || publicAudit.blockers.length !== 0
-    || publicAudit.auditPolicy !== "DEC-001-full-repository-and-history-audit-v2-owner-acceptance") {
+    || publicAudit.auditPolicy !== "DEC-001-public-heads-tags-history-audit-v3-owner-acceptance"
+    || !["public-remote", "proposed-public-ref"].includes(publicAudit.auditScope?.mode)
+    || publicAudit.isolation?.freshBareRepository !== true
+    || publicAudit.isolation?.objectClosureVerified !== true
+    || publicAudit.isolation?.replaceRefsDisabled !== true
+    || !Number.isSafeInteger(publicAudit.acceptedCounts?.authorCommitterOccurrences)
+    || publicAudit.acceptedCounts.authorCommitterOccurrences > 64
+    || !Number.isSafeInteger(publicAudit.acceptedCounts?.pathIdentifierOccurrences)
+    || publicAudit.acceptedCounts.pathIdentifierOccurrences > 136
+    || publicAudit.summary?.publicRefSetSha256 !== publicAudit.publicRefScope?.refSetSha256) {
     throw new Error("DEC-001/DEC-002 require a complete PASS public repository/history audit");
   }
   const riskAcceptance = await jsonFile(path.join(root, "evidence/PUBLIC_HISTORY_RISK_ACCEPTANCE.json"), "public-history risk acceptance");
@@ -283,6 +292,10 @@ async function assertOwnerDecisions(root, config) {
     || riskAcceptance.findingsDisposition !== "PASS_WITH_OWNER_ACCEPTED_HISTORICAL_FINDINGS"
     || riskAcceptance.historyRewriteRequired !== false || riskAcceptance.confirmedSecrets !== 0
     || riskAcceptance.unresolvedDistributedLicenseFindings !== 0
+    || !Number.isSafeInteger(riskAcceptance.acceptedCounts?.authorCommitterOccurrences)
+    || riskAcceptance.acceptedCounts.authorCommitterOccurrences > 64
+    || !Number.isSafeInteger(riskAcceptance.acceptedCounts?.pathIdentifierOccurrences)
+    || riskAcceptance.acceptedCounts.pathIdentifierOccurrences > 136
     || JSON.stringify(riskAcceptance.ownerDecisionIds) !== JSON.stringify(publicAudit.ownerDecisionIds)) {
     throw new Error("DEC-001/DEC-002 require exact Owner public-history risk acceptance evidence");
   }

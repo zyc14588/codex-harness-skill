@@ -122,8 +122,13 @@ async function writeSourceFixture(root, version) {
   }));
   await writeRelative(root, "docs/REPOSITORY_HISTORY_DISCLOSURE_BOUNDARY_ZH.md", "accepted disclosure boundary for configured remote model\n");
   await writeRelative(root, "evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json", json({
-    schemaVersion: 2,
-    auditPolicy: "DEC-001-full-repository-and-history-audit-v2-owner-acceptance",
+    schemaVersion: 3,
+    auditPolicy: "DEC-001-public-heads-tags-history-audit-v3-owner-acceptance",
+    auditScope: { mode: "public-remote" },
+    publicRefScope: { refSetSha256: "7".repeat(64) },
+    isolation: { freshBareRepository: true, objectClosureVerified: true, replaceRefsDisabled: true },
+    summary: { publicRefSetSha256: "7".repeat(64) },
+    acceptedCounts: { authorCommitterOccurrences: 60, pathIdentifierOccurrences: 91 },
     result: "PASS",
     findingsDisposition: "PASS_WITH_OWNER_ACCEPTED_HISTORICAL_FINDINGS",
     historyRewriteRequired: false,
@@ -138,6 +143,7 @@ async function writeSourceFixture(root, version) {
     historyRewriteRequired: false,
     confirmedSecrets: 0,
     unresolvedDistributedLicenseFindings: 0,
+    acceptedCounts: { authorCommitterOccurrences: 60, pathIdentifierOccurrences: 91 },
     ownerDecisionIds: ["PUB-HIST-EMAIL-001", "PUB-HIST-PATH-001", "PUB-HIST-GITLINK-001"],
   }));
   await writeRelative(root, "bridge/src/brokered-tool-host.ts", "// gitHistoryArguments MODEL_VISIBLE_TEXT_MAX_BYTES\n");

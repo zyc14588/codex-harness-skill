@@ -15,7 +15,7 @@
       ],
       "decidedBy": "zyc14588",
       "decidedAt": "2026-08-26T01:22:12+10:00",
-      "ownerMeaning": "Public visibility is accepted only with a full worktree, all-refs, reachable-history, archive, ZIP, privacy, secret, license, and provenance audit plus actual required-check governance.",
+      "ownerMeaning": "Public visibility is accepted only with an isolated origin public-heads/tags reachable-history, archive, ZIP, privacy, secret, license, and provenance audit plus actual required-check governance; pre-push scope requires an explicit proposed ref and exact commit.",
       "implementationVerified": false,
       "implementationStatus": "PUBLIC_HISTORY_AND_STRUCTURE_PASS_BRANCH_GOVERNANCE_BLOCKED",
       "publicHistoryAudit": "PASS_WITH_OWNER_ACCEPTED_FINDINGS",

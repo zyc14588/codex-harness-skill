@@ -57,6 +57,11 @@ if (packageJson.version !== STABLE_VERSION) {
 }
 const before = await releaseIntegrity(options.root);
 const binding = sourceProof(before);
+const branchResult = spawnSync("git", ["-C", repositoryRoot, "symbolic-ref", "--quiet", "--short", "HEAD"], { encoding: "utf8" });
+if (branchResult.status !== 0 || !/^[A-Za-z0-9._/-]+$/u.test(branchResult.stdout.trim())) {
+  throw new Error("local qualification requires an explicit attached proposed branch");
+}
+const proposedRef = `refs/heads/${branchResult.stdout.trim()}`;
 const steps = [
   { name: "candidate-release-gate", kind: "gate", command: process.execPath, args: ["scripts/verify-release-gate.mjs", "--root", ".", "--audit-candidate"], cwd: options.root, timeout: 60_000 },
   { name: "reproducible-dependency-install", command: "npm", args: ["ci"], cwd: bridge, timeout: 600_000 },
@@ -74,13 +79,19 @@ const steps = [
   { name: "generated-dist-drift", command: "git", args: ["diff", "--exit-code", "--", "current/bridge/dist"], cwd: path.dirname(options.root), timeout: 120_000 },
   { name: "public-history-audit", kind: "gate", command: process.execPath, args: [
     "scripts/public-repository-history-audit.mjs", "--root", ".",
+    "--scope", "proposed-public-ref", "--proposed-ref", proposedRef, "--proposed-commit", binding.sourceCommit,
     "--output", "current/evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json",
     "--owner-acceptance", "current/evidence/PUBLIC_HISTORY_OWNER_ACCEPTANCE.json",
-    "--baseline-audit", "current/evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT_BASELINE_2026-08-26.json",
+    "--baseline-audit", "current/evidence/PUBLIC_REPOSITORY_PUBLIC_REF_BASELINE.json",
+    "--legacy-baseline-audit", "current/evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT_BASELINE_2026-08-26.json",
+    "--baseline-supersession", "current/evidence/PUBLIC_HISTORY_BASELINE_SUPERSESSION.json",
     "--fail-on-blockers",
   ], cwd: repositoryRoot, timeout: 300_000 },
   { name: "public-history-risk-acceptance", kind: "gate", command: process.execPath, args: [
     "scripts/public-history-risk-acceptance.mjs", "--root", ".",
+    "--baseline-audit", "current/evidence/PUBLIC_REPOSITORY_PUBLIC_REF_BASELINE.json",
+    "--legacy-baseline-audit", "current/evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT_BASELINE_2026-08-26.json",
+    "--baseline-supersession", "current/evidence/PUBLIC_HISTORY_BASELINE_SUPERSESSION.json",
   ], cwd: repositoryRoot, timeout: 120_000 },
   { name: "manifest-regeneration", kind: "gate", command: process.execPath, args: ["scripts/update-manifest.mjs", "."], cwd: options.root, timeout: 120_000 },
   { name: "manifest-verification", kind: "gate", command: process.execPath, args: ["scripts/verify-manifest.mjs", "--root", ".", "--require-git-exact"], cwd: options.root, timeout: 300_000 },

@@ -54,15 +54,29 @@ function regularJson(target, label) {
   };
 }
 
-function privacySignature(item) {
-  return JSON.stringify({
-    rule: item.rule,
-    matchSha256: item.matchSha256,
-    matchedUtf8Bytes: item.matchedUtf8Bytes,
-    domain: item.domain ?? null,
-    identityClass: item.identityClass ?? null,
-    occurrenceCount: item.occurrenceCount,
-  });
+function blocked(message) {
+  throw new Error(`BLOCKED_NEW_PUBLIC_HISTORY_FINDING: ${message}`);
+}
+
+function privacySignature(item, { legacy = false } = {}) {
+  if (item.rule === "personal_email") {
+    return JSON.stringify({
+      rule: item.rule,
+      matchSha256: item.matchSha256,
+      matchedUtf8Bytes: item.matchedUtf8Bytes,
+      domain: item.domain,
+      identifierShape: item.identifierShape ?? (legacy ? "9_DIGIT_ACCOUNT_IDENTIFIER_AT_QQ_COM" : undefined),
+    });
+  }
+  if (item.rule === "personal_local_home") {
+    return JSON.stringify({
+      rule: item.rule,
+      matchSha256: item.matchSha256,
+      matchedUtf8Bytes: item.matchedUtf8Bytes,
+      identityClass: item.identityClass,
+    });
+  }
+  blocked(`unapproved privacy rule ${String(item.rule)}`);
 }
 
 function gitObjectSignature(item) {
@@ -74,10 +88,11 @@ function gitObjectSignature(item) {
   });
 }
 
-function exactFindingSet(current, baseline, signature, label) {
-  const left = current.map(signature).sort();
-  const right = baseline.map(signature).sort();
-  if (JSON.stringify(left) !== JSON.stringify(right)) throw new Error(`${label} changed outside the Owner-accepted baseline`);
+function exactFindingSet(current, baseline, signature, label, options = {}) {
+  if (!Array.isArray(current) || !Array.isArray(baseline)) blocked(`${label} is not an array`);
+  const left = current.map((item) => signature(item, options.current)).sort();
+  const right = baseline.map((item) => signature(item, options.baseline)).sort();
+  if (JSON.stringify(left) !== JSON.stringify(right)) blocked(`${label} changed outside the Owner-accepted distinct signature set`);
 }
 
 function onlyFinding(items, rule, label) {
@@ -86,9 +101,36 @@ function onlyFinding(items, rule, label) {
   return matches[0];
 }
 
-export function validatePublicHistoryRiskAcceptance({ ownerAcceptance, baselineAudit, baselineAuditSha256, currentAudit }) {
+function assertNoUnacceptedFindings(audit, label) {
+  if (!Array.isArray(audit.findings?.secrets) || audit.findings.secrets.length !== 0
+    || !Array.isArray(audit.findings?.personalInformationCandidates) || audit.findings.personalInformationCandidates.length !== 0
+    || !Array.isArray(audit.findings?.archiveIntegrity) || audit.findings.archiveIntegrity.length !== 0
+    || !Array.isArray(audit.findings?.lfsPointers) || audit.findings.lfsPointers.length !== 0
+    || !Array.isArray(audit.licensing?.thirdPartyDependencyReview?.unresolved)
+    || audit.licensing.thirdPartyDependencyReview.unresolved.length !== 0) {
+    blocked(`${label} contains a new secret, personal-information candidate, archive, LFS, or distributed-license finding`);
+  }
+}
+
+function occurrenceDelta(current, approvedMaximum, label) {
+  if (!Number.isSafeInteger(current) || current < 0) blocked(`${label} occurrence count is invalid`);
+  if (current > approvedMaximum) blocked(`${label} occurrence count ${current} exceeds Owner-approved maximum ${approvedMaximum}`);
+  return current - approvedMaximum;
+}
+
+export function validatePublicHistoryRiskAcceptance({
+  ownerAcceptance,
+  legacyBaselineAudit,
+  legacyBaselineAuditSha256,
+  baselineAudit,
+  baselineAuditSha256,
+  baselineSupersession,
+  currentAudit,
+}) {
   const owner = object(ownerAcceptance, "Owner acceptance");
-  const baseline = object(baselineAudit, "baseline public-history audit");
+  const baseline = object(baselineAudit, "public-ref baseline audit");
+  const legacy = object(legacyBaselineAudit ?? baselineAudit, "legacy local-scope baseline audit");
+  const legacySha256 = legacyBaselineAuditSha256 ?? baselineAuditSha256;
   const current = object(currentAudit, "current public-history audit");
   if (owner.schemaVersion !== 1 || owner.version !== "0.6.6"
     || owner.status !== "PUBLIC_HISTORY_OWNER_ACCEPTANCE_APPROVED"
@@ -99,7 +141,7 @@ export function validatePublicHistoryRiskAcceptance({ ownerAcceptance, baselineA
   if (ownerBaseline.head !== EXPECTED_BASELINE.head || ownerBaseline.tree !== EXPECTED_BASELINE.tree
     || ownerBaseline.worktreeClean !== true
     || ownerBaseline.publicHistoryAuditSha256 !== EXPECTED_BASELINE.auditSha256
-    || baselineAuditSha256 !== EXPECTED_BASELINE.auditSha256) {
+    || legacySha256 !== EXPECTED_BASELINE.auditSha256) {
     throw new Error("Owner acceptance is not bound to the approved baseline audit bytes");
   }
   const decisions = object(owner.decisions, "Owner acceptance decisions");
@@ -112,18 +154,18 @@ export function validatePublicHistoryRiskAcceptance({ ownerAcceptance, baselineA
       throw new Error(`Owner decision ${id} is not the approved exact selection`);
     }
   }
-  if (baseline.head !== EXPECTED_BASELINE.head || baseline.coverage?.commits !== EXPECTED_BASELINE.commitCount
-    || baseline.coverage?.zipBlobs !== EXPECTED_BASELINE.uniqueZipFileCount
-    || baseline.coverage?.zipEntries !== EXPECTED_BASELINE.zipMemberOverlapInclusiveCount) {
+  if (legacy.head !== EXPECTED_BASELINE.head || legacy.coverage?.commits !== EXPECTED_BASELINE.commitCount
+    || legacy.coverage?.zipBlobs !== EXPECTED_BASELINE.uniqueZipFileCount
+    || legacy.coverage?.zipEntries !== EXPECTED_BASELINE.zipMemberOverlapInclusiveCount) {
     throw new Error("baseline audit coverage differs from the accepted 32-commit/6-ZIP/3,288-member baseline");
   }
-  if (!Array.isArray(baseline.findings?.secrets) || baseline.findings.secrets.length !== 0
-    || !Array.isArray(baseline.findings?.personalInformationCandidates) || baseline.findings.personalInformationCandidates.length !== 0
-    || !Array.isArray(baseline.findings?.archiveIntegrity) || baseline.findings.archiveIntegrity.length !== 0
-    || !Array.isArray(baseline.findings?.lfsPointers) || baseline.findings.lfsPointers.length !== 0) {
+  if (!Array.isArray(legacy.findings?.secrets) || legacy.findings.secrets.length !== 0
+    || !Array.isArray(legacy.findings?.personalInformationCandidates) || legacy.findings.personalInformationCandidates.length !== 0
+    || !Array.isArray(legacy.findings?.archiveIntegrity) || legacy.findings.archiveIntegrity.length !== 0
+    || !Array.isArray(legacy.findings?.lfsPointers) || legacy.findings.lfsPointers.length !== 0) {
     throw new Error("baseline audit contains a finding that was not accepted");
   }
-  const baselinePrivacy = baseline.findings.personalInformation;
+  const baselinePrivacy = legacy.findings.personalInformation;
   const baselineEmail = onlyFinding(baselinePrivacy, "personal_email", "baseline privacy findings");
   const baselinePath = onlyFinding(baselinePrivacy, "personal_local_home", "baseline privacy findings");
   if (baselinePrivacy.length !== 2 || baselineEmail.domain !== "qq.com"
@@ -134,37 +176,47 @@ export function validatePublicHistoryRiskAcceptance({ ownerAcceptance, baselineA
   }
   const ownerHomeHash = createHash("sha256").update(`/home/${owner.decidedBy}`).digest("hex");
   if (baselinePath.matchSha256 !== ownerHomeHash) throw new Error("accepted home-path alias is not the Owner's own account alias");
-  const baselineUnsafe = baseline.findings.unsafeGitObjects;
+  const baselineUnsafe = legacy.findings.unsafeGitObjects;
   if (!Array.isArray(baselineUnsafe) || baselineUnsafe.length !== EXPECTED_BASELINE.historicalGitlinkCount
     || baselineUnsafe.some((item) => item.mode !== "160000" || item.type !== "commit")) {
     throw new Error("baseline unsafe Git objects are not exactly the three accepted historical gitlinks");
   }
 
-  if (!Array.isArray(current.findings?.secrets) || current.findings.secrets.length !== 0
-    || !Array.isArray(current.findings?.personalInformationCandidates) || current.findings.personalInformationCandidates.length !== 0
-    || !Array.isArray(current.findings?.archiveIntegrity) || current.findings.archiveIntegrity.length !== 0
-    || !Array.isArray(current.findings?.lfsPointers) || current.findings.lfsPointers.length !== 0
-    || !Array.isArray(current.licensing?.thirdPartyDependencyReview?.unresolved)
-    || current.licensing.thirdPartyDependencyReview.unresolved.length !== 0) {
-    throw new Error("current audit contains a new secret, personal-information candidate, archive, LFS, or license finding");
+  if (baselineAuditSha256 !== EXPECTED_BASELINE.auditSha256) {
+    const supersession = object(baselineSupersession, "public-history baseline supersession");
+    if (supersession.status !== "PUBLIC_REF_BASELINE_SUPERSEDES_LEGACY_LOCAL_SCOPE"
+      || supersession.legacyBaseline?.sha256 !== EXPECTED_BASELINE.auditSha256
+      || supersession.publicBaseline?.sha256 !== baselineAuditSha256
+      || supersession.publicBaseline?.refSetSha256 !== baseline.publicRefScope?.refSetSha256
+      || supersession.assurances?.noNewDistinctPersonalIdentifier !== true
+      || supersession.assurances?.noNewSecret !== true
+      || supersession.assurances?.ownerDecisionContinuesToApply !== true) {
+      throw new Error("public-ref baseline is not cryptographically bound to the Owner-accepted legacy baseline");
+    }
+    if (baseline.auditScope?.mode !== "public-remote") throw new Error("superseding baseline must use public-remote scope");
   }
-  exactFindingSet(current.findings.personalInformation, baselinePrivacy, privacySignature, "privacy findings");
+  assertNoUnacceptedFindings(baseline, "public-ref baseline");
+  assertNoUnacceptedFindings(current, "current audit");
+  exactFindingSet(baseline.findings.personalInformation, baselinePrivacy, privacySignature, "public-ref baseline privacy findings", {
+    baseline: { legacy: true },
+  });
+  exactFindingSet(current.findings.personalInformation, baselinePrivacy, privacySignature, "privacy findings", {
+    baseline: { legacy: true },
+  });
+  exactFindingSet(baseline.findings.unsafeGitObjects, baselineUnsafe, gitObjectSignature, "public-ref baseline historical gitlink findings");
   exactFindingSet(current.findings.unsafeGitObjects, baselineUnsafe, gitObjectSignature, "historical gitlink findings");
   const currentEmail = onlyFinding(current.findings.personalInformation, "personal_email", "current privacy findings");
   const currentPath = onlyFinding(current.findings.personalInformation, "personal_local_home", "current privacy findings");
-  if (currentEmail.uniqueCommitCount !== EXPECTED_BASELINE.commitCount
-    || currentEmail.identifierShape !== "9_DIGIT_ACCOUNT_IDENTIFIER_AT_QQ_COM"
-    || currentPath.uniqueHistoricalZipCount !== EXPECTED_BASELINE.uniqueZipFileCount) {
-    throw new Error("current accepted identifier occurrence semantics are incomplete");
-  }
+  const baselinePublicEmail = onlyFinding(baseline.findings.personalInformation, "personal_email", "public-ref baseline privacy findings");
+  const baselinePublicPath = onlyFinding(baseline.findings.personalInformation, "personal_local_home", "public-ref baseline privacy findings");
+  const emailOccurrenceDelta = occurrenceDelta(currentEmail.occurrenceCount, EXPECTED_BASELINE.emailOccurrenceCount, "accepted email identifier");
+  const pathOccurrenceDelta = occurrenceDelta(currentPath.occurrenceCount, EXPECTED_BASELINE.pathOccurrenceCount, "accepted home-path alias");
+  occurrenceDelta(baselinePublicEmail.occurrenceCount, EXPECTED_BASELINE.emailOccurrenceCount, "public-ref baseline email identifier");
+  occurrenceDelta(baselinePublicPath.occurrenceCount, EXPECTED_BASELINE.pathOccurrenceCount, "public-ref baseline home-path alias");
   const coverage = object(current.coverage, "current audit coverage");
-  if (coverage.uniqueZipFiles !== EXPECTED_BASELINE.uniqueZipFileCount
-    || coverage.zipMemberOccurrencesOverlapInclusive !== EXPECTED_BASELINE.zipMemberOverlapInclusiveCount
-    || coverage.zipMembersAfterZipBlobDeduplication !== EXPECTED_BASELINE.uniqueZipMemberCount) {
-    throw new Error("current ZIP counts do not preserve the explicit 3,288/1,776 counting distinction");
-  }
+  if (!Number.isSafeInteger(coverage.uniqueZipFiles) || !Number.isSafeInteger(coverage.zipMembersAfterZipBlobDeduplication)) blocked("current ZIP coverage counters are invalid");
   if (current.activeSource?.gitlinkCount !== 0 || current.activeSource?.gitmodulesCount !== 0) {
-    throw new Error("current active source contains a gitlink or .gitmodules");
+    blocked("current public ref tips contain a gitlink or .gitmodules");
   }
   const historicalGitlinks = current.historicalGitlinks;
   if (!Array.isArray(historicalGitlinks) || historicalGitlinks.length !== EXPECTED_BASELINE.historicalGitlinkCount
@@ -174,7 +226,7 @@ export function validatePublicHistoryRiskAcceptance({ ownerAcceptance, baselineA
       || !Array.isArray(item.classifications)
       || !["ACCEPTED_OPAQUE_HISTORICAL_REFERENCE", "EXTERNAL_CONTENT_NOT_DISTRIBUTED", "EXCLUDED_FROM_RELEASE_PROVENANCE"]
         .every((classification) => item.classifications.includes(classification)))) {
-    throw new Error("historical gitlink detail does not prove the accepted opaque-reference boundary");
+    blocked("historical gitlink detail does not prove the accepted opaque-reference boundary");
   }
   exactArray(current.preAcceptanceBlockers, ["PUBLIC_HISTORY_PERSONAL_INFORMATION", "UNSAFE_SYMLINK_OR_GITLINK_IN_HISTORY"], "pre-acceptance blockers");
   return {
@@ -185,13 +237,20 @@ export function validatePublicHistoryRiskAcceptance({ ownerAcceptance, baselineA
     unresolvedDistributedLicenseFindings: 0,
     ownerDecisionIds: [...OWNER_DECISION_IDS],
     acceptedCounts: {
-      emailIdentifierCommitCount: EXPECTED_BASELINE.commitCount,
-      authorCommitterOccurrences: EXPECTED_BASELINE.emailOccurrenceCount,
-      pathIdentifierOccurrences: EXPECTED_BASELINE.pathOccurrenceCount,
-      historicalZipFiles: EXPECTED_BASELINE.uniqueZipFileCount,
+      emailIdentifierCommitCount: currentEmail.uniqueCommitCount ?? null,
+      authorCommitterOccurrences: currentEmail.occurrenceCount,
+      authorCommitterOccurrenceMaximum: EXPECTED_BASELINE.emailOccurrenceCount,
+      pathIdentifierOccurrences: currentPath.occurrenceCount,
+      pathIdentifierOccurrenceMaximum: EXPECTED_BASELINE.pathOccurrenceCount,
+      historicalZipFiles: coverage.uniqueZipFiles,
       historicalGitlinks: EXPECTED_BASELINE.historicalGitlinkCount,
-      zipMemberOccurrencesOverlapInclusive: EXPECTED_BASELINE.zipMemberOverlapInclusiveCount,
-      zipMembersAfterZipBlobDeduplication: EXPECTED_BASELINE.uniqueZipMemberCount,
+      zipMemberOccurrencesOverlapInclusive: coverage.zipMemberOccurrencesOverlapInclusive,
+      zipMembersAfterZipBlobDeduplication: coverage.zipMembersAfterZipBlobDeduplication,
+    },
+    occurrenceDeltas: {
+      emailVersusOwnerApprovedMaximum: emailOccurrenceDelta,
+      pathVersusOwnerApprovedMaximum: pathOccurrenceDelta,
+      interpretation: "NEGATIVE_IS_AN_ALLOWED_REDUCTION_NOT_A_HISTORY_REWRITE_CLAIM",
     },
   };
 }
@@ -200,7 +259,7 @@ export function applyPublicHistoryRiskAcceptance(result, inputs) {
   const preAcceptanceBlockers = [...result.blockers];
   result.preAcceptanceBlockers = preAcceptanceBlockers;
   const disposition = validatePublicHistoryRiskAcceptance({ ...inputs, currentAudit: result });
-  result.schemaVersion = 2;
+  result.schemaVersion = 3;
   result.result = disposition.result;
   result.findingsDisposition = disposition.findingsDisposition;
   result.historyRewriteRequired = disposition.historyRewriteRequired;
@@ -208,6 +267,7 @@ export function applyPublicHistoryRiskAcceptance(result, inputs) {
   result.unresolvedDistributedLicenseFindings = disposition.unresolvedDistributedLicenseFindings;
   result.ownerDecisionIds = disposition.ownerDecisionIds;
   result.acceptedCounts = disposition.acceptedCounts;
+  result.occurrenceDeltas = disposition.occurrenceDeltas;
   result.blockers = [];
   result.remediationRequired = false;
   result.remediationAuthorityRequired = false;
@@ -222,7 +282,7 @@ function parseArgs(argv) {
   const options = {};
   for (let index = 0; index < argv.length; index += 1) {
     const name = argv[index];
-    if (!["--root", "--audit", "--owner-acceptance", "--baseline-audit", "--output", "--source-path", "--copied-at"].includes(name)) {
+    if (!["--root", "--audit", "--owner-acceptance", "--baseline-audit", "--legacy-baseline-audit", "--baseline-supersession", "--output", "--source-path", "--copied-at"].includes(name)) {
       throw new Error(`unknown argument: ${name}`);
     }
     const value = argv[++index];
@@ -232,7 +292,9 @@ function parseArgs(argv) {
   options.root = path.resolve(options.root ?? fileURLToPath(new URL("..", import.meta.url)));
   options.audit = path.resolve(options.audit ?? path.join(options.root, "current/evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json"));
   options.ownerAcceptance = path.resolve(options.ownerAcceptance ?? path.join(options.root, "current/evidence/PUBLIC_HISTORY_OWNER_ACCEPTANCE.json"));
-  options.baselineAudit = path.resolve(options.baselineAudit ?? path.join(options.root, "current/evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT_BASELINE_2026-08-26.json"));
+  options.baselineAudit = path.resolve(options.baselineAudit ?? path.join(options.root, "current/evidence/PUBLIC_REPOSITORY_PUBLIC_REF_BASELINE.json"));
+  options.legacyBaselineAudit = path.resolve(options.legacyBaselineAudit ?? path.join(options.root, "current/evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT_BASELINE_2026-08-26.json"));
+  options.baselineSupersession = path.resolve(options.baselineSupersession ?? path.join(options.root, "current/evidence/PUBLIC_HISTORY_BASELINE_SUPERSESSION.json"));
   options.output = path.resolve(options.output ?? path.join(options.root, "current/evidence/PUBLIC_HISTORY_RISK_ACCEPTANCE.json"));
   return options;
 }
@@ -243,10 +305,15 @@ if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToP
     const audit = regularJson(options.audit, "current public-history audit");
     const owner = regularJson(options.ownerAcceptance, "Owner acceptance");
     const baseline = regularJson(options.baselineAudit, "baseline public-history audit");
+    const legacyBaseline = regularJson(options.legacyBaselineAudit, "legacy local-scope baseline audit");
+    const supersession = regularJson(options.baselineSupersession, "public-history baseline supersession");
     const disposition = validatePublicHistoryRiskAcceptance({
       ownerAcceptance: owner.value,
+      legacyBaselineAudit: legacyBaseline.value,
+      legacyBaselineAuditSha256: legacyBaseline.sha256,
       baselineAudit: baseline.value,
       baselineAuditSha256: baseline.sha256,
+      baselineSupersession: supersession.value,
       currentAudit: audit.value,
     });
     const evidence = {
@@ -256,9 +323,9 @@ if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToP
       ...disposition,
       rawAuditRecovery: {
         sourcePath: options.sourcePath ?? "/tmp/codex-public-history-audit-20260826.json",
-        copiedAt: options.copiedAt ?? baseline.modifiedAt,
-        controlledPath: path.relative(options.root, options.baselineAudit).split(path.sep).join("/"),
-        sha256: baseline.sha256,
+        copiedAt: options.copiedAt ?? legacyBaseline.modifiedAt,
+        controlledPath: path.relative(options.root, options.legacyBaselineAudit).split(path.sep).join("/"),
+        sha256: legacyBaseline.sha256,
         ordinaryRegularFileVerified: true,
         symbolicLink: false,
         sourceBytesPreserved: true,

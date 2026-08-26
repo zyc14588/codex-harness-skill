@@ -59,7 +59,10 @@ export const ALLOWED_POST_IMPLEMENTATION_METADATA = [
   "evidence/GITHUB_GOVERNANCE_OBSERVATION.json",
   "evidence/OWNER_DECISIONS_LOCAL_QUALIFICATION.json",
   "evidence/PUBLIC_HISTORY_RISK_ACCEPTANCE.json",
+  "evidence/PUBLIC_HISTORY_BASELINE_SUPERSESSION.json",
   "evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json",
+  "evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT_LOCAL_SCOPE_LEGACY.json",
+  "evidence/PUBLIC_REPOSITORY_PUBLIC_REF_BASELINE.json",
   "package-origin.json",
   "release-status.json",
 ].sort();
