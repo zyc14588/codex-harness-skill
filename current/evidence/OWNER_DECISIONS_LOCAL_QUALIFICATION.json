@@ -1,60 +1,73 @@
 {
-  "schemaVersion": 1,
-  "result": "OWNER_DECISIONS_IMPLEMENTED_LOCAL_PASS_EXTERNAL_BLOCKED",
-  "generatedAt": "2026-08-25T17:38:29.915Z",
+  "schemaVersion": 2,
+  "result": "PUBLIC_HISTORY_ACCEPTED_LOCAL_QUALIFICATION_PASS_EXTERNAL_AND_HOST_BLOCKED",
+  "generatedAt": "2026-08-26T10:07:00+10:00",
   "version": "0.6.6",
-  "sourceCommit": "2ea556dc35d3695be3c5b7bad1b3dc86f07156c5",
-  "sourceTree": "3da5e552b75318497ce9c3bc840cd1c03fe60599",
-  "sourceTreeSha256": "59ca4f30073aaf9828f2aa7037be31375c91549d008041e0095f7660f20ac811",
+  "sourceCommit": "cabf226a8b385732d2249a8af920d20f641aa2a6",
+  "sourceTree": "9021bb24cb3feb1463a13bc5d29b6016c2caa8ba",
+  "sourceTreeSha256": "93bd97df7e471ae27568de8b4d989f94074c82c9de58c445c7ad5e56ce91fb16",
+  "sourceFileCount": 345,
   "criticalSetSha256": "3f7e3e00dfd5cd0135e10062b6278b9d96a49c05210c53f6bb4d864eb2463821",
   "decidedBy": "zyc14588",
   "decidedAt": "2026-08-26T01:22:12+10:00",
+  "publicHistoryAcceptedBy": "zyc14588",
+  "publicHistoryAcceptedAt": "2026-08-26T08:51:40+10:00",
   "decisions": {
     "DEC-001": {
       "selected": "B_PUBLIC_AFTER_FULL_REPOSITORY_AND_HISTORY_AUDIT",
       "implementationVerified": false,
-      "result": "BLOCKED_PUBLIC_HISTORY_REMEDIATION",
-      "evidence": "PUBLIC_REPOSITORY_HISTORY_AUDIT.json",
+      "result": "PUBLIC_HISTORY_AND_ZERO_GITLINK_GATES_PASS_BRANCH_GOVERNANCE_BLOCKED",
+      "publicHistoryAudit": "PASS_WITH_OWNER_ACCEPTED_HISTORICAL_FINDINGS",
+      "historyRewriteRequired": false,
+      "activePackageArchiveZeroGitlinkGate": "PASS_LOCAL_CURRENT_REVISION",
       "blockers": [
-        "PUBLIC_HISTORY_PERSONAL_INFORMATION",
-        "UNSAFE_SYMLINK_OR_GITLINK_IN_HISTORY"
+        "REQUIRED_STATUS_CHECKS_AND_BRANCH_GOVERNANCE_NOT_CONFIGURED_OR_API_VERIFIED"
       ]
     },
     "DEC-002": {
       "selected": "A_ACCEPT_REPOSITORY_AND_HISTORY_READ_BOUNDARY",
-      "implementationVerified": false,
-      "result": "BLOCKED_PUBLIC_HISTORY_AUDIT_PREREQUISITE",
+      "implementationVerified": true,
+      "result": "PASS_ACCEPTED_DISCLOSURE_BOUNDARY_AND_NEGATIVE_ISOLATION",
       "brokeredHistoryReadImplementation": "PASS_LOCAL_CURRENT_REVISION",
+      "publicHistoryAuditAndRiskAcceptance": "PASS_WITH_OWNER_ACCEPTED_HISTORICAL_FINDINGS",
       "negativeIsolation": "PASS_LOCAL_CURRENT_REVISION"
     },
     "DEC-003": {
       "selected": "D_TIERED_RESOURCE_PROFILES",
       "implementationVerified": true,
       "result": "PASS_LOCAL_CODE_AND_NEGATIVE_TESTS_HOST_CONTROLLED_GATE_BLOCKED",
-      "hostBlocker": "BLOCKED_CONTROLLED_HOST_CGROUP_IO",
+      "hostBlocker": "HOST_CGROUP_RECONFIGURATION_PLAN_READY",
       "providerRequestsSent": 0,
-      "hostEvidence": "../../HOST_RESOURCE_QUALIFICATION.json"
+      "providerInputTokens": 0,
+      "providerOutputTokens": 0,
+      "hostEvidence": "../../HOST_RESOURCE_QUALIFICATION.json",
+      "hostPlan": "../docs/HOST_CGROUP_V2_REMEDIATION_PLAN_ZH.md"
     },
     "DEC-004": {
       "selected": "A_USE_COMMIT_SUFFIXED_CANDIDATE_PATH",
       "implementationVerified": true,
       "result": "PASS_FULL_CANDIDATE_INSTALL_MIGRATION_ROLLBACK_REINSTALL_UNINSTALL_LIFECYCLE",
-      "candidatePath": "0.6.6-candidate-2ea556dc35d3"
+      "candidatePath": "0.6.6-candidate-cabf226a8b38"
     }
   },
   "evidenceBindings": {
-    "01_CURRENT_REVISION_LOCAL_QUALIFICATION.json": "b7b4cf08a98e44e0874b74db693ea2d1c85c994aee5f630703f99244deb0c375",
-    "02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json": "90864729c06680264eccc325feba982753362dff983eee7e053037f93502fe81",
-    "03_CURRENT_REVISION_NEGATIVE_SMOKE.json": "c102025c879a8d352bb729be4ea3bd1fbaff4135382dca21d76c2413fe8a965f",
+    "01_CURRENT_REVISION_LOCAL_QUALIFICATION.json": "66b49a317ea4b5dd0feec8a93bed77f11354d01b0f4c00c34d11e6711e51af60",
+    "02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json": "ded57e472d58c4e7425cafb9d1ed472f5cb92a869459e9ad5d9f1f52882d23e0",
+    "03_CURRENT_REVISION_NEGATIVE_SMOKE.json": "0a25be2562ecc05ddd9a21db55f638e8923c6a80c5011db50b347f99f78d4ad0",
+    "PUBLIC_REPOSITORY_HISTORY_AUDIT.json": "927f02a7c846f88a934d8079c0fceae647b64c13e95586cc71bfa4d01aa43cee",
+    "PUBLIC_HISTORY_RISK_ACCEPTANCE.json": "88b56932861515829bf049788574a37f89f3c7290c9652de2a9bc9b5e3638af7",
     "GITHUB_GOVERNANCE_OBSERVATION.json": "edba812f53e289231e61047b6986b3461075474051c5329b69d1e3d0db8873cb",
-    "../../HOST_RESOURCE_QUALIFICATION.json": "4836e9fcf3c31992516ab7d9fc67c24193e1587e104e3732e59ef6dee1dcceb3"
+    "../../HOST_RESOURCE_QUALIFICATION.json": "4836e9fcf3c31992516ab7d9fc67c24193e1587e104e3732e59ef6dee1dcceb3",
+    "../../HOST_CGROUP_REMEDIATION_BASELINE.json": "64c32b5232888cd047a9a13347fc2b408a06401455f9e1ff64818b35ef192670"
   },
   "localQualification": {
     "result": "PASS",
-    "stepCount": 14,
-    "testCount": 241
+    "stepCount": 21,
+    "uniqueTestCount": 147,
+    "repeatedNegativeTestCount": 34,
+    "gateExecutionCount": 8
   },
-  "publicationEligibility": "NOT_ELIGIBLE_UNTIL_BLOCKERS_REMEDIATED_AND_REAUDITED",
+  "publicationEligibility": "ELIGIBLE_WITH_OWNER_ACCEPTED_HISTORICAL_FINDINGS",
   "controlledUseAllowed": false,
   "exactTipCi": "BLOCKED_LOCAL_IMPLEMENTATION_NOT_PUSHED",
   "branchProtection": "BLOCKED_PUBLIC_DEFAULT_BRANCH_UNPROTECTED_REQUIRED_CHECKS_ABSENT",

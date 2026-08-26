@@ -1,46 +1,52 @@
 {
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "version": "0.6.6",
-  "generatedAt": "2026-08-26T03:38:29+10:00",
+  "generatedAt": "2026-08-26T10:11:00+10:00",
   "releaseStatus": "candidate",
   "qualificationStage": "FINAL_VERSION_CURRENT_REVISION_QUALIFICATION",
   "controlledUseAllowed": false,
-  "deliverableStatus": "OWNER_DECISIONS_IMPLEMENTED_LOCAL_PASS_EXTERNAL_BLOCKED",
+  "deliverableStatus": "PUBLIC_HISTORY_ACCEPTED_LOCAL_QUALIFICATION_PASS_EXTERNAL_AND_HOST_BLOCKED",
   "canonicalSource": "current/",
   "authoritativeRuntimeStatus": "current/release-status.json",
+  "authoritativeRuntimeStatusSha256": "500b1d79d80522e14a0921da90375db0d4b58243f81f5bc2c2818ccd0e9c4517",
+  "sourceProvenance": "SOURCE_PROVENANCE.json",
+  "sourceProvenanceSha256": "48db41363334e462ae893a6ed9eb17de3609b6632c86d63a62d2815ac12c38d9",
   "implementation": {
-    "branch": "repair/0.6.6-owner-decisions-and-r2-remediation",
-    "baselineHead": "587513fe45f25b9235eb0d430161d675be2adfa7",
-    "baselineTree": "beef11892852f0097f7db6be9a8e8dd82fa2e246",
-    "commit": "2ea556dc35d3695be3c5b7bad1b3dc86f07156c5",
-    "sourceTree": "3da5e552b75318497ce9c3bc840cd1c03fe60599",
-    "repositoryTree": "8491883183bab498365082f83607c5ab64b80f5b",
-    "committedAt": "2026-08-26T03:28:50+10:00",
-    "candidatePath": "0.6.6-candidate-2ea556dc35d3"
+    "branch": "repair/0.6.6-public-history-owner-acceptance-r2",
+    "baselineHead": "c53614dba3d14b1d441c317a167e8e158193df2b",
+    "baselineTree": "423a5b3139e64f85909463a655a138916f719b2b",
+    "commit": "cabf226a8b385732d2249a8af920d20f641aa2a6",
+    "sourceTree": "9021bb24cb3feb1463a13bc5d29b6016c2caa8ba",
+    "repositoryTree": "029b06a81626a8341d07a4cac2041e677b2c9371",
+    "committedAt": "2026-08-26T09:45:15+10:00",
+    "candidatePath": "0.6.6-candidate-cabf226a8b38"
   },
   "ownerDecisionImplementation": {
-    "DEC-001": "APPROVED_IMPLEMENTATION_BLOCKED_PUBLIC_HISTORY_REMEDIATION",
-    "DEC-002": "APPROVED_IMPLEMENTATION_BLOCKED_PUBLIC_HISTORY_AUDIT_PREREQUISITE",
-    "DEC-003": "APPROVED_IMPLEMENTATION_VERIFIED",
+    "DEC-001": "PUBLIC_HISTORY_AND_ZERO_GITLINK_GATES_PASS_BRANCH_GOVERNANCE_BLOCKED",
+    "DEC-002": "APPROVED_IMPLEMENTATION_VERIFIED",
+    "DEC-003": "APPROVED_IMPLEMENTATION_VERIFIED_HOST_GATE_BLOCKED",
     "DEC-004": "APPROVED_IMPLEMENTATION_VERIFIED"
   },
   "publicRepositoryHistoryAudit": {
     "path": "current/evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json",
-    "sha256": "c8d8373b178b205da8e917e20de711f13af8e28ff3d5f49e4a7a0b826c83aef5",
-    "result": "BLOCKED_PUBLIC_HISTORY_REMEDIATION",
-    "observedAt": "2026-08-25T17:45:37.529Z",
-    "blockers": [
-      "PUBLIC_HISTORY_PERSONAL_INFORMATION",
-      "UNSAFE_SYMLINK_OR_GITLINK_IN_HISTORY"
-    ],
+    "sha256": "927f02a7c846f88a934d8079c0fceae647b64c13e95586cc71bfa4d01aa43cee",
+    "riskAcceptancePath": "current/evidence/PUBLIC_HISTORY_RISK_ACCEPTANCE.json",
+    "riskAcceptanceSha256": "88b56932861515829bf049788574a37f89f3c7290c9652de2a9bc9b5e3638af7",
+    "result": "PASS",
+    "findingsDisposition": "PASS_WITH_OWNER_ACCEPTED_HISTORICAL_FINDINGS",
+    "observedAt": "2026-08-26T00:01:15.985Z",
+    "blockers": [],
+    "historyRewriteRequired": false,
     "confirmedSecrets": 0,
     "personalInformationCandidates": 0,
-    "publicationEligibility": "NOT_ELIGIBLE_UNTIL_BLOCKERS_REMEDIATED_AND_REAUDITED"
+    "publicationEligibility": "ELIGIBLE_WITH_OWNER_ACCEPTED_HISTORICAL_FINDINGS",
+    "activeSourceGitlinks": 0,
+    "activeSourceGitmodules": 0
   },
   "rootManifest": {
     "result": "PASS",
-    "trackedRegularFileCount": 872,
-    "manifestEntryCount": 871,
+    "trackedRegularFileCount": 884,
+    "manifestEntryCount": 883,
     "mismatch": 0,
     "missing": 0,
     "extra": 0,
@@ -49,19 +55,47 @@
     "selfReference": 0,
     "reverseReference": 0
   },
+  "currentManifest": {
+    "result": "PASS",
+    "trackedRegularFileCount": 360,
+    "manifestEntryCount": 359,
+    "mismatch": 0,
+    "missing": 0,
+    "extra": 0,
+    "duplicate": 0,
+    "modeMismatch": 0,
+    "selfReference": 0
+  },
   "localQualification": {
     "result": "PASS",
-    "stepCount": 14,
-    "testCount": 241,
-    "generatedAt": "2026-08-25T17:35:14.192Z"
+    "stepCount": 21,
+    "uniqueTestCount": 147,
+    "gateExecutionCount": 8,
+    "generatedAt": "2026-08-26T00:01:45.044Z"
   },
-  "negativeSmoke": "PASS_CURRENT_IMPLEMENTATION",
+  "negativeSmoke": {
+    "result": "PASS",
+    "repeatedTestCount": 34,
+    "generatedAt": "2026-08-26T00:04:28.407Z"
+  },
   "hostResourceGate": {
     "result": "BLOCKED_CONTROLLED_HOST_CGROUP_IO",
     "allFourOwnerProfilesProbed": true,
+    "onlyFailedRequiredControl": "IOWeight",
     "providerRequestsSent": 0,
+    "providerInputTokens": 0,
+    "providerOutputTokens": 0,
     "networkOperationsPerformed": false,
     "evidenceSha256": "4836e9fcf3c31992516ab7d9fc67c24193e1587e104e3732e59ef6dee1dcceb3"
+  },
+  "hostCgroupRemediation": {
+    "result": "HOST_CGROUP_RECONFIGURATION_PLAN_READY",
+    "baselineSha256": "64c32b5232888cd047a9a13347fc2b408a06401455f9e1ff64818b35ef192670",
+    "planSha256": "0c2104fa1d70014a237d788e6371445319dffb00b8e68ac26fa9dc4ef878b6c9",
+    "proposedDropInSha256": "43502dffd2236d66d7ba7c84d13b0120e02579cd1c67ba6a02635056dadf4940",
+    "privilegedCommandsExecuted": 0,
+    "systemFilesModified": 0,
+    "nextAuthorityRequired": "SEPARATE_EXPLICIT_HOST_CGROUP_RECONFIGURATION_APPROVAL"
   },
   "realProviderSmoke": "blocked_pre_provider_io_host_resource_gate",
   "exactTipCi": "BLOCKED_LOCAL_IMPLEMENTATION_NOT_PUSHED",

@@ -1,40 +1,54 @@
 {
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "version": "0.6.6",
   "releaseStatus": "candidate",
   "qualificationStage": "FINAL_VERSION_CURRENT_REVISION_QUALIFICATION",
   "controlledUseAllowed": false,
-  "deliverableStatus": "OWNER_DECISIONS_IMPLEMENTED_LOCAL_PASS_EXTERNAL_BLOCKED",
-  "generatedAt": "2026-08-26T03:38:29+10:00",
-  "statusReason": "All four Owner decisions and the remaining R2 implementation work are frozen in implementation commit 2ea556dc35d3695be3c5b7bad1b3dc86f07156c5. The exact revision passes 14 local qualification steps and 241 tests, the negative suite, and the full commit-suffixed candidate lifecycle. Publication remains blocked by hash-redacted personal information and historical gitlinks; controlled Provider qualification remains blocked before credentials or network because this host lacks delegated cgroup v2 I/O. The implementation is not pushed, exact-tip CI and protected attestation have not run, and the public default branch has no required-check protection.",
+  "deliverableStatus": "PUBLIC_HISTORY_ACCEPTED_LOCAL_QUALIFICATION_PASS_EXTERNAL_AND_HOST_BLOCKED",
+  "generatedAt": "2026-08-26T10:09:00+10:00",
+  "statusReason": "Public-history findings are owner-accepted and the current implementation passed local qualification and negative smoke. Controlled use remains forbidden because host cgroup v2 I/O delegation is not available; real Provider smoke, protected artifact attestation, branch push, exact-tip CI, branch governance, and final archive validation have not completed.",
   "canonicalSource": "current/",
   "historicalArchive": "archive/",
   "implementation": {
-    "branch": "repair/0.6.6-owner-decisions-and-r2-remediation",
-    "baselineHead": "587513fe45f25b9235eb0d430161d675be2adfa7",
-    "baselineTree": "beef11892852f0097f7db6be9a8e8dd82fa2e246",
-    "commit": "2ea556dc35d3695be3c5b7bad1b3dc86f07156c5",
-    "tree": "3da5e552b75318497ce9c3bc840cd1c03fe60599",
-    "repositoryTree": "8491883183bab498365082f83607c5ab64b80f5b",
-    "committedAt": "2026-08-26T03:28:50+10:00",
-    "candidatePath": "0.6.6-candidate-2ea556dc35d3"
+    "branch": "repair/0.6.6-public-history-owner-acceptance-r2",
+    "baselineHead": "c53614dba3d14b1d441c317a167e8e158193df2b",
+    "baselineTree": "423a5b3139e64f85909463a655a138916f719b2b",
+    "commit": "cabf226a8b385732d2249a8af920d20f641aa2a6",
+    "tree": "9021bb24cb3feb1463a13bc5d29b6016c2caa8ba",
+    "repositoryTree": "029b06a81626a8341d07a4cac2041e677b2c9371",
+    "committedAt": "2026-08-26T09:45:15+10:00",
+    "candidatePath": "0.6.6-candidate-cabf226a8b38"
   },
   "localQualification": {
     "result": "PASS",
-    "generatedAt": "2026-08-25T17:35:14.192Z",
-    "stepCount": 14,
-    "testCount": 241,
+    "generatedAt": "2026-08-26T00:01:45.044Z",
+    "stepCount": 21,
+    "testCount": 147,
+    "uniqueTestCount": 147,
+    "repeatedTestCount": 0,
+    "gateExecutionCount": 8,
     "pinnedHarnessCommit": "141eb6fef83422698aef7a981029e843e8161534",
     "pinnedHarnessBuildSha256": "6a294d72c51e6570852acaf73458cda98f555bd53c9c7ff0b49c568e7cf88a38"
   },
+  "negativeSmoke": {
+    "result": "PASS",
+    "generatedAt": "2026-08-26T00:04:28.407Z",
+    "testCount": 34,
+    "uniqueTestCount": 0,
+    "repeatedTestCount": 34,
+    "gateExecutionCount": 0
+  },
   "realProviderSmoke": "blocked_pre_provider_io_host_resource_gate",
   "realProviderQualification": {
-    "result": "BLOCKED_CONTROLLED_HOST_CGROUP_IO",
-    "generatedAt": "2026-08-25T17:36:26.699Z",
+    "result": "BLOCKED_PRE_PROVIDER_CURRENT_IMPLEMENTATION_HOST_CGROUP_RECONFIGURATION_REQUIRED",
+    "generatedAt": "2026-08-26T10:06:00+10:00",
+    "priorQualificationInvalidated": true,
     "providerRequestsSent": 0,
+    "providerInputTokens": 0,
+    "providerOutputTokens": 0,
     "networkOperationsPerformed": false,
     "credentialReadRequired": false,
-    "blocker": "required cgroup v2 IOWeight could not be established or observed on this host"
+    "blocker": "HOST_CGROUP_RECONFIGURATION_PLAN_READY"
   },
   "hostResourceQualification": {
     "path": "../HOST_RESOURCE_QUALIFICATION.json",
@@ -50,32 +64,44 @@
     "rlimitNoFile": true,
     "rlimitNproc": true,
     "rlimitFsize": true,
-    "protectedHostRecheckRequired": true,
     "allFourOwnerProfilesProbed": true,
-    "resourceProfileMatrixSha256": "08b1f4e2c4448a7be8861d40a741ec84e9a33e71f93910298e5037dffe8e4cd8",
-    "profileHashes": {
-      "local_or_flash_trivial_small": "504e1a402db9537cb73bc17daf14c625669137d9c2875d4642cc9aac90b8ca24",
-      "flash_medium": "19f0fb59808b0eab9b8f1557b8c8cdcfc78f4b3fa115d52fede5e31cef35ac81",
-      "pro_large": "cf2a4c262a8c84c91d44c27a6a2cef48c0be29d7fe3b90a7bdeb2614b44bb5f1",
-      "authoritative_verification": "fa40f0bcc3a67131888f0519506acb95bb07df69883ce6c44cffe44393edf6b5"
-    }
+    "onlyFailedRequiredControl": "IOWeight"
+  },
+  "hostCgroupRemediation": {
+    "baselinePath": "../HOST_CGROUP_REMEDIATION_BASELINE.json",
+    "baselineSha256": "64c32b5232888cd047a9a13347fc2b408a06401455f9e1ff64818b35ef192670",
+    "planPath": "docs/HOST_CGROUP_V2_REMEDIATION_PLAN_ZH.md",
+    "planSha256": "0c2104fa1d70014a237d788e6371445319dffb00b8e68ac26fa9dc4ef878b6c9",
+    "proposedDropInSha256": "43502dffd2236d66d7ba7c84d13b0120e02579cd1c67ba6a02635056dadf4940",
+    "result": "HOST_CGROUP_RECONFIGURATION_PLAN_READY",
+    "privilegedCommandsExecuted": 0,
+    "systemFilesModified": 0,
+    "nextAuthorityRequired": "SEPARATE_EXPLICIT_HOST_CGROUP_RECONFIGURATION_APPROVAL"
   },
   "publicRepositoryHistoryAudit": {
     "path": "evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json",
-    "sha256": "c8d8373b178b205da8e917e20de711f13af8e28ff3d5f49e4a7a0b826c83aef5",
-    "result": "BLOCKED_PUBLIC_HISTORY_REMEDIATION",
-    "observedAt": "2026-08-25T17:45:37.529Z",
-    "blockers": [
-      "PUBLIC_HISTORY_PERSONAL_INFORMATION",
-      "UNSAFE_SYMLINK_OR_GITLINK_IN_HISTORY"
-    ],
-    "secretsDetected": 0,
+    "sha256": "927f02a7c846f88a934d8079c0fceae647b64c13e95586cc71bfa4d01aa43cee",
+    "riskAcceptancePath": "evidence/PUBLIC_HISTORY_RISK_ACCEPTANCE.json",
+    "riskAcceptanceSha256": "88b56932861515829bf049788574a37f89f3c7290c9652de2a9bc9b5e3638af7",
+    "result": "PASS",
+    "findingsDisposition": "PASS_WITH_OWNER_ACCEPTED_HISTORICAL_FINDINGS",
+    "historyRewriteRequired": false,
+    "observedAt": "2026-08-26T00:01:15.985Z",
+    "blockers": [],
+    "confirmedSecrets": 0,
     "personalInformationCandidates": 0,
-    "publicationEligibility": "NOT_ELIGIBLE_UNTIL_BLOCKERS_REMEDIATED_AND_REAUDITED"
+    "publicationEligibility": "ELIGIBLE_WITH_OWNER_ACCEPTED_HISTORICAL_FINDINGS",
+    "acceptedHistoricalEmailCommitCount": 32,
+    "acceptedHistoricalEmailOccurrences": 64,
+    "acceptedHistoricalPathOccurrences": 136,
+    "acceptedHistoricalZipCount": 6,
+    "acceptedOpaqueHistoricalGitlinks": 3,
+    "activeSourceGitlinks": 0,
+    "activeSourceGitmodules": 0
   },
   "releaseTarget": {
     "repository": "zyc14588/codex-harness-skill",
-    "branch": "repair/0.6.6-owner-decisions-and-r2-remediation",
+    "branch": "repair/0.6.6-public-history-owner-acceptance-r2",
     "qualificationCommit": null,
     "qualificationTree": null,
     "sealMode": "current_checked_out_metadata_commit",
@@ -83,7 +109,7 @@
     "sealTree": null,
     "workflow": {
       "path": ".github/workflows/ci.yml",
-      "sha256": "63784b4ffc8d36ffc25e9189564e83270b9dda10f241ece335dfc31ad68fd3d1"
+      "sha256": "dfeb907afd2a56b2c02ead2dd68f3ec3db102de06f083d5f5b0c09fd22cbd063"
     }
   },
   "remoteQualification": {
@@ -96,29 +122,17 @@
     "repositoryVisibility": "public",
     "currentRepairBranchRemoteLookup": "ABSENT_NOT_PUSHED",
     "branchProtectionApi": "HTTP_404_DEFAULT_BRANCH_NOT_PROTECTED_REQUIRED_CHECKS_ABSENT",
-    "rulesetsApi": "HTTP_200_EMPTY_RULESET_LIST",
-    "initialAuthorizedPushRun": {
-      "headCommit": "0c8eadbcf91da90aeb2133961d597ecc590a9c36",
-      "runId": 32806143408,
-      "statusAtObservation": "in_progress",
-      "eligibleForFinalMetadataTip": false
-    },
-    "historicalPredecessorRun": {
-      "branch": "repair/0.6.6-provider-capability-and-release-integrity",
-      "headCommit": "c8f73753aab70524cb42f3984563c6ae74980fba",
-      "runId": 32677107669,
-      "conclusion": "success",
-      "eligibleForCurrentSeal": false
-    }
+    "rulesetsApi": "HTTP_200_EMPTY_RULESET_LIST"
   },
   "gates": {
+    "activeSourceStructure": "PASS_LOCAL_CURRENT_REVISION",
     "branchProtectionRequiredChecks": "BLOCKED_PUBLIC_DEFAULT_BRANCH_UNPROTECTED_REQUIRED_CHECKS_ABSENT",
     "brokeredToolCancellationNegatives": "PASS_LOCAL_CURRENT_REVISION",
     "cleanReviewedPatchVerification": "PASS_LOCAL_CURRENT_REVISION",
-    "currentRevisionFlashSmoke": "PENDING_PROTECTED_PROVIDER_RUN",
-    "currentRevisionProThinkingSmoke": "PENDING_PROTECTED_PROVIDER_RUN",
+    "currentRevisionFlashSmoke": "BLOCKED_HOST_CGROUP_RECONFIGURATION_REQUIRED",
+    "currentRevisionProThinkingSmoke": "BLOCKED_HOST_CGROUP_RECONFIGURATION_REQUIRED",
     "directAcceptance": "PASS_LOCAL_CURRENT_REVISION",
-    "dynamicManagedProfile": "PASS_LOCAL_PINNED_HARNESS",
+    "dynamicManagedProfile": "PASS_LOCAL_CURRENT_REVISION_PINNED_HARNESS",
     "githubActionsExactTip": "BLOCKED_LOCAL_IMPLEMENTATION_NOT_PUSHED",
     "ignoredPoisoningVerification": "PASS_LOCAL_CURRENT_REVISION",
     "modelReadOutputBounds": "PASS_LOCAL_CURRENT_REVISION",
@@ -127,21 +141,23 @@
     "operatorAuthenticationHardening": "PASS_LOCAL_CURRENT_REVISION",
     "processE2E": "PASS_LOCAL_CURRENT_REVISION",
     "protectedProviderEvidenceAttestation": "PENDING_NOT_CREATED",
-    "providerCapabilityIsolation": "PASS_LOCAL_NEGATIVE_MATRIX",
+    "providerCapabilityIsolation": "PASS_LOCAL_CURRENT_REVISION",
     "reasoningReplayFailureInjection": "PASS_LOCAL_CURRENT_REVISION",
-    "repositoryHistoryReadBoundaryDecision": "BLOCKED_PUBLIC_HISTORY_AUDIT_PREREQUISITE",
+    "repositoryHistoryReadBoundaryDecision": "PASS_WITH_OWNER_ACCEPTED_HISTORICAL_FINDINGS",
     "resourceControlEnforcement": "BLOCKED_HOST_IO_CONTROLLER_AND_PROTECTED_HOST",
     "resourceExhaustionNegatives": "PASS_LOCAL_CURRENT_REVISION",
     "securityAcceptance": "PASS_LOCAL_CURRENT_REVISION",
     "skillValidation": "PASS_LOCAL_CURRENT_REVISION",
     "stdioMcpAcceptance": "PASS_LOCAL_CURRENT_REVISION",
-    "transactionalPackageAcceptance": "PASS_LOCAL_CANDIDATE_LIFECYCLE",
-    "unitAndComponentRegression": "PASS_LOCAL_WITH_CONTROLLED_RESOURCE_GATE_SEPARATE"
+    "transactionalPackageAcceptance": "PASS_LOCAL_CURRENT_REVISION",
+    "unitAndComponentRegression": "PASS_LOCAL_CURRENT_REVISION"
   },
   "ownerDecisions": {
     "path": "docs/OWNER_DECISIONS.json",
-    "sha256": "8c28d2aeacc13fddfbe79a8b35d7f4c70c3714c4335929fa5e42d57ec2315921",
-    "status": "APPROVED_DEC003_DEC004_VERIFIED_DEC001_DEC002_BLOCKED_PUBLIC_HISTORY",
+    "sha256": "3551409660e202c18084a3e9f405b8f7ba9a39c476bf7c847a77481d029c140d",
+    "qualificationPath": "evidence/OWNER_DECISIONS_LOCAL_QUALIFICATION.json",
+    "qualificationSha256": "6b0d5df457b2f2e9ada04c9ed09f26ec91acd29a847f95f9b5780bd886e314f2",
+    "status": "DEC001_PUBLIC_HISTORY_PASS_BRANCH_GOVERNANCE_BLOCKED_DEC002_DEC003_DEC004_IMPLEMENTED",
     "approvalChangesRequireNewImplementationCommitAndRequalification": true
   },
   "localQualificationEvidencePath": "evidence/01_CURRENT_REVISION_LOCAL_QUALIFICATION.json",
@@ -152,9 +168,9 @@
   "ownerDecisionQualificationEvidencePath": "evidence/OWNER_DECISIONS_LOCAL_QUALIFICATION.json",
   "githubGovernanceEvidencePath": "evidence/GITHUB_GOVERNANCE_OBSERVATION.json",
   "artifactBindings": {
-    "bindingStatus": "CURRENT_IMPLEMENTATION_LOCAL_AND_NEGATIVE_BOUND_EXTERNAL_BLOCKED",
-    "sourceTreeSha256": "59ca4f30073aaf9828f2aa7037be31375c91549d008041e0095f7660f20ac811",
-    "sourceProvenanceSha256": "1459da59fc08e3dfb8e05434a74b669eaaecb4954ddca41aacf6b706af85bacf",
+    "bindingStatus": "CURRENT_IMPLEMENTATION_LOCAL_QUALIFICATION_PASS",
+    "sourceTreeSha256": "93bd97df7e471ae27568de8b4d989f94074c82c9de58c445c7ad5e56ce91fb16",
+    "sourceProvenanceSha256": "0e4ca324b7adba97764104f92cf4ecf1d7962dcdfbc7b8c7a9c915c0bb1760dd",
     "packageLockSha256": "c7c2c34eb96aff613a87aa10c13a1b03a87cfc6a6b2320c2c9c3a1d1641433ab",
     "criticalSetSha256": "3f7e3e00dfd5cd0135e10062b6278b9d96a49c05210c53f6bb4d864eb2463821",
     "criticalPathSha256": {
@@ -177,15 +193,17 @@
       "commit": "141eb6fef83422698aef7a981029e843e8161534",
       "buildSha256": "6a294d72c51e6570852acaf73458cda98f555bd53c9c7ff0b49c568e7cf88a38"
     },
-    "candidateEvidenceSha256": {
-      "evidence/01_CURRENT_REVISION_LOCAL_QUALIFICATION.json": "b7b4cf08a98e44e0874b74db693ea2d1c85c994aee5f630703f99244deb0c375",
-      "evidence/02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json": "90864729c06680264eccc325feba982753362dff983eee7e053037f93502fe81",
-      "evidence/03_CURRENT_REVISION_NEGATIVE_SMOKE.json": "c102025c879a8d352bb729be4ea3bd1fbaff4135382dca21d76c2413fe8a965f"
+    "requiredEvidenceSha256": {
+      "evidence/01_CURRENT_REVISION_LOCAL_QUALIFICATION.json": "66b49a317ea4b5dd0feec8a93bed77f11354d01b0f4c00c34d11e6711e51af60",
+      "evidence/02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json": "ded57e472d58c4e7425cafb9d1ed472f5cb92a869459e9ad5d9f1f52882d23e0",
+      "evidence/03_CURRENT_REVISION_NEGATIVE_SMOKE.json": "0a25be2562ecc05ddd9a21db55f638e8923c6a80c5011db50b347f99f78d4ad0"
     },
     "observationalEvidenceSha256": {
       "evidence/GITHUB_GOVERNANCE_OBSERVATION.json": "edba812f53e289231e61047b6986b3461075474051c5329b69d1e3d0db8873cb",
-      "evidence/OWNER_DECISIONS_LOCAL_QUALIFICATION.json": "b8b4b63fde1fed5f3bd462563514b90fdc29daa047fffd0692dee7913d52a06d",
-      "evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json": "c8d8373b178b205da8e917e20de711f13af8e28ff3d5f49e4a7a0b826c83aef5",
+      "evidence/OWNER_DECISIONS_LOCAL_QUALIFICATION.json": "6b0d5df457b2f2e9ada04c9ed09f26ec91acd29a847f95f9b5780bd886e314f2",
+      "evidence/PUBLIC_HISTORY_RISK_ACCEPTANCE.json": "88b56932861515829bf049788574a37f89f3c7290c9652de2a9bc9b5e3638af7",
+      "evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json": "927f02a7c846f88a934d8079c0fceae647b64c13e95586cc71bfa4d01aa43cee",
+      "../HOST_CGROUP_REMEDIATION_BASELINE.json": "64c32b5232888cd047a9a13347fc2b408a06401455f9e1ff64818b35ef192670",
       "../HOST_RESOURCE_QUALIFICATION.json": "4836e9fcf3c31992516ab7d9fc67c24193e1587e104e3732e59ef6dee1dcceb3"
     },
     "historicalObservationalEvidenceSha256": {

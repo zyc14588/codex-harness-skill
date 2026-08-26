@@ -1,21 +1,21 @@
-schemaVersion: 3
+schemaVersion: 4
 version: "0.6.6"
 canonicalSource: current/
 historicalArchive: archive/
-baselineBranch: repair/0.6.6-pre-release-audit-r1
-baselineHead: 587513fe45f25b9235eb0d430161d675be2adfa7
-baselineTree: beef11892852f0097f7db6be9a8e8dd82fa2e246
-repairBranch: repair/0.6.6-owner-decisions-and-r2-remediation
+baselineBranch: repair/0.6.6-public-history-acceptance-and-host-cgroup-r1
+baselineHead: c53614dba3d14b1d441c317a167e8e158193df2b
+baselineTree: 423a5b3139e64f85909463a655a138916f719b2b
+repairBranch: repair/0.6.6-public-history-owner-acceptance-r2
 releaseStatus: candidate
 controlledUseAllowed: false
-deliverableStatus: OWNER_DECISIONS_IMPLEMENTED_LOCAL_PASS_EXTERNAL_BLOCKED
+deliverableStatus: PUBLIC_HISTORY_ACCEPTED_LOCAL_QUALIFICATION_PASS_EXTERNAL_AND_HOST_BLOCKED
 qualificationStage: FINAL_VERSION_CURRENT_REVISION_QUALIFICATION
 finalArchive: null
 implementation:
-  commit: 2ea556dc35d3695be3c5b7bad1b3dc86f07156c5
-  sourceTree: 3da5e552b75318497ce9c3bc840cd1c03fe60599
-  repositoryTree: 8491883183bab498365082f83607c5ab64b80f5b
-  candidatePath: 0.6.6-candidate-2ea556dc35d3
+  commit: cabf226a8b385732d2249a8af920d20f641aa2a6
+  sourceTree: 9021bb24cb3feb1463a13bc5d29b6016c2caa8ba
+  repositoryTree: 029b06a81626a8341d07a4cac2041e677b2c9371
+  candidatePath: 0.6.6-candidate-cabf226a8b38
 stateMachine:
   phases:
     - candidate
@@ -27,6 +27,7 @@ stateMachine:
   canonicalSourceMayReceivePackageOriginMarker: false
   stableInstallRequiresPackageOriginMarker: true
 requiredStableSourceGateKeys:
+  - activeSourceStructure
   - branchProtectionRequiredChecks
   - brokeredToolCancellationNegatives
   - cleanReviewedPatchVerification
@@ -61,6 +62,7 @@ requiredArchiveChecks:
   - unpackedManifest
   - unpackedPackageAcceptance
   - unpackedSourceGate
+  - zeroGitlinkAndMetadata
 requirements:
   exactGateKeySet: required
   allGateValuesPass: required
@@ -79,17 +81,35 @@ requirements:
 currentQualification:
   rootManifest: PASS_ZERO_DRIFT
   localQualification: PASS_CURRENT_IMPLEMENTATION
-  localQualificationStepCount: 14
-  localQualificationTestCount: 241
+  localQualificationStepCount: 21
+  localQualificationUniqueTestCount: 147
+  localQualificationGateExecutionCount: 8
   negativeSmoke: PASS_CURRENT_IMPLEMENTATION
-  realProviderSmoke: BLOCKED_PRE_PROVIDER_IO_HOST_IO_CONTROLLER
+  negativeSmokeRepeatedTestCount: 34
+  realProviderSmoke: BLOCKED_PRE_PROVIDER_CURRENT_IMPLEMENTATION_HOST_CGROUP_RECONFIGURATION_REQUIRED
   providerRequestsSent: 0
-  publicRepositoryHistoryAudit: BLOCKED_PUBLIC_HISTORY_REMEDIATION
+  providerInputTokens: 0
+  providerOutputTokens: 0
+  publicRepositoryHistoryAudit: PASS_WITH_OWNER_ACCEPTED_HISTORICAL_FINDINGS
+  historyRewriteRequired: false
+  activeSourceGitlinks: 0
+  activeSourceGitmodules: 0
+  hostCgroupRemediation: HOST_CGROUP_RECONFIGURATION_PLAN_READY
   exactTipCi: BLOCKED_LOCAL_IMPLEMENTATION_NOT_PUSHED
   protectedProviderArtifactAttestation: PENDING_NOT_CREATED
   branchProtectionRequiredChecks: BLOCKED_PUBLIC_DEFAULT_BRANCH_UNPROTECTED_REQUIRED_CHECKS_ABSENT
-  ownerDecisions: APPROVED_DEC003_DEC004_VERIFIED_DEC001_DEC002_BLOCKED_PUBLIC_HISTORY
+  ownerDecisions: DEC001_PUBLIC_HISTORY_PASS_BRANCH_GOVERNANCE_BLOCKED_DEC002_DEC003_DEC004_IMPLEMENTED
   deterministicArchive: PENDING_AFTER_SEAL_READY
+evidenceBindings:
+  localQualificationSha256: 66b49a317ea4b5dd0feec8a93bed77f11354d01b0f4c00c34d11e6711e51af60
+  providerBlockedSha256: ded57e472d58c4e7425cafb9d1ed472f5cb92a869459e9ad5d9f1f52882d23e0
+  negativeSmokeSha256: 0a25be2562ecc05ddd9a21db55f638e8923c6a80c5011db50b347f99f78d4ad0
+  ownerDecisionQualificationSha256: 6b0d5df457b2f2e9ada04c9ed09f26ec91acd29a847f95f9b5780bd886e314f2
+  publicHistoryAuditSha256: 927f02a7c846f88a934d8079c0fceae647b64c13e95586cc71bfa4d01aa43cee
+  publicHistoryRiskAcceptanceSha256: 88b56932861515829bf049788574a37f89f3c7290c9652de2a9bc9b5e3638af7
+  hostResourceQualificationSha256: 4836e9fcf3c31992516ab7d9fc67c24193e1587e104e3732e59ef6dee1dcceb3
+  hostCgroupRemediationBaselineSha256: 64c32b5232888cd047a9a13347fc2b408a06401455f9e1ff64818b35ef192670
+  hostCgroupRemediationPlanSha256: 0c2104fa1d70014a237d788e6371445319dffb00b8e68ac26fa9dc4ef878b6c9
 externalState:
   repositoryVisibility: public
   defaultBranch: main
@@ -108,7 +128,7 @@ remoteOperations:
   automaticGitHubRelease: forbidden
 ownerDecisions:
   path: current/docs/OWNER_DECISIONS.json
-  status: APPROVED_DEC003_DEC004_VERIFIED_DEC001_DEC002_BLOCKED_PUBLIC_HISTORY
+  status: DEC001_PUBLIC_HISTORY_PASS_BRANCH_GOVERNANCE_BLOCKED_DEC002_DEC003_DEC004_IMPLEMENTED
   approvalsMustBeInImplementationCommit: true
   approvalChangeRequiresFullRequalification: true
 promotion:

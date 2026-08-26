@@ -1,34 +1,40 @@
 {
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "auditDate": "2026-08-26",
   "repository": "zyc14588/codex-harness-skill",
-  "baselineHead": "587513fe45f25b9235eb0d430161d675be2adfa7",
-  "repairBranch": "repair/0.6.6-owner-decisions-and-r2-remediation",
+  "baselineHead": "c53614dba3d14b1d441c317a167e8e158193df2b",
+  "repairBranch": "repair/0.6.6-public-history-owner-acceptance-r2",
   "canonicalSource": "current/",
-  "verdict": "OWNER_DECISIONS_IMPLEMENTED_LOCAL_PASS_EXTERNAL_BLOCKED",
+  "verdict": "PUBLIC_HISTORY_ACCEPTED_LOCAL_QUALIFICATION_PASS_EXTERNAL_AND_HOST_BLOCKED",
   "releaseStatus": "candidate",
-  "stablePromotionAllowed": false,
+  "promotionAllowed": false,
   "controlledUseAllowed": false,
   "finalArchive": null,
   "implementation": {
-    "commit": "2ea556dc35d3695be3c5b7bad1b3dc86f07156c5",
-    "sourceTree": "3da5e552b75318497ce9c3bc840cd1c03fe60599",
-    "repositoryTree": "8491883183bab498365082f83607c5ab64b80f5b",
-    "sourceTreeSha256": "59ca4f30073aaf9828f2aa7037be31375c91549d008041e0095f7660f20ac811",
+    "commit": "cabf226a8b385732d2249a8af920d20f641aa2a6",
+    "sourceTree": "9021bb24cb3feb1463a13bc5d29b6016c2caa8ba",
+    "repositoryTree": "029b06a81626a8341d07a4cac2041e677b2c9371",
+    "sourceTreeSha256": "93bd97df7e471ae27568de8b4d989f94074c82c9de58c445c7ad5e56ce91fb16",
+    "sourceFileCount": 345,
     "criticalSetSha256": "3f7e3e00dfd5cd0135e10062b6278b9d96a49c05210c53f6bb4d864eb2463821"
   },
   "counts": {
-    "implementationFindingsClosedLocally": 7,
     "ownerDecisionsApproved": 4,
-    "ownerDecisionImplementationsVerified": 2,
-    "publicationBlockerClasses": 2,
-    "localQualificationSteps": 14,
-    "localQualificationTests": 241
+    "ownerDecisionImplementationsVerified": 3,
+    "ownerAcceptedPublicHistoryFindingClasses": 3,
+    "unresolvedPublicHistoryBlockerClasses": 0,
+    "localQualificationSteps": 21,
+    "localUniqueTests": 147,
+    "localGateExecutions": 8,
+    "negativeRepeatedTests": 34,
+    "providerRequestsSent": 0,
+    "providerInputTokens": 0,
+    "providerOutputTokens": 0
   },
   "rootManifest": {
     "result": "PASS",
-    "trackedRegularFileCount": 872,
-    "manifestEntryCount": 871,
+    "trackedRegularFileCount": 884,
+    "manifestEntryCount": 883,
     "mismatch": 0,
     "missing": 0,
     "extra": 0,
@@ -38,62 +44,63 @@
     "reverseReference": 0
   },
   "closedImplementationFindings": [
+    "owner-accepted public-history findings are exact-count and exact-byte bound",
+    "active source, candidate package, archive staging, and final ZIP reject gitlinks and .gitmodules",
     "exact fail-closed release gates and non-circular seal state",
     "Brokered Tool cancellation through Host process groups",
     "tiered cgroup, RLIMIT, runtime, file-size and aggregate worktree ceilings",
     "protected Provider artifact and GitHub/Sigstore verification workflow",
-    "root Git-index manifest generation and strict verification",
+    "root and current source manifest generation and strict verification",
     "operator authentication audit aggregation, rotation and retention",
     "complete paginated changed-file/history read receipts and model-visible output ceilings"
   ],
   "ownerDecisions": {
-    "DEC-001": "APPROVED_IMPLEMENTATION_BLOCKED_PUBLIC_HISTORY_REMEDIATION",
-    "DEC-002": "APPROVED_IMPLEMENTATION_BLOCKED_PUBLIC_HISTORY_AUDIT_PREREQUISITE",
-    "DEC-003": "APPROVED_IMPLEMENTATION_VERIFIED",
+    "DEC-001": "PUBLIC_HISTORY_AND_ZERO_GITLINK_GATES_PASS_BRANCH_GOVERNANCE_BLOCKED",
+    "DEC-002": "APPROVED_IMPLEMENTATION_VERIFIED",
+    "DEC-003": "APPROVED_IMPLEMENTATION_VERIFIED_HOST_GATE_BLOCKED",
     "DEC-004": "APPROVED_IMPLEMENTATION_VERIFIED"
   },
   "publicRepositoryHistoryAudit": {
     "path": "current/evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json",
-    "sha256": "c8d8373b178b205da8e917e20de711f13af8e28ff3d5f49e4a7a0b826c83aef5",
-    "result": "BLOCKED_PUBLIC_HISTORY_REMEDIATION",
-    "coverage": "current worktree, tracked and untracked paths, all refs, all reachable history, deleted historical files, archives, ZIP contents, logs, prompts, evidence, objects, LFS, privacy, secrets, and licensing",
-    "blockers": [
-      "PUBLIC_HISTORY_PERSONAL_INFORMATION",
-      "UNSAFE_SYMLINK_OR_GITLINK_IN_HISTORY"
-    ],
+    "sha256": "927f02a7c846f88a934d8079c0fceae647b64c13e95586cc71bfa4d01aa43cee",
+    "riskAcceptancePath": "current/evidence/PUBLIC_HISTORY_RISK_ACCEPTANCE.json",
+    "riskAcceptanceSha256": "88b56932861515829bf049788574a37f89f3c7290c9652de2a9bc9b5e3638af7",
+    "result": "PASS",
+    "findingsDisposition": "PASS_WITH_OWNER_ACCEPTED_HISTORICAL_FINDINGS",
+    "coverage": "current worktree, tracked and untracked paths, all refs, all reachable history, deleted historical files, archives, ZIP contents, logs, prompts, evidence, objects, LFS, privacy, secrets, and distributed-content licensing",
+    "blockers": [],
+    "historyRewriteRequired": false,
     "confirmedSecrets": 0,
     "personalInformationCandidates": 0,
-    "lfsPointers": 0,
-    "archiveIntegrityFindings": 0,
-    "largeObjects": 0,
-    "dependencyLicenseReview": "PASS_CURRENT_DECLARED_DEPENDENCY_LICENSE_REVIEW",
-    "remediationAuthorityRequired": true
+    "acceptedEmailIdentifierCommitCount": 32,
+    "acceptedAuthorCommitterOccurrences": 64,
+    "acceptedPathIdentifierOccurrences": 136,
+    "historicalZipFiles": 6,
+    "zipMemberOccurrencesOverlapInclusive": 3288,
+    "zipMembersAfterZipBlobDeduplication": 1776,
+    "acceptedOpaqueHistoricalGitlinks": 3,
+    "activeSourceGitlinks": 0,
+    "activeSourceGitmodules": 0,
+    "unresolvedDistributedLicenseFindings": 0,
+    "externalTargetLicenseComplianceAsserted": false,
+    "externalTargetContentDistributed": false
   },
   "remainingBlockers": [
     {
-      "id": "PUB-001",
-      "title": "Hash-redacted personal information remains in reachable public history",
-      "status": "BLOCKED_USER_AUTHORIZATION_REQUIRED_FOR_REMEDIATION"
-    },
-    {
-      "id": "PUB-002",
-      "title": "Historical Gitlinks require provenance/remediation before publication eligibility PASS",
-      "status": "BLOCKED_USER_AUTHORIZATION_REQUIRED_FOR_REMEDIATION"
-    },
-    {
       "id": "HOST-001",
-      "title": "Every Owner resource profile lacks delegated cgroup v2 I/O on this host",
-      "status": "BLOCKED_CONTROLLED_HOST_CGROUP_IO",
-      "providerRequestsSent": 0
+      "title": "The user manager does not receive delegated cgroup v2 I/O",
+      "status": "HOST_CGROUP_RECONFIGURATION_PLAN_READY",
+      "providerRequestsSent": 0,
+      "planSha256": "0c2104fa1d70014a237d788e6371445319dffb00b8e68ac26fa9dc4ef878b6c9"
     },
     {
       "id": "EXT-001",
-      "title": "The current implementation is not pushed and has no exact-tip strict CI conclusion",
+      "title": "The current branch is not pushed and has no exact-tip strict CI conclusion",
       "status": "BLOCKED_LOCAL_IMPLEMENTATION_NOT_PUSHED"
     },
     {
       "id": "EXT-002",
-      "title": "Protected real-Provider artifact and GitHub attestation have not run",
+      "title": "Current-revision protected real-Provider smoke and artifact attestation have not run",
       "status": "PENDING_EXTERNAL_PROTECTED_RUN"
     },
     {
@@ -103,7 +110,7 @@
     },
     {
       "id": "ART-001",
-      "title": "Seal-ready verification and deterministic final archive are gated on all prior blockers",
+      "title": "Seal-ready verification and deterministic final archive remain gated on all prior blockers",
       "status": "PENDING_AFTER_ALL_REQUIRED_GATES"
     }
   ],
@@ -115,5 +122,6 @@
     "branchProtectionApi": "HTTP_404_DEFAULT_BRANCH_NOT_PROTECTED_REQUIRED_CHECKS_ABSENT",
     "rulesetsApi": "HTTP_200_EMPTY_RULESET_LIST"
   },
+  "hostMutationPerformed": false,
   "remoteMutationPerformed": false
 }

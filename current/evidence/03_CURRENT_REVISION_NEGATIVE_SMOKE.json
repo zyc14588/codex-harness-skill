@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "result": "PASS",
   "version": "0.6.6",
-  "generatedAt": "2026-08-25T17:36:02.018Z",
+  "generatedAt": "2026-08-26T00:04:28.407Z",
   "currentRevision": true,
-  "sourceCommit": "2ea556dc35d3695be3c5b7bad1b3dc86f07156c5",
-  "sourceTree": "3da5e552b75318497ce9c3bc840cd1c03fe60599",
-  "sourceTreeSha256": "59ca4f30073aaf9828f2aa7037be31375c91549d008041e0095f7660f20ac811",
-  "sourceFileCount": 338,
+  "sourceCommit": "cabf226a8b385732d2249a8af920d20f641aa2a6",
+  "sourceTree": "9021bb24cb3feb1463a13bc5d29b6016c2caa8ba",
+  "sourceTreeSha256": "93bd97df7e471ae27568de8b4d989f94074c82c9de58c445c7ad5e56ce91fb16",
+  "sourceFileCount": 345,
   "criticalSetSha256": "3f7e3e00dfd5cd0135e10062b6278b9d96a49c05210c53f6bb4d864eb2463821",
   "criticalPathSha256": {
     "bridge/src/security.ts": "30012c7559053cfd5ebbb4722d65a02b7c5949e7fd43bb5678c3ff0e43ac4160",
@@ -25,6 +25,12 @@
     "harness/minimal/profile/bridge-headless-runner.mjs": "c647264daeecc37d845de1b42937c328fec22c5c1618f0c830108ab83e74c8c3",
     "harness/minimal/profile/cordis.patch.yml": "e46d24af07c98ce331b17658fa9dce4d68db793d8f5447f43f49c8d2d5b209ce"
   },
+  "testCount": 34,
+  "testAccounting": {
+    "uniqueTestCount": 0,
+    "repeatedTestCount": 34,
+    "gateExecutionCount": 0
+  },
   "tests": [
     {
       "testFile": "bridge/dist/test/harness-isolation.test.js",
@@ -32,7 +38,7 @@
       "exitCode": 0,
       "signal": null,
       "testCount": 1,
-      "outputSha256": "6149222faa6197fefc4d6a5f793eeaf1905d8a4eb57c19fcb87c8fe912fa239e"
+      "outputSha256": "339f194c66a5cd7c55ae1a43415dca713ba5c10a1338a98ea6bed006b5e517eb"
     },
     {
       "testFile": "bridge/dist/test/brokered-tool-registry.test.js",
@@ -40,7 +46,7 @@
       "exitCode": 0,
       "signal": null,
       "testCount": 2,
-      "outputSha256": "42b31fa0e06d884816bda86804b94b83dd01b6dc3ce1bcb1704376467168decd"
+      "outputSha256": "19a12c123eec9ce84cdaa54dda6669f7b01645883572aa5568971fce681be220"
     },
     {
       "testFile": "bridge/dist/test/process-group.test.js",
@@ -48,7 +54,7 @@
       "exitCode": 0,
       "signal": null,
       "testCount": 3,
-      "outputSha256": "3edda5a221fbdb889ff9057de84faabaa63c2ff73bbbf7edd8bdbef0df63c3e9"
+      "outputSha256": "f2e2874aea809e21913021788629a54b332a06009fa46be82605947e81ac6d23"
     },
     {
       "testFile": "bridge/dist/test/resource-controls.test.js",
@@ -56,7 +62,7 @@
       "exitCode": 0,
       "signal": null,
       "testCount": 9,
-      "outputSha256": "565a4a82984333b7b9eb350d7f55cbfc8e73201f43727560ceff3a6d4c088369"
+      "outputSha256": "eda600b4c58191da94702c6868698a76cdd72626fa4c0ee350cbba5dec69daab"
     },
     {
       "testFile": "bridge/dist/test/model-visible-output.test.js",
@@ -64,7 +70,7 @@
       "exitCode": 0,
       "signal": null,
       "testCount": 4,
-      "outputSha256": "8543808775b3f2f8027dabed2d7316e774f155856deb913a4359e290d78a24a5"
+      "outputSha256": "35c027ddb123ce3948df071c727580e7065f75bf85a9ca8da2d7c349c1358927"
     },
     {
       "testFile": "bridge/dist/test/security.test.js",
@@ -72,7 +78,7 @@
       "exitCode": 0,
       "signal": null,
       "testCount": 6,
-      "outputSha256": "64f2141060390ef1b3bb5b4d2c8ea10dbf08451b2d5f16a423882349f93b7c61"
+      "outputSha256": "42ef3cb2e86f7b5f421fcc88f72ca4872db0302374735099365c5256ddea45e1"
     },
     {
       "testFile": "bridge/dist/test/provider-protocol-fail-fast.test.js",
@@ -80,7 +86,7 @@
       "exitCode": 0,
       "signal": null,
       "testCount": 2,
-      "outputSha256": "17ed4ec595af90465bd1893d367ffc01f1800e131b02dfb90e2581049bbe3cb6"
+      "outputSha256": "208a91f452035d182e4d2df6d8b0b4286c86b6f2569501a89d41885bb0f80f74"
     },
     {
       "testFile": "bridge/dist/test/verification-isolation.test.js",
@@ -88,7 +94,15 @@
       "exitCode": 0,
       "signal": null,
       "testCount": 1,
-      "outputSha256": "0f8502cd1b6ab6146d6461af9e20c1511f1e43e2da50dd0af4c7efe4304ad1fb"
+      "outputSha256": "f776bff9e0e9d49c2dae257de4376d4c9f3b9619105b41846dd13701c6150e86"
+    },
+    {
+      "testFile": "scripts/release-structure.test.mjs",
+      "result": "PASS",
+      "exitCode": 0,
+      "signal": null,
+      "testCount": 6,
+      "outputSha256": "06c55257df4572ca62b0f34a84c12a7b61a6faadb6616145f35b2fc2f7487d3b"
     }
   ],
   "assertions": {
@@ -110,6 +124,7 @@
     "forkMemoryDiskAndTimeoutHostNegatives": true,
     "modelVisibleReadByteAndEstimatedTokenBounds": true,
     "operatorAuditFloodAggregationRotationAndRetention": true,
+    "activePackageArchiveZeroGitlinkNegatives": true,
     "controlledUseRequiresAllCgroupControllers": "PROTECTED_HOST_GATE_REQUIRED"
   }
 }

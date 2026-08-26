@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "version": "0.6.6",
+  "generatedAt": "2026-08-26T00:01:16.023Z",
+  "result": "PASS",
+  "findingsDisposition": "PASS_WITH_OWNER_ACCEPTED_HISTORICAL_FINDINGS",
+  "historyRewriteRequired": false,
+  "confirmedSecrets": 0,
+  "unresolvedDistributedLicenseFindings": 0,
+  "ownerDecisionIds": [
+    "PUB-HIST-EMAIL-001",
+    "PUB-HIST-PATH-001",
+    "PUB-HIST-GITLINK-001"
+  ],
+  "acceptedCounts": {
+    "emailIdentifierCommitCount": 32,
+    "authorCommitterOccurrences": 64,
+    "pathIdentifierOccurrences": 136,
+    "historicalZipFiles": 6,
+    "historicalGitlinks": 3,
+    "zipMemberOccurrencesOverlapInclusive": 3288,
+    "zipMembersAfterZipBlobDeduplication": 1776
+  },
+  "rawAuditRecovery": {
+    "sourcePath": "/tmp/codex-public-history-audit-20260826.json",
+    "copiedAt": "2026-08-25T23:19:24.291Z",
+    "controlledPath": "current/evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT_BASELINE_2026-08-26.json",
+    "sha256": "3af7e6be9ad2498bca234e469529098f871d795df9da972c2434ca5e308a3afb",
+    "ordinaryRegularFileVerified": true,
+    "symbolicLink": false,
+    "sourceBytesPreserved": true
+  },
+  "ownerAcceptance": {
+    "path": "current/evidence/PUBLIC_HISTORY_OWNER_ACCEPTANCE.json",
+    "sha256": "b5f0ea734893cc881427761c9efbc7173b3b8ad50512e90e5df314e418dc490a",
+    "decidedBy": "zyc14588",
+    "decidedAt": "2026-08-26T08:51:40+10:00"
+  },
+  "currentAudit": {
+    "path": "current/evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json",
+    "sha256": "927f02a7c846f88a934d8079c0fceae647b64c13e95586cc71bfa4d01aa43cee",
+    "head": "cabf226a8b385732d2249a8af920d20f641aa2a6"
+  },
+  "scopeAssertions": {
+    "ownerAliasConfirmed": true,
+    "unrelatedThirdPartyPersonalInformation": 0,
+    "additionalSensitiveFields": 0,
+    "activeSourceGitlinks": 0,
+    "activeSourceGitmodules": 0,
+    "externalTargetLicenseComplianceVerified": false,
+    "externalTargetContentDistributed": false
+  }
+}

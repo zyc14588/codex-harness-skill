@@ -1,63 +1,84 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "version": "0.6.6",
   "canonicalSource": "current/",
   "canonicalProvenance": "current/SOURCE_PROVENANCE.json",
-  "canonicalProvenanceSha256": "1459da59fc08e3dfb8e05434a74b669eaaecb4954ddca41aacf6b706af85bacf",
+  "canonicalProvenanceSha256": "0e4ca324b7adba97764104f92cf4ecf1d7962dcdfbc7b8c7a9c915c0bb1760dd",
   "repository": "git@github.com:zyc14588/codex-harness-skill.git",
-  "repairBranch": "repair/0.6.6-owner-decisions-and-r2-remediation",
-  "repairBaselineHead": "587513fe45f25b9235eb0d430161d675be2adfa7",
-  "repairBaselineTree": "beef11892852f0097f7db6be9a8e8dd82fa2e246",
-  "implementationCommit": "2ea556dc35d3695be3c5b7bad1b3dc86f07156c5",
-  "implementationTree": "3da5e552b75318497ce9c3bc840cd1c03fe60599",
-  "implementationRepositoryTree": "8491883183bab498365082f83607c5ab64b80f5b",
-  "implementationCommittedAt": "2026-08-26T03:28:50+10:00",
+  "repairBranch": "repair/0.6.6-public-history-owner-acceptance-r2",
+  "repairBaselineHead": "c53614dba3d14b1d441c317a167e8e158193df2b",
+  "repairBaselineTree": "423a5b3139e64f85909463a655a138916f719b2b",
+  "implementationCommit": "cabf226a8b385732d2249a8af920d20f641aa2a6",
+  "implementationTree": "9021bb24cb3feb1463a13bc5d29b6016c2caa8ba",
+  "implementationRepositoryTree": "029b06a81626a8341d07a4cac2041e677b2c9371",
+  "implementationCommittedAt": "2026-08-26T09:45:15+10:00",
+  "candidatePath": "0.6.6-candidate-cabf226a8b38",
   "historicalArchive": "archive/",
-  "generatedAt": "2026-08-26T03:38:29+10:00",
-  "qualificationResult": "OWNER_DECISIONS_IMPLEMENTED_LOCAL_PASS_EXTERNAL_BLOCKED",
-  "sourceTreeSha256": "59ca4f30073aaf9828f2aa7037be31375c91549d008041e0095f7660f20ac811",
+  "generatedAt": "2026-08-26T10:10:00+10:00",
+  "qualificationResult": "PUBLIC_HISTORY_ACCEPTED_LOCAL_QUALIFICATION_PASS_EXTERNAL_AND_HOST_BLOCKED",
+  "sourceTreeSha256": "93bd97df7e471ae27568de8b4d989f94074c82c9de58c445c7ad5e56ce91fb16",
+  "sourceFileCount": 345,
   "criticalSetSha256": "3f7e3e00dfd5cd0135e10062b6278b9d96a49c05210c53f6bb4d864eb2463821",
   "currentRevisionEvidence": {
     "current/evidence/01_CURRENT_REVISION_LOCAL_QUALIFICATION.json": {
-      "sha256": "b7b4cf08a98e44e0874b74db693ea2d1c85c994aee5f630703f99244deb0c375",
+      "sha256": "66b49a317ea4b5dd0feec8a93bed77f11354d01b0f4c00c34d11e6711e51af60",
       "result": "PASS",
-      "stepCount": 14,
-      "testCount": 241
+      "stepCount": 21,
+      "uniqueTestCount": 147,
+      "gateExecutionCount": 8
     },
     "current/evidence/02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json": {
-      "sha256": "90864729c06680264eccc325feba982753362dff983eee7e053037f93502fe81",
-      "result": "FAIL_PRE_PROVIDER_IO_HOST_IO_CONTROLLER_UNAVAILABLE",
+      "sha256": "ded57e472d58c4e7425cafb9d1ed472f5cb92a869459e9ad5d9f1f52882d23e0",
+      "result": "BLOCKED_PRE_PROVIDER_CURRENT_IMPLEMENTATION_HOST_CGROUP_RECONFIGURATION_REQUIRED",
       "providerRequestsSent": 0,
+      "providerInputTokens": 0,
+      "providerOutputTokens": 0,
       "networkOperationsPerformed": false
     },
     "current/evidence/03_CURRENT_REVISION_NEGATIVE_SMOKE.json": {
-      "sha256": "c102025c879a8d352bb729be4ea3bd1fbaff4135382dca21d76c2413fe8a965f",
-      "result": "PASS"
+      "sha256": "0a25be2562ecc05ddd9a21db55f638e8923c6a80c5011db50b347f99f78d4ad0",
+      "result": "PASS",
+      "repeatedTestCount": 34
     },
     "current/evidence/OWNER_DECISIONS_LOCAL_QUALIFICATION.json": {
-      "sha256": "b8b4b63fde1fed5f3bd462563514b90fdc29daa047fffd0692dee7913d52a06d",
-      "result": "OWNER_DECISIONS_IMPLEMENTED_LOCAL_PASS_EXTERNAL_BLOCKED"
+      "sha256": "6b0d5df457b2f2e9ada04c9ed09f26ec91acd29a847f95f9b5780bd886e314f2",
+      "result": "PUBLIC_HISTORY_ACCEPTED_LOCAL_QUALIFICATION_PASS_EXTERNAL_AND_HOST_BLOCKED"
     }
   },
   "publicRepositoryHistoryAudit": {
     "path": "current/evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json",
-    "sha256": "c8d8373b178b205da8e917e20de711f13af8e28ff3d5f49e4a7a0b826c83aef5",
-    "result": "BLOCKED_PUBLIC_HISTORY_REMEDIATION",
-    "observedAt": "2026-08-25T17:45:37.529Z",
-    "blockers": [
-      "PUBLIC_HISTORY_PERSONAL_INFORMATION",
-      "UNSAFE_SYMLINK_OR_GITLINK_IN_HISTORY"
-    ],
-    "publicationEligibility": "NOT_ELIGIBLE_UNTIL_BLOCKERS_REMEDIATED_AND_REAUDITED",
-    "remediationAuthorityRequired": true
+    "sha256": "927f02a7c846f88a934d8079c0fceae647b64c13e95586cc71bfa4d01aa43cee",
+    "riskAcceptancePath": "current/evidence/PUBLIC_HISTORY_RISK_ACCEPTANCE.json",
+    "riskAcceptanceSha256": "88b56932861515829bf049788574a37f89f3c7290c9652de2a9bc9b5e3638af7",
+    "result": "PASS",
+    "findingsDisposition": "PASS_WITH_OWNER_ACCEPTED_HISTORICAL_FINDINGS",
+    "observedAt": "2026-08-26T00:01:15.985Z",
+    "blockers": [],
+    "historyRewriteRequired": false,
+    "confirmedSecrets": 0,
+    "personalInformationCandidates": 0,
+    "publicationEligibility": "ELIGIBLE_WITH_OWNER_ACCEPTED_HISTORICAL_FINDINGS",
+    "activeSourceGitlinks": 0,
+    "activeSourceGitmodules": 0
   },
   "hostResourceQualification": {
     "path": "HOST_RESOURCE_QUALIFICATION.json",
     "sha256": "4836e9fcf3c31992516ab7d9fc67c24193e1587e104e3732e59ef6dee1dcceb3",
     "result": "BLOCKED_CONTROLLED_HOST_CGROUP_IO",
     "allFourOwnerProfilesProbed": true,
+    "onlyFailedRequiredControl": "IOWeight",
     "providerRequestsSent": 0,
     "networkOperationsPerformed": false
+  },
+  "hostCgroupRemediation": {
+    "baselinePath": "HOST_CGROUP_REMEDIATION_BASELINE.json",
+    "baselineSha256": "64c32b5232888cd047a9a13347fc2b408a06401455f9e1ff64818b35ef192670",
+    "planPath": "current/docs/HOST_CGROUP_V2_REMEDIATION_PLAN_ZH.md",
+    "planSha256": "0c2104fa1d70014a237d788e6371445319dffb00b8e68ac26fa9dc4ef878b6c9",
+    "proposedDropInSha256": "43502dffd2236d66d7ba7c84d13b0120e02579cd1c67ba6a02635056dadf4940",
+    "result": "HOST_CGROUP_RECONFIGURATION_PLAN_READY",
+    "privilegedCommandsExecuted": 0,
+    "systemFilesModified": 0
   },
   "historicalExternalEvidence": {
     "path": "current/evidence/04_GITHUB_EXTERNAL_GATES_2026-08-24.json",
