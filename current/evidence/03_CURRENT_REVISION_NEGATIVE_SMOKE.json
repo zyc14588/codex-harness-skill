@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "result": "PASS",
   "version": "0.6.6",
-  "generatedAt": "2026-08-26T00:04:28.407Z",
+  "generatedAt": "2026-08-26T06:12:45.879Z",
   "currentRevision": true,
-  "sourceCommit": "cabf226a8b385732d2249a8af920d20f641aa2a6",
-  "sourceTree": "9021bb24cb3feb1463a13bc5d29b6016c2caa8ba",
-  "sourceTreeSha256": "93bd97df7e471ae27568de8b4d989f94074c82c9de58c445c7ad5e56ce91fb16",
-  "sourceFileCount": 345,
+  "sourceCommit": "3b061da84f3eb0c055c4766b3897dfdb61b07caa",
+  "sourceTree": "b1696662f3333b70211f61dd360c15ac41d91f68",
+  "sourceTreeSha256": "1fb10373485dc2175e70040cfa9d6b8067f67dd735f25c7bf5da31b783470e7b",
+  "sourceFileCount": 346,
   "criticalSetSha256": "3f7e3e00dfd5cd0135e10062b6278b9d96a49c05210c53f6bb4d864eb2463821",
   "criticalPathSha256": {
     "bridge/src/security.ts": "30012c7559053cfd5ebbb4722d65a02b7c5949e7fd43bb5678c3ff0e43ac4160",
@@ -38,7 +38,7 @@
       "exitCode": 0,
       "signal": null,
       "testCount": 1,
-      "outputSha256": "339f194c66a5cd7c55ae1a43415dca713ba5c10a1338a98ea6bed006b5e517eb"
+      "outputSha256": "48e9f1ec98485a9908e635ac1876672b28b991e922783f86deae9ccaa2086647"
     },
     {
       "testFile": "bridge/dist/test/brokered-tool-registry.test.js",
@@ -46,7 +46,7 @@
       "exitCode": 0,
       "signal": null,
       "testCount": 2,
-      "outputSha256": "19a12c123eec9ce84cdaa54dda6669f7b01645883572aa5568971fce681be220"
+      "outputSha256": "f58802a94e8f975c16c8ba0c616ede7265278d2a43d2b7d318fcd3f0d2c2b385"
     },
     {
       "testFile": "bridge/dist/test/process-group.test.js",
@@ -54,7 +54,7 @@
       "exitCode": 0,
       "signal": null,
       "testCount": 3,
-      "outputSha256": "f2e2874aea809e21913021788629a54b332a06009fa46be82605947e81ac6d23"
+      "outputSha256": "587c718ec4a02f11201c02708fb72006ac1b4016622296fdace4c9733a26b283"
     },
     {
       "testFile": "bridge/dist/test/resource-controls.test.js",
@@ -62,7 +62,7 @@
       "exitCode": 0,
       "signal": null,
       "testCount": 9,
-      "outputSha256": "eda600b4c58191da94702c6868698a76cdd72626fa4c0ee350cbba5dec69daab"
+      "outputSha256": "6160124cce2ebb2cb18f49d16a544b3ec04bc0f21da2a855a3d9e9c099bf59b9"
     },
     {
       "testFile": "bridge/dist/test/model-visible-output.test.js",
@@ -70,7 +70,7 @@
       "exitCode": 0,
       "signal": null,
       "testCount": 4,
-      "outputSha256": "35c027ddb123ce3948df071c727580e7065f75bf85a9ca8da2d7c349c1358927"
+      "outputSha256": "b268721922f68f9972c203ff6b927d85cf3515adbd182afec522f7ef8b790326"
     },
     {
       "testFile": "bridge/dist/test/security.test.js",
@@ -78,7 +78,7 @@
       "exitCode": 0,
       "signal": null,
       "testCount": 6,
-      "outputSha256": "42ef3cb2e86f7b5f421fcc88f72ca4872db0302374735099365c5256ddea45e1"
+      "outputSha256": "735db2cdf16689fef22ad8bff26828828bbc3934e7507adcd4b4d8b95396f5e7"
     },
     {
       "testFile": "bridge/dist/test/provider-protocol-fail-fast.test.js",
@@ -86,7 +86,7 @@
       "exitCode": 0,
       "signal": null,
       "testCount": 2,
-      "outputSha256": "208a91f452035d182e4d2df6d8b0b4286c86b6f2569501a89d41885bb0f80f74"
+      "outputSha256": "d56812909f0ac7970ea2aff79ac9b6c36176e25431e3129a0d36b0a8c880080d"
     },
     {
       "testFile": "bridge/dist/test/verification-isolation.test.js",
@@ -94,7 +94,7 @@
       "exitCode": 0,
       "signal": null,
       "testCount": 1,
-      "outputSha256": "f776bff9e0e9d49c2dae257de4376d4c9f3b9619105b41846dd13701c6150e86"
+      "outputSha256": "fc8e644c5a48f709bc054ef29890b303f84c83bcc803a735933e2375cfec90f4"
     },
     {
       "testFile": "scripts/release-structure.test.mjs",
@@ -102,7 +102,7 @@
       "exitCode": 0,
       "signal": null,
       "testCount": 6,
-      "outputSha256": "06c55257df4572ca62b0f34a84c12a7b61a6faadb6616145f35b2fc2f7487d3b"
+      "outputSha256": "92010dd574f7c1c3101bcfb93a3bf8a6e6c5f730afd12173056061d1bb9d6e96"
     }
   ],
   "assertions": {

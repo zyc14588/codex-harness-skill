@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "version": "0.6.6",
-  "generatedAt": "2026-08-26T00:01:16.023Z",
+  "generatedAt": "2026-08-26T06:10:59.299Z",
   "result": "PASS",
   "findingsDisposition": "PASS_WITH_OWNER_ACCEPTED_HISTORICAL_FINDINGS",
   "historyRewriteRequired": false,
@@ -13,13 +13,20 @@
     "PUB-HIST-GITLINK-001"
   ],
   "acceptedCounts": {
-    "emailIdentifierCommitCount": 32,
-    "authorCommitterOccurrences": 64,
-    "pathIdentifierOccurrences": 136,
+    "emailIdentifierCommitCount": 31,
+    "authorCommitterOccurrences": 62,
+    "authorCommitterOccurrenceMaximum": 64,
+    "pathIdentifierOccurrences": 91,
+    "pathIdentifierOccurrenceMaximum": 136,
     "historicalZipFiles": 6,
     "historicalGitlinks": 3,
-    "zipMemberOccurrencesOverlapInclusive": 3288,
+    "zipMemberOccurrencesOverlapInclusive": 1776,
     "zipMembersAfterZipBlobDeduplication": 1776
+  },
+  "occurrenceDeltas": {
+    "emailVersusOwnerApprovedMaximum": -2,
+    "pathVersusOwnerApprovedMaximum": -45,
+    "interpretation": "NEGATIVE_IS_AN_ALLOWED_REDUCTION_NOT_A_HISTORY_REWRITE_CLAIM"
   },
   "rawAuditRecovery": {
     "sourcePath": "/tmp/codex-public-history-audit-20260826.json",
@@ -38,8 +45,8 @@
   },
   "currentAudit": {
     "path": "current/evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json",
-    "sha256": "927f02a7c846f88a934d8079c0fceae647b64c13e95586cc71bfa4d01aa43cee",
-    "head": "cabf226a8b385732d2249a8af920d20f641aa2a6"
+    "sha256": "9888108cb198132f8f41dffe07afad1779766a216eca8621f3e898440ff1463b",
+    "head": "3b061da84f3eb0c055c4766b3897dfdb61b07caa"
   },
   "scopeAssertions": {
     "ownerAliasConfirmed": true,

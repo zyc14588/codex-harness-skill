@@ -1,19 +1,19 @@
 {
   "schemaVersion": 3,
-  "auditPolicy": "DEC-001-public-heads-tags-history-audit-v3-owner-acceptance",
-  "observedAt": "2026-08-26T05:18:19.000Z",
+  "auditPolicy": "DEC-001-public-heads-tags-history-audit-v3",
+  "observedAt": "2026-08-26T00:16:44.000Z",
   "repositoryRootSha256": "0c71280129777729dd43a6e55c69a0e16f10dba120627ddf4e4363fb89a78783",
-  "head": "3b061da84f3eb0c055c4766b3897dfdb61b07caa",
+  "head": "bd707c75e7c730773fec3f7716847942f9bf27a5",
   "auditScope": {
-    "mode": "proposed-public-ref",
-    "proposedRef": "refs/heads/repair/0.6.6-public-ref-scope-fix-r1",
-    "proposedCommit": "3b061da84f3eb0c055c4766b3897dfdb61b07caa"
+    "mode": "public-remote",
+    "proposedRef": null,
+    "proposedCommit": null
   },
   "publicRefScope": {
     "schemaVersion": 1,
     "remoteIdentity": "github.com/zyc14588/codex-harness-skill",
     "repository": "zyc14588/codex-harness-skill",
-    "collectedAt": "2026-08-26T05:18:19.000Z",
+    "collectedAt": "2026-08-26T00:16:44.000Z",
     "refs": [
       {
         "name": "refs/heads/main",
@@ -34,13 +34,9 @@
       {
         "name": "refs/heads/repair/0.6.6-public-history-owner-acceptance-r2",
         "oid": "d1b27f03e5ec577adab5c53126327d8c5f5f1ff3"
-      },
-      {
-        "name": "refs/heads/repair/0.6.6-public-ref-scope-fix-r1",
-        "oid": "3b061da84f3eb0c055c4766b3897dfdb61b07caa"
       }
     ],
-    "refSetSha256": "d0b98bad4e009ad3b98ad85dea1be26b3b4d64f7022a679522d20b3877ca7946"
+    "refSetSha256": "f936bffdcb3939258a402a492a39b56f8d14b745d946ed875d69ca951b6c3e1c"
   },
   "isolation": {
     "freshBareRepository": true,
@@ -53,17 +49,20 @@
     "alternateObjectDatabasesInherited": false,
     "objectClosureVerified": true
   },
-  "result": "PASS",
-  "blockers": [],
+  "result": "BLOCKED_PUBLIC_HISTORY_REMEDIATION",
+  "blockers": [
+    "PUBLIC_HISTORY_PERSONAL_INFORMATION",
+    "UNSAFE_SYMLINK_OR_GITLINK_IN_HISTORY"
+  ],
   "coverage": {
-    "refs": 6,
-    "commits": 33,
-    "objects": 1479,
-    "blobs": 1179,
-    "scannedTextBlobs": 1167,
+    "refs": 5,
+    "commits": 32,
+    "objects": 1455,
+    "blobs": 1163,
+    "scannedTextBlobs": 1151,
     "skippedBinaryBlobs": 12,
     "oversizedBlobs": 0,
-    "trackedWorktreePaths": 1669,
+    "trackedWorktreePaths": 1666,
     "scannedTrackedWorktreeFiles": 0,
     "untrackedPaths": 0,
     "ignoredPaths": 0,
@@ -98,10 +97,6 @@
     {
       "name": "refs/heads/repair/0.6.6-public-history-owner-acceptance-r2",
       "oid": "d1b27f03e5ec577adab5c53126327d8c5f5f1ff3"
-    },
-    {
-      "name": "refs/heads/repair/0.6.6-public-ref-scope-fix-r1",
-      "oid": "3b061da84f3eb0c055c4766b3897dfdb61b07caa"
     }
   ],
   "inventory": {
@@ -117,7 +112,6 @@
       "2ea0bd3850c8a9cf255f7c3f1dd12dd533a9f97e",
       "2ea556dc35d3695be3c5b7bad1b3dc86f07156c5",
       "3448202dc4fa858328535148a4d42fa3674451e4",
-      "3b061da84f3eb0c055c4766b3897dfdb61b07caa",
       "3eb20bd54967512f42a1353b8ceda78d45a2c5a8",
       "49da0dbdb6f375961f077df1dd101470a29f930f",
       "587513fe45f25b9235eb0d430161d675be2adfa7",
@@ -140,20 +134,20 @@
       "dd4714a52aaef93f4645f4f7b3aded491aa95b0b",
       "e9d6a1cb13409223acedf5632000dbca8e703b51"
     ],
-    "reachableCommitSetSha256": "83776640d815561f9af60901807991ef42d3cfb5e3670deed71c903cab56aa98"
+    "reachableCommitSetSha256": "34de5fc026f6cf8e2a4bf594bec63f70fc5d37acf3c449e89556d7f54d3d12dc"
   },
   "summary": {
-    "publicRefCount": 6,
-    "publicRefSetSha256": "d0b98bad4e009ad3b98ad85dea1be26b3b4d64f7022a679522d20b3877ca7946",
-    "reachableCommitCount": 33,
+    "publicRefCount": 5,
+    "publicRefSetSha256": "f936bffdcb3939258a402a492a39b56f8d14b745d946ed875d69ca951b6c3e1c",
+    "reachableCommitCount": 32,
     "privacySignatureSetSha256": "5638f4135999ce31b3cc4333fc2cf104f779169d249725efdf5659166a57f3c6",
-    "emailOccurrenceCount": 62,
+    "emailOccurrenceCount": 60,
     "pathOccurrenceCount": 91,
     "historicalGitlinkSetSha256": "1e4229357fb1f343f35fb718c3621700331c50c71ece743ccb70f405edc8d9c4"
   },
   "activeSource": {
     "scope": "current/",
-    "trackedEntryCount": 557,
+    "trackedEntryCount": 548,
     "gitlinkCount": 0,
     "gitmodulePaths": [],
     "gitmodulesCount": 0
@@ -165,8 +159,7 @@
         "refs/heads/release/0.6.5-hotfix-r4",
         "refs/heads/repair/0.6.6-pre-release-audit-r1",
         "refs/heads/repair/0.6.6-provider-capability-and-release-integrity",
-        "refs/heads/repair/0.6.6-public-history-owner-acceptance-r2",
-        "refs/heads/repair/0.6.6-public-ref-scope-fix-r1"
+        "refs/heads/repair/0.6.6-public-history-owner-acceptance-r2"
       ],
       "commit": "e9d6a1cb13409223acedf5632000dbca8e703b51",
       "path": "repair-worktree/rc1-real-smoke-repo",
@@ -191,8 +184,7 @@
         "refs/heads/release/0.6.5-hotfix-r4",
         "refs/heads/repair/0.6.6-pre-release-audit-r1",
         "refs/heads/repair/0.6.6-provider-capability-and-release-integrity",
-        "refs/heads/repair/0.6.6-public-history-owner-acceptance-r2",
-        "refs/heads/repair/0.6.6-public-ref-scope-fix-r1"
+        "refs/heads/repair/0.6.6-public-history-owner-acceptance-r2"
       ],
       "commit": "dd4714a52aaef93f4645f4f7b3aded491aa95b0b",
       "path": "repair-worktree/repaired-source",
@@ -218,8 +210,7 @@
         "refs/heads/release/0.6.5-hotfix-r4",
         "refs/heads/repair/0.6.6-pre-release-audit-r1",
         "refs/heads/repair/0.6.6-provider-capability-and-release-integrity",
-        "refs/heads/repair/0.6.6-public-history-owner-acceptance-r2",
-        "refs/heads/repair/0.6.6-public-ref-scope-fix-r1"
+        "refs/heads/repair/0.6.6-public-history-owner-acceptance-r2"
       ],
       "commit": "bd707c75e7c730773fec3f7716847942f9bf27a5",
       "path": "repair-worktree/repaired-source",
@@ -240,7 +231,7 @@
     }
   ],
   "worktree": {
-    "trackedPathSetSha256": "75a2a8bb70bd7138c3198be7872e4434a381c07f4aefb7cf2be711b6412528fe",
+    "trackedPathSetSha256": "8881afc94ea7fb2e093101fda8e1a99e3bf2f9ba5fb6383da18150387e6e7b84",
     "untrackedPathSetSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "ignoredPathSetSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
   },
@@ -301,16 +292,16 @@
         "disposition": "EXCLUDED_NOT_AN_EMAIL_OR_CREDENTIAL"
       }
     ],
-    "personalInformation": "OWNER_ACCEPTED_PUBLIC_EMAIL_AND_PATH_IDENTIFIERS",
+    "personalInformation": "BLOCKED_HASH_REDACTED_PERSONAL_INFORMATION_DETECTED",
     "confidentialOrUnreleasedMaterial": "PROJECT_INTERNAL_PROVENANCE_PRESENT_NO_CONFIDENTIALITY_MARKER_CONFIRMED",
-    "copyrightAndLicensing": "PASS_DISTRIBUTED_CONTENT_OPAQUE_EXTERNAL_TARGETS_EXCLUDED",
+    "copyrightAndLicensing": "BLOCKED_LICENSE_PRESENT_BUT_HISTORICAL_GITLINK_PROVENANCE_UNRESOLVED",
     "conditionallyAcceptableMaterial": [
       "source_code",
       "documentation_and_prompts",
       "hash_redacted_evidence_and_logs",
       "integrity_validated_archives"
     ],
-    "publicationEligibility": "ELIGIBLE_WITH_OWNER_ACCEPTED_HISTORICAL_FINDINGS"
+    "publicationEligibility": "NOT_ELIGIBLE_UNTIL_BLOCKERS_REMEDIATED_AND_REAUDITED"
   },
   "findings": {
     "secrets": [],
@@ -321,7 +312,7 @@
         "matchedUtf8Bytes": 16,
         "domain": "qq.com",
         "identifierShape": "9_DIGIT_ACCOUNT_IDENTIFIER_AT_QQ_COM",
-        "occurrenceCount": 62,
+        "occurrenceCount": 60,
         "representativeLocators": [
           "commit:05435b20d6bab8b99fb75c20d5abb0de5f47a6fa:authorEmail",
           "commit:05435b20d6bab8b99fb75c20d5abb0de5f47a6fa:committerEmail",
@@ -329,7 +320,7 @@
           "commit:070cd00440044785db4821ea05156f6f236e406d:committerEmail",
           "commit:0c8eadbcf91da90aeb2133961d597ecc590a9c36:authorEmail"
         ],
-        "uniqueCommitCount": 31
+        "uniqueCommitCount": 30
       },
       {
         "rule": "personal_local_home",
@@ -388,53 +379,13 @@
     "archiveIntegrity": [],
     "largeObjects": []
   },
-  "remediationRequired": false,
-  "remediationAuthorityRequired": false,
+  "remediationRequired": true,
+  "remediationAuthorityRequired": true,
   "notes": [
     "Findings contain hashes and structural locators only; matching secret or personal values are never emitted.",
     "current/evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json is never read from the mutable working tree; committed versions reachable from the explicit public-ref scope remain covered by the historical blob scan.",
     "History coverage is derived only from origin public heads/tags (plus an explicit proposed ref in pre-push mode); local-only, remote-tracking, stash, replace, graft, alternate-object, and shallow state cannot expand it.",
     "Local untracked and ignored paths are outside public-ref scope; proposed unpublished content is covered only through an explicit exact proposed commit.",
-    "No history rewrite, remote deletion, visibility change, branch protection mutation, push, or release action is performed by this audit.",
-    "Owner acceptance preserves findings as accepted risk; it does not delete them or claim that history was rewritten or redacted."
-  ],
-  "preAcceptanceBlockers": [
-    "PUBLIC_HISTORY_PERSONAL_INFORMATION",
-    "UNSAFE_SYMLINK_OR_GITLINK_IN_HISTORY"
-  ],
-  "findingsDisposition": "PASS_WITH_OWNER_ACCEPTED_HISTORICAL_FINDINGS",
-  "historyRewriteRequired": false,
-  "confirmedSecrets": 0,
-  "unresolvedDistributedLicenseFindings": 0,
-  "ownerDecisionIds": [
-    "PUB-HIST-EMAIL-001",
-    "PUB-HIST-PATH-001",
-    "PUB-HIST-GITLINK-001"
-  ],
-  "acceptedCounts": {
-    "emailIdentifierCommitCount": 31,
-    "authorCommitterOccurrences": 62,
-    "authorCommitterOccurrenceMaximum": 64,
-    "pathIdentifierOccurrences": 91,
-    "pathIdentifierOccurrenceMaximum": 136,
-    "historicalZipFiles": 6,
-    "historicalGitlinks": 3,
-    "zipMemberOccurrencesOverlapInclusive": 1776,
-    "zipMembersAfterZipBlobDeduplication": 1776
-  },
-  "occurrenceDeltas": {
-    "emailVersusOwnerApprovedMaximum": -2,
-    "pathVersusOwnerApprovedMaximum": -45,
-    "interpretation": "NEGATIVE_IS_AN_ALLOWED_REDUCTION_NOT_A_HISTORY_REWRITE_CLAIM"
-  },
-  "ownerAcceptance": {
-    "path": "current/evidence/PUBLIC_HISTORY_OWNER_ACCEPTANCE.json",
-    "sha256": "b5f0ea734893cc881427761c9efbc7173b3b8ad50512e90e5df314e418dc490a",
-    "baselineAuditPath": "current/evidence/PUBLIC_REPOSITORY_PUBLIC_REF_BASELINE.json",
-    "baselineAuditSha256": "42e40934ac78e486998c48c97010e25a56910a6ca78248a8e0dad834e2b50280",
-    "legacyBaselineAuditPath": "current/evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT_BASELINE_2026-08-26.json",
-    "legacyBaselineAuditSha256": "3af7e6be9ad2498bca234e469529098f871d795df9da972c2434ca5e308a3afb",
-    "baselineSupersessionPath": "current/evidence/PUBLIC_HISTORY_BASELINE_SUPERSESSION.json",
-    "baselineSupersessionSha256": "37f5a13a444806753b4b06fd52eb3f27c52aed08afe8d137da7981b251582a2e"
-  }
+    "No history rewrite, remote deletion, visibility change, branch protection mutation, push, or release action is performed by this audit."
+  ]
 }

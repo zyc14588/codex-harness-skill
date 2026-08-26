@@ -2,12 +2,12 @@
   "schemaVersion": 3,
   "result": "BLOCKED_PRE_PROVIDER_CURRENT_IMPLEMENTATION_HOST_CGROUP_RECONFIGURATION_REQUIRED",
   "version": "0.6.6",
-  "generatedAt": "2026-08-26T10:06:00+10:00",
+  "generatedAt": "2026-08-26T16:14:11+10:00",
   "currentRevision": true,
-  "sourceCommit": "cabf226a8b385732d2249a8af920d20f641aa2a6",
-  "sourceTree": "9021bb24cb3feb1463a13bc5d29b6016c2caa8ba",
-  "sourceTreeSha256": "93bd97df7e471ae27568de8b4d989f94074c82c9de58c445c7ad5e56ce91fb16",
-  "sourceFileCount": 345,
+  "sourceCommit": "3b061da84f3eb0c055c4766b3897dfdb61b07caa",
+  "sourceTree": "b1696662f3333b70211f61dd360c15ac41d91f68",
+  "sourceTreeSha256": "1fb10373485dc2175e70040cfa9d6b8067f67dd735f25c7bf5da31b783470e7b",
+  "sourceFileCount": 346,
   "criticalSetSha256": "3f7e3e00dfd5cd0135e10062b6278b9d96a49c05210c53f6bb4d864eb2463821",
   "criticalPathSha256": {
     "bridge/src/security.ts": "30012c7559053cfd5ebbb4722d65a02b7c5949e7fd43bb5678c3ff0e43ac4160",
@@ -26,7 +26,7 @@
     "harness/minimal/profile/cordis.patch.yml": "e46d24af07c98ce331b17658fa9dce4d68db793d8f5447f43f49c8d2d5b209ce"
   },
   "priorQualificationInvalidated": true,
-  "priorSourceCommit": "2ea556dc35d3695be3c5b7bad1b3dc86f07156c5",
+  "priorSourceCommit": "cabf226a8b385732d2249a8af920d20f641aa2a6",
   "hostResourceQualification": {
     "path": "../../HOST_RESOURCE_QUALIFICATION.json",
     "sha256": "4836e9fcf3c31992516ab7d9fc67c24193e1587e104e3732e59ef6dee1dcceb3",

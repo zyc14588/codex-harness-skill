@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "result": "PASS",
   "version": "0.6.6",
-  "generatedAt": "2026-08-26T00:01:45.044Z",
+  "generatedAt": "2026-08-26T06:11:45.294Z",
   "currentRevision": true,
-  "sourceCommit": "cabf226a8b385732d2249a8af920d20f641aa2a6",
-  "sourceTree": "9021bb24cb3feb1463a13bc5d29b6016c2caa8ba",
-  "sourceTreeSha256": "93bd97df7e471ae27568de8b4d989f94074c82c9de58c445c7ad5e56ce91fb16",
-  "sourceFileCount": 345,
+  "sourceCommit": "3b061da84f3eb0c055c4766b3897dfdb61b07caa",
+  "sourceTree": "b1696662f3333b70211f61dd360c15ac41d91f68",
+  "sourceTreeSha256": "1fb10373485dc2175e70040cfa9d6b8067f67dd735f25c7bf5da31b783470e7b",
+  "sourceFileCount": 346,
   "criticalSetSha256": "3f7e3e00dfd5cd0135e10062b6278b9d96a49c05210c53f6bb4d864eb2463821",
   "criticalPathSha256": {
     "bridge/src/security.ts": "30012c7559053cfd5ebbb4722d65a02b7c5949e7fd43bb5678c3ff0e43ac4160",
@@ -25,9 +25,9 @@
     "harness/minimal/profile/bridge-headless-runner.mjs": "c647264daeecc37d845de1b42937c328fec22c5c1618f0c830108ab83e74c8c3",
     "harness/minimal/profile/cordis.patch.yml": "e46d24af07c98ce331b17658fa9dce4d68db793d8f5447f43f49c8d2d5b209ce"
   },
-  "testCount": 147,
+  "testCount": 161,
   "testAccounting": {
-    "uniqueTestCount": 147,
+    "uniqueTestCount": 161,
     "repeatedTestCount": 0,
     "gateExecutionCount": 8
   },
@@ -38,10 +38,10 @@
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-25T23:59:10.420Z",
-      "durationMs": 65,
+      "startedAt": "2026-08-26T06:07:19.968Z",
+      "durationMs": 130,
       "testCount": 0,
-      "outputSha256": "872f448d09cf65ad56d7f3e4b32f48dcb6ce39a7bd0710d60977092fb12402e9"
+      "outputSha256": "b57aec069ef55290175b891c8c7f1e2593e0532163488928a7d9e9c59c4c68de"
     },
     {
       "name": "reproducible-dependency-install",
@@ -49,10 +49,10 @@
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-25T23:59:10.485Z",
-      "durationMs": 402,
+      "startedAt": "2026-08-26T06:07:20.098Z",
+      "durationMs": 550,
       "testCount": 0,
-      "outputSha256": "0613e317cc0fb9eb5066d7ca0912fc82ddb07097a78aac9419dddef6fc544978"
+      "outputSha256": "0d032ff97e08f8de6c34842b03792e0d35ae6bb1909fac2f59123ab1e7eb7a26"
     },
     {
       "name": "strict-typescript-build",
@@ -60,8 +60,8 @@
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-25T23:59:10.888Z",
-      "durationMs": 1501,
+      "startedAt": "2026-08-26T06:07:20.648Z",
+      "durationMs": 2492,
       "testCount": 0,
       "outputSha256": "1c6d38d107e1ba12f0427f2eaca3a53937f0375db8f75c885cd3fcb0a2e15a25"
     },
@@ -71,10 +71,10 @@
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-25T23:59:12.389Z",
-      "durationMs": 635,
+      "startedAt": "2026-08-26T06:07:23.140Z",
+      "durationMs": 1263,
       "testCount": 13,
-      "outputSha256": "8ce7a97478bcea5c6bbb4becf28ae462af1a3ed1d287a1fc59b915ea5543c7be"
+      "outputSha256": "50d0d76c644deac84eb9ee1bb2ebd00abca756f62b6abeb32378c89f484bbccb"
     },
     {
       "name": "release-structure-negative-tests",
@@ -82,10 +82,10 @@
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-25T23:59:13.024Z",
-      "durationMs": 136,
+      "startedAt": "2026-08-26T06:07:24.403Z",
+      "durationMs": 247,
       "testCount": 6,
-      "outputSha256": "8f4632ca44790619a9dc20cf2bc5c237d135a339dfc8f127b77fe1b9f67d0a47"
+      "outputSha256": "efa9cf8aea5a640f5b8ce800ba417d5606881f027a53e13a4596a757c67d6d64"
     },
     {
       "name": "public-history-audit-tests",
@@ -93,10 +93,10 @@
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-25T23:59:13.161Z",
-      "durationMs": 95,
-      "testCount": 3,
-      "outputSha256": "ea502006fdc7b06f9916ef419b1caf08a31ee739e5558343894ceccacd2fce11"
+      "startedAt": "2026-08-26T06:07:24.650Z",
+      "durationMs": 2499,
+      "testCount": 17,
+      "outputSha256": "590f3ccb5105d51a2626a48b8a6af11d1461c7f6f5807934315e885b7e9dd89d"
     },
     {
       "name": "root-manifest-tests",
@@ -104,10 +104,10 @@
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-25T23:59:13.256Z",
-      "durationMs": 205,
+      "startedAt": "2026-08-26T06:07:27.149Z",
+      "durationMs": 544,
       "testCount": 11,
-      "outputSha256": "1b40c17f1507cbd970242e97d541bd720bd55f8f88000e35fb47c3e92373b862"
+      "outputSha256": "1af9cd7b2e7c42111184f8b07a0044da0e19a3dcd85324eed4d189d23c76deed"
     },
     {
       "name": "unit-and-component-regression",
@@ -115,10 +115,10 @@
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-25T23:59:13.461Z",
-      "durationMs": 11805,
+      "startedAt": "2026-08-26T06:07:27.693Z",
+      "durationMs": 17325,
       "testCount": 114,
-      "outputSha256": "3fc9c915c68dafa3ad619490228fb4ccc5912881011b01b7682b83073666da1a"
+      "outputSha256": "498c6a7f5fe777f3b076cea156c6337cbd4f40028d8b0447a53ed0ed6dd81b6e"
     },
     {
       "name": "process-e2e",
@@ -126,10 +126,10 @@
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-25T23:59:25.266Z",
-      "durationMs": 87974,
+      "startedAt": "2026-08-26T06:07:45.018Z",
+      "durationMs": 149040,
       "testCount": 0,
-      "outputSha256": "c1a9cb7a3f00639c087fab708cf44579ece6767ef077fbb22d36fb057cbf1187"
+      "outputSha256": "997f5c42a74ac2cd0c6602a2e489ac9022838e242516eb15cc2599d973185450"
     },
     {
       "name": "managed-profile-dynamic-fixture",
@@ -137,10 +137,10 @@
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-26T00:00:53.240Z",
-      "durationMs": 4826,
+      "startedAt": "2026-08-26T06:10:14.058Z",
+      "durationMs": 7398,
       "testCount": 0,
-      "outputSha256": "d67a99972b9ad4366f55f5ef1cb76e58649ec697c6a672776b2f2582a6e5c745"
+      "outputSha256": "34c72c0f145dbbc18c0cfbae03a20c74832b7d273d1e91688f855e4477a7f2ae"
     },
     {
       "name": "stdio-mcp",
@@ -148,10 +148,10 @@
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-26T00:00:58.066Z",
-      "durationMs": 4465,
+      "startedAt": "2026-08-26T06:10:21.456Z",
+      "durationMs": 8084,
       "testCount": 0,
-      "outputSha256": "963f58230f6fda9dd4417624494644071e67f77591016e6ec674e422b71c85fe"
+      "outputSha256": "3775be4d784f90e9c1226121a38957c9174cd73689f1336672d8b0eeca976ac1"
     },
     {
       "name": "security-acceptance",
@@ -159,8 +159,8 @@
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-26T00:01:02.531Z",
-      "durationMs": 12227,
+      "startedAt": "2026-08-26T06:10:29.541Z",
+      "durationMs": 18985,
       "testCount": 0,
       "outputSha256": "5527d22d20c7bfad2270bacd61a8a81178d5ab319ed6d378e265a42d7cf02d84"
     },
@@ -170,8 +170,8 @@
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-26T00:01:14.758Z",
-      "durationMs": 17,
+      "startedAt": "2026-08-26T06:10:48.526Z",
+      "durationMs": 28,
       "testCount": 0,
       "outputSha256": "db349825903d66adffea3ecf1bd8e1803043e8a71cf1a051235dabc5371f5bb0"
     },
@@ -181,8 +181,8 @@
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-26T00:01:14.775Z",
-      "durationMs": 16,
+      "startedAt": "2026-08-26T06:10:48.554Z",
+      "durationMs": 29,
       "testCount": 0,
       "outputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
@@ -192,10 +192,10 @@
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-26T00:01:14.791Z",
-      "durationMs": 1208,
+      "startedAt": "2026-08-26T06:10:48.583Z",
+      "durationMs": 10680,
       "testCount": 0,
-      "outputSha256": "927f02a7c846f88a934d8079c0fceae647b64c13e95586cc71bfa4d01aa43cee"
+      "outputSha256": "9888108cb198132f8f41dffe07afad1779766a216eca8621f3e898440ff1463b"
     },
     {
       "name": "public-history-risk-acceptance",
@@ -203,10 +203,10 @@
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-26T00:01:15.999Z",
-      "durationMs": 26,
+      "startedAt": "2026-08-26T06:10:59.263Z",
+      "durationMs": 39,
       "testCount": 0,
-      "outputSha256": "88b56932861515829bf049788574a37f89f3c7290c9652de2a9bc9b5e3638af7"
+      "outputSha256": "9c0a244f65630edca39ea334b869f3283b6312d73644ac002bbb72fe97ae3a61"
     },
     {
       "name": "manifest-regeneration",
@@ -214,10 +214,10 @@
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-26T00:01:16.025Z",
-      "durationMs": 56,
+      "startedAt": "2026-08-26T06:10:59.302Z",
+      "durationMs": 109,
       "testCount": 0,
-      "outputSha256": "9a5a1b7aa4bfac22b1cb680cebb875075badb2db36eb1bb5dbad0d0f838a03e0"
+      "outputSha256": "21f3226bd76b43bb909059f04194dbbc2c2c93271500b5f625c0bfb81f7cdd2a"
     },
     {
       "name": "manifest-verification",
@@ -225,10 +225,10 @@
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-26T00:01:16.082Z",
-      "durationMs": 51,
+      "startedAt": "2026-08-26T06:10:59.412Z",
+      "durationMs": 83,
       "testCount": 0,
-      "outputSha256": "242706648c4e6252dd3be1e368e8d625578523032439aa78e48a3d243623a93b"
+      "outputSha256": "81bb09002c667684626085213cc9339c31ffe045bc342044dafe80b63a53ad14"
     },
     {
       "name": "root-manifest-regeneration",
@@ -236,10 +236,10 @@
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-26T00:01:16.134Z",
-      "durationMs": 214,
+      "startedAt": "2026-08-26T06:10:59.495Z",
+      "durationMs": 402,
       "testCount": 0,
-      "outputSha256": "1afc81453402759c2ee1a14c20e846767ab016f30effd6188a3f5be44e9dc9e2"
+      "outputSha256": "9e36b7991c75459bae119b1d10446f685b214ab7442fbea9a381478a323a5bc3"
     },
     {
       "name": "root-manifest-verification",
@@ -247,10 +247,10 @@
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-26T00:01:16.348Z",
-      "durationMs": 135,
+      "startedAt": "2026-08-26T06:10:59.897Z",
+      "durationMs": 260,
       "testCount": 0,
-      "outputSha256": "f836b9abde12f0f72496b8e5fd4b156f2f7d7d7037af5e61bb341df7ab19c86f"
+      "outputSha256": "6b541938e0b3c57a7f10d079262695b090ce16b0fa58a2499001eaa291019ec9"
     },
     {
       "name": "transactional-package-acceptance",
@@ -258,10 +258,10 @@
       "result": "PASS",
       "exitCode": 0,
       "signal": null,
-      "startedAt": "2026-08-26T00:01:16.483Z",
-      "durationMs": 28523,
+      "startedAt": "2026-08-26T06:11:00.157Z",
+      "durationMs": 45062,
       "testCount": 114,
-      "outputSha256": "ba75308bc57a68172f826eda495223d4e327fccdabd4aa5b483fe6853c7eabed"
+      "outputSha256": "70087f5a0e02ce9e19516bbd82eb81f1dba4955d146b420e0d43524068a07c49"
     }
   ],
   "assertions": {

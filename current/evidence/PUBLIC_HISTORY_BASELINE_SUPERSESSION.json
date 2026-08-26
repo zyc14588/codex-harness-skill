@@ -1,0 +1,226 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-26T00:16:44.000Z",
+  "status": "PUBLIC_REF_BASELINE_SUPERSEDES_LEGACY_LOCAL_SCOPE",
+  "legacyBaseline": {
+    "path": "current/evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT_LOCAL_SCOPE_LEGACY.json",
+    "sha256": "3af7e6be9ad2498bca234e469529098f871d795df9da972c2434ca5e308a3afb",
+    "scope": "LEGACY_LOCAL_FOR_EACH_REF_AND_REV_LIST_ALL",
+    "refCount": 16,
+    "refs": [
+      {
+        "name": "refs/heads/evidence/0.6.5-stable",
+        "oid": "ae5b46c0b86ac6dae830fb0080d8a47c08fae0f2"
+      },
+      {
+        "name": "refs/heads/main",
+        "oid": "bd707c75e7c730773fec3f7716847942f9bf27a5"
+      },
+      {
+        "name": "refs/heads/release/0.6.5-hotfix-r2",
+        "oid": "3eb20bd54967512f42a1353b8ceda78d45a2c5a8"
+      },
+      {
+        "name": "refs/heads/release/0.6.5-hotfix-r3",
+        "oid": "49da0dbdb6f375961f077df1dd101470a29f930f"
+      },
+      {
+        "name": "refs/heads/release/0.6.5-hotfix-r4",
+        "oid": "10a70fc0e59ad93fce387c6a1660596d9f01ad7f"
+      },
+      {
+        "name": "refs/heads/repair/0.6.6-owner-decisions-and-r2-remediation",
+        "oid": "c53614dba3d14b1d441c317a167e8e158193df2b"
+      },
+      {
+        "name": "refs/heads/repair/0.6.6-pre-release-audit-r1",
+        "oid": "587513fe45f25b9235eb0d430161d675be2adfa7"
+      },
+      {
+        "name": "refs/heads/repair/0.6.6-provider-capability-and-release-integrity",
+        "oid": "91f8d493c52e972bafd0fc19f0e50a927c35448a"
+      },
+      {
+        "name": "refs/heads/repair/0.6.6-public-history-acceptance-and-host-cgroup-r1",
+        "oid": "c53614dba3d14b1d441c317a167e8e158193df2b"
+      },
+      {
+        "name": "refs/heads/repair/0.6.6-r2-acceptance-remediation-r1",
+        "oid": "587513fe45f25b9235eb0d430161d675be2adfa7"
+      },
+      {
+        "name": "refs/remotes/origin/HEAD",
+        "oid": "bd707c75e7c730773fec3f7716847942f9bf27a5"
+      },
+      {
+        "name": "refs/remotes/origin/main",
+        "oid": "bd707c75e7c730773fec3f7716847942f9bf27a5"
+      },
+      {
+        "name": "refs/remotes/origin/release/0.6.5-hotfix-r4",
+        "oid": "10a70fc0e59ad93fce387c6a1660596d9f01ad7f"
+      },
+      {
+        "name": "refs/remotes/origin/repair/0.6.6-pre-release-audit-r1",
+        "oid": "587513fe45f25b9235eb0d430161d675be2adfa7"
+      },
+      {
+        "name": "refs/remotes/origin/repair/0.6.6-provider-capability-and-release-integrity",
+        "oid": "91f8d493c52e972bafd0fc19f0e50a927c35448a"
+      },
+      {
+        "name": "refs/stash",
+        "oid": "5964720b48de7a1575640f3335a3863dd1b904fa"
+      }
+    ]
+  },
+  "publicBaseline": {
+    "path": "current/evidence/PUBLIC_REPOSITORY_PUBLIC_REF_BASELINE.json",
+    "sha256": "42e40934ac78e486998c48c97010e25a56910a6ca78248a8e0dad834e2b50280",
+    "scope": "PUBLIC_REMOTE_HEADS_AND_TAGS",
+    "refCount": 5,
+    "refSetSha256": "f936bffdcb3939258a402a492a39b56f8d14b745d946ed875d69ca951b6c3e1c",
+    "refs": [
+      {
+        "name": "refs/heads/main",
+        "oid": "bd707c75e7c730773fec3f7716847942f9bf27a5"
+      },
+      {
+        "name": "refs/heads/release/0.6.5-hotfix-r4",
+        "oid": "10a70fc0e59ad93fce387c6a1660596d9f01ad7f"
+      },
+      {
+        "name": "refs/heads/repair/0.6.6-pre-release-audit-r1",
+        "oid": "587513fe45f25b9235eb0d430161d675be2adfa7"
+      },
+      {
+        "name": "refs/heads/repair/0.6.6-provider-capability-and-release-integrity",
+        "oid": "91f8d493c52e972bafd0fc19f0e50a927c35448a"
+      },
+      {
+        "name": "refs/heads/repair/0.6.6-public-history-owner-acceptance-r2",
+        "oid": "d1b27f03e5ec577adab5c53126327d8c5f5f1ff3"
+      }
+    ]
+  },
+  "refDelta": {
+    "added": [
+      {
+        "name": "refs/heads/repair/0.6.6-public-history-owner-acceptance-r2",
+        "oid": "d1b27f03e5ec577adab5c53126327d8c5f5f1ff3"
+      }
+    ],
+    "removed": [
+      {
+        "name": "refs/heads/evidence/0.6.5-stable",
+        "oid": "ae5b46c0b86ac6dae830fb0080d8a47c08fae0f2"
+      },
+      {
+        "name": "refs/heads/release/0.6.5-hotfix-r2",
+        "oid": "3eb20bd54967512f42a1353b8ceda78d45a2c5a8"
+      },
+      {
+        "name": "refs/heads/release/0.6.5-hotfix-r3",
+        "oid": "49da0dbdb6f375961f077df1dd101470a29f930f"
+      },
+      {
+        "name": "refs/heads/repair/0.6.6-owner-decisions-and-r2-remediation",
+        "oid": "c53614dba3d14b1d441c317a167e8e158193df2b"
+      },
+      {
+        "name": "refs/heads/repair/0.6.6-public-history-acceptance-and-host-cgroup-r1",
+        "oid": "c53614dba3d14b1d441c317a167e8e158193df2b"
+      },
+      {
+        "name": "refs/heads/repair/0.6.6-r2-acceptance-remediation-r1",
+        "oid": "587513fe45f25b9235eb0d430161d675be2adfa7"
+      },
+      {
+        "name": "refs/remotes/origin/HEAD",
+        "oid": "bd707c75e7c730773fec3f7716847942f9bf27a5"
+      },
+      {
+        "name": "refs/remotes/origin/main",
+        "oid": "bd707c75e7c730773fec3f7716847942f9bf27a5"
+      },
+      {
+        "name": "refs/remotes/origin/release/0.6.5-hotfix-r4",
+        "oid": "10a70fc0e59ad93fce387c6a1660596d9f01ad7f"
+      },
+      {
+        "name": "refs/remotes/origin/repair/0.6.6-pre-release-audit-r1",
+        "oid": "587513fe45f25b9235eb0d430161d675be2adfa7"
+      },
+      {
+        "name": "refs/remotes/origin/repair/0.6.6-provider-capability-and-release-integrity",
+        "oid": "91f8d493c52e972bafd0fc19f0e50a927c35448a"
+      },
+      {
+        "name": "refs/stash",
+        "oid": "5964720b48de7a1575640f3335a3863dd1b904fa"
+      }
+    ]
+  },
+  "reachableCommitDelta": {
+    "legacyCount": 32,
+    "publicCount": 32,
+    "added": [
+      "cabf226a8b385732d2249a8af920d20f641aa2a6",
+      "d1b27f03e5ec577adab5c53126327d8c5f5f1ff3"
+    ],
+    "removed": [
+      "5964720b48de7a1575640f3335a3863dd1b904fa",
+      "f176ec0423b55addaf3f43e8189c3f1341e8d747"
+    ]
+  },
+  "privacySignatureDelta": {
+    "legacySetSha256": "5638f4135999ce31b3cc4333fc2cf104f779169d249725efdf5659166a57f3c6",
+    "publicSetSha256": "5638f4135999ce31b3cc4333fc2cf104f779169d249725efdf5659166a57f3c6",
+    "added": [],
+    "removed": []
+  },
+  "occurrenceCountDelta": {
+    "personalEmail": {
+      "legacy": 64,
+      "public": 60,
+      "delta": -4,
+      "ownerApprovedMaximum": 64
+    },
+    "personalLocalHome": {
+      "legacy": 136,
+      "public": 91,
+      "delta": -45,
+      "ownerApprovedMaximum": 136
+    },
+    "interpretation": "COUNT_REDUCTION_REFLECTS_SCOPE_DEDUPLICATION_NOT_HISTORY_REWRITE"
+  },
+  "historicalGitlinkDelta": {
+    "legacySetSha256": "1e4229357fb1f343f35fb718c3621700331c50c71ece743ccb70f405edc8d9c4",
+    "publicSetSha256": "1e4229357fb1f343f35fb718c3621700331c50c71ece743ccb70f405edc8d9c4",
+    "added": [],
+    "removed": []
+  },
+  "secretLicenseArchiveDelta": {
+    "legacySecrets": 0,
+    "publicSecrets": 0,
+    "legacyArchiveIntegrityFindings": 0,
+    "publicArchiveIntegrityFindings": 0,
+    "legacyLicenseReviewStatus": "PASS_CURRENT_DECLARED_DEPENDENCY_LICENSE_REVIEW",
+    "publicLicenseReviewStatus": "PASS_CURRENT_DECLARED_DEPENDENCY_LICENSE_REVIEW",
+    "publicDistributedLicenseBlockers": 0,
+    "legacyUniqueZipFiles": 6,
+    "publicUniqueZipFiles": 6,
+    "legacyZipMemberOccurrencesOverlapInclusive": 3288,
+    "publicZipMemberOccurrencesOverlapInclusive": 1776,
+    "publicZipMembersAfterBlobDeduplication": 1776
+  },
+  "assurances": {
+    "noNewDistinctPersonalIdentifier": true,
+    "noNewSecret": true,
+    "noNewGitlink": true,
+    "noNewDistributedLicenseBlocker": true,
+    "ownerApprovedOccurrenceMaximumsRespected": true,
+    "ownerDecisionContinuesToApply": true
+  },
+  "ownerDecisionContinuationReason": "The accepted identifier and historical gitlink signatures are unchanged; only local-only, remote-tracking, and stash views were removed, and reduced counts remain below the Owner-approved maxima."
+}
