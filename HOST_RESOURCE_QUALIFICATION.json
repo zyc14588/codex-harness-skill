@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
-  "result": "BLOCKED_CONTROLLED_HOST_CGROUP_IO",
-  "generatedAt": "2026-08-25T17:36:26.699Z",
+  "result": "PASS",
+  "generatedAt": "2026-08-27T04:49:31.032Z",
   "probeContract": "owner-tiered-required-cgroup-v2-and-rlimit-before-provider-io-v1",
   "providerRequestsSent": 0,
   "networkOperationsPerformed": false,
@@ -13,24 +13,29 @@
   "delegatedControllers": {
     "userManagerAvailable": [
       "cpu",
+      "io",
       "memory",
       "pids"
     ],
     "userManagerEnabledForChildren": [
       "cpu",
+      "io",
       "memory",
       "pids"
     ],
     "appSliceAvailable": [
       "cpu",
+      "io",
       "memory",
       "pids"
     ],
     "appSliceEnabledForChildren": [
+      "io",
       "memory",
       "pids"
     ],
     "currentScopeAvailable": [
+      "io",
       "memory",
       "pids"
     ],
@@ -48,7 +53,7 @@
   },
   "profiles": {
     "local_or_flash_trivial_small": {
-      "result": "BLOCKED_CONTROLLED_HOST_CGROUP_IO",
+      "result": "PASS",
       "MemoryMax": {
         "expected": 2147483648,
         "observed": "2147483648",
@@ -66,8 +71,8 @@
       },
       "IOWeight": {
         "expected": 100,
-        "observed": null,
-        "enforced": false
+        "observed": "default 100",
+        "enforced": true
       },
       "WorktreeMaxBytes": 2147483648,
       "RLIMIT_NOFILE": {
@@ -87,15 +92,13 @@
       },
       "RuntimeMaxSec": 900,
       "resourceProfileHash": "504e1a402db9537cb73bc17daf14c625669137d9c2875d4642cc9aac90b8ca24",
-      "controlledUseAllowed": false,
-      "failedChecks": [
-        "IOWeight"
-      ],
-      "failureReason": "BLOCKED_CONTROLLED_HOST_CGROUP_IO",
+      "controlledUseAllowed": true,
+      "failedChecks": [],
+      "failureReason": null,
       "probeError": null
     },
     "flash_medium": {
-      "result": "BLOCKED_CONTROLLED_HOST_CGROUP_IO",
+      "result": "PASS",
       "MemoryMax": {
         "expected": 4294967296,
         "observed": "4294967296",
@@ -113,8 +116,8 @@
       },
       "IOWeight": {
         "expected": 100,
-        "observed": null,
-        "enforced": false
+        "observed": "default 100",
+        "enforced": true
       },
       "WorktreeMaxBytes": 4294967296,
       "RLIMIT_NOFILE": {
@@ -134,15 +137,13 @@
       },
       "RuntimeMaxSec": 1800,
       "resourceProfileHash": "19f0fb59808b0eab9b8f1557b8c8cdcfc78f4b3fa115d52fede5e31cef35ac81",
-      "controlledUseAllowed": false,
-      "failedChecks": [
-        "IOWeight"
-      ],
-      "failureReason": "BLOCKED_CONTROLLED_HOST_CGROUP_IO",
+      "controlledUseAllowed": true,
+      "failedChecks": [],
+      "failureReason": null,
       "probeError": null
     },
     "pro_large": {
-      "result": "BLOCKED_CONTROLLED_HOST_CGROUP_IO",
+      "result": "PASS",
       "MemoryMax": {
         "expected": 8589934592,
         "observed": "8589934592",
@@ -160,8 +161,8 @@
       },
       "IOWeight": {
         "expected": 100,
-        "observed": null,
-        "enforced": false
+        "observed": "default 100",
+        "enforced": true
       },
       "WorktreeMaxBytes": 8589934592,
       "RLIMIT_NOFILE": {
@@ -181,15 +182,13 @@
       },
       "RuntimeMaxSec": 3600,
       "resourceProfileHash": "cf2a4c262a8c84c91d44c27a6a2cef48c0be29d7fe3b90a7bdeb2614b44bb5f1",
-      "controlledUseAllowed": false,
-      "failedChecks": [
-        "IOWeight"
-      ],
-      "failureReason": "BLOCKED_CONTROLLED_HOST_CGROUP_IO",
+      "controlledUseAllowed": true,
+      "failedChecks": [],
+      "failureReason": null,
       "probeError": null
     },
     "authoritative_verification": {
-      "result": "BLOCKED_CONTROLLED_HOST_CGROUP_IO",
+      "result": "PASS",
       "MemoryMax": {
         "expected": 4294967296,
         "observed": "4294967296",
@@ -207,8 +206,8 @@
       },
       "IOWeight": {
         "expected": 100,
-        "observed": null,
-        "enforced": false
+        "observed": "default 100",
+        "enforced": true
       },
       "WorktreeMaxBytes": 4294967296,
       "RLIMIT_NOFILE": {
@@ -228,16 +227,14 @@
       },
       "RuntimeMaxSec": 1800,
       "resourceProfileHash": "fa40f0bcc3a67131888f0519506acb95bb07df69883ce6c44cffe44393edf6b5",
-      "controlledUseAllowed": false,
-      "failedChecks": [
-        "IOWeight"
-      ],
-      "failureReason": "BLOCKED_CONTROLLED_HOST_CGROUP_IO",
+      "controlledUseAllowed": true,
+      "failedChecks": [],
+      "failureReason": null,
       "probeError": null
     }
   },
-  "controlledUseAllowed": false,
-  "failureReason": "BLOCKED_CONTROLLED_HOST_CGROUP_IO",
+  "controlledUseAllowed": true,
+  "failureReason": null,
   "qualifiedHostRequirements": [
     "Linux kernel with a mounted unified cgroup v2 hierarchy",
     "trusted per-user systemd manager and user scope creation",

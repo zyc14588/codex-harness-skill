@@ -1,13 +1,13 @@
 {
-  "schemaVersion": 2,
-  "result": "LOCAL_QUALIFICATION_PASS_PUSH_APPROVAL_REQUIRED",
-  "generatedAt": "2026-08-26T16:14:11+10:00",
+  "schemaVersion": 3,
+  "result": "CRED_EPHEMERAL_B_LOCAL_QUALIFICATION_PASS_PUSH_APPROVAL_REQUIRED",
+  "generatedAt": "2026-08-27T14:50:51+10:00",
   "version": "0.6.6",
-  "sourceCommit": "3b061da84f3eb0c055c4766b3897dfdb61b07caa",
-  "sourceTree": "b1696662f3333b70211f61dd360c15ac41d91f68",
-  "sourceTreeSha256": "1fb10373485dc2175e70040cfa9d6b8067f67dd735f25c7bf5da31b783470e7b",
-  "sourceFileCount": 346,
-  "criticalSetSha256": "3f7e3e00dfd5cd0135e10062b6278b9d96a49c05210c53f6bb4d864eb2463821",
+  "sourceCommit": "b29f9fdc299756101dde0342474842b257c23386",
+  "sourceTree": "5d65937459264db87214a20bb358023b22a2cafb",
+  "sourceTreeSha256": "36b60250b27bb2ec3122eb036fc9a6767e317af65d2a0d3d9cd7b7694ef335b4",
+  "sourceFileCount": 359,
+  "criticalSetSha256": "812cc672f2254d0840020cd7ea6d164aaace6f1ada72b0e713e38f9b100d3709",
   "decidedBy": "zyc14588",
   "decidedAt": "2026-08-26T01:22:12+10:00",
   "publicHistoryAcceptedBy": "zyc14588",
@@ -19,8 +19,8 @@
       "result": "PUBLIC_HISTORY_AND_ZERO_GITLINK_GATES_PASS_BRANCH_GOVERNANCE_BLOCKED",
       "publicHistoryAudit": "PASS_WITH_OWNER_ACCEPTED_HISTORICAL_FINDINGS",
       "publicRefScope": "PASS_DETERMINISTIC_PUBLIC_HEADS_TAGS_PLUS_EXPLICIT_PROPOSED_REF",
-      "publicRefSetSha256": "d0b98bad4e009ad3b98ad85dea1be26b3b4d64f7022a679522d20b3877ca7946",
-      "reachableCommitCount": 33,
+      "publicRefSetSha256": "08d48e4e3e326f3576f1ee7b687f5f51d9fa39706a7945591746742e29ba008c",
+      "reachableCommitCount": 36,
       "historyRewriteRequired": false,
       "activePackageArchiveZeroGitlinkGate": "PASS_LOCAL_CURRENT_REVISION",
       "blockers": [
@@ -38,40 +38,57 @@
     "DEC-003": {
       "selected": "D_TIERED_RESOURCE_PROFILES",
       "implementationVerified": true,
-      "result": "PASS_LOCAL_CODE_AND_NEGATIVE_TESTS_HOST_CONTROLLED_GATE_BLOCKED",
-      "hostBlocker": "HOST_CGROUP_RECONFIGURATION_PLAN_READY",
+      "result": "PASS_LOCAL_CODE_NEGATIVE_TESTS_AND_FOUR_PROFILE_HOST_QUALIFICATION",
+      "hostBlocker": null,
       "providerRequestsSent": 0,
       "providerInputTokens": 0,
       "providerOutputTokens": 0,
       "hostEvidence": "../../HOST_RESOURCE_QUALIFICATION.json",
-      "hostPlan": "../docs/HOST_CGROUP_V2_REMEDIATION_PLAN_ZH.md"
+      "hostEvidenceSha256": "69af270557d1547b3fccf0a05ab246e4307b921849db9d9935247e62a9466de6",
+      "allFourOwnerProfiles": "PASS"
     },
     "DEC-004": {
       "selected": "A_USE_COMMIT_SUFFIXED_CANDIDATE_PATH",
       "implementationVerified": true,
       "result": "PASS_FULL_CANDIDATE_INSTALL_MIGRATION_ROLLBACK_REINSTALL_UNINSTALL_LIFECYCLE",
-      "candidatePath": "0.6.6-candidate-3b061da84f3e"
+      "candidatePath": "0.6.6-candidate-b29f9fdc2997"
+    },
+    "CRED-EPHEMERAL-001": {
+      "selected": "B_DEDICATED_DISPOSABLE_KEY_WITH_VERIFIED_REVOCATION",
+      "implementationVerified": true,
+      "result": "PASS_LOCAL_CONTRACT_EXTERNAL_EVIDENCE_PENDING",
+      "credentialPolicy": "DEDICATED_DISPOSABLE_MANUAL_REVOKE_VERIFIED",
+      "providerEndpoint": "https://api.deepseek.com",
+      "revocationEndpoint": "https://api.deepseek.com/models",
+      "credentialContractBehaviorTests": 22,
+      "providerRequestsSent": 0,
+      "externalBlockers": [
+        "BLOCKED_PROVIDER_CREDENTIAL_REVOCATION_EVIDENCE",
+        "PROVIDER_ENVIRONMENT_SECRET_REMOVAL_REQUIRED",
+        "PROVIDER_EPHEMERAL_RUNNER_DEREGISTRATION_REQUIRED"
+      ]
     }
   },
   "evidenceBindings": {
-    "01_CURRENT_REVISION_LOCAL_QUALIFICATION.json": "e1eec9f78568caff64f6405297b7fa3084c6382c386f23467a6203540d61fa68",
-    "02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json": "22809e498fb3cb3b745f93513315e9363237f65fa435d1cfa8ad10ba7be8c601",
-    "03_CURRENT_REVISION_NEGATIVE_SMOKE.json": "f89419f3dff500c058b0d7f6fdb80687d253ddb4ec223341e36b35136ac6cbfa",
-    "PUBLIC_REPOSITORY_HISTORY_AUDIT.json": "9888108cb198132f8f41dffe07afad1779766a216eca8621f3e898440ff1463b",
-    "PUBLIC_HISTORY_RISK_ACCEPTANCE.json": "9c0a244f65630edca39ea334b869f3283b6312d73644ac002bbb72fe97ae3a61",
+    "01_CURRENT_REVISION_LOCAL_QUALIFICATION.json": "690b00ffcfb80291820b387c5e454e1abd40d4a7d379ec2878206cd02d5bed2a",
+    "02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json": "ece852cddc16839fd287c379a2cce90887d8321c14fd7aa22883d33c07ef602f",
+    "03_CURRENT_REVISION_NEGATIVE_SMOKE.json": "c6d5c238359b2f6eb7c5b2c74710531a800f4d425e4edf2edd683f20937ec983",
+    "PUBLIC_REPOSITORY_HISTORY_AUDIT.json": "dbdabfffcc1ccd986d3449f877be3ee887c0539bfddc63f6a05a46360cdb47ed",
+    "PUBLIC_HISTORY_RISK_ACCEPTANCE.json": "a0171419e188b506aa1a3e7cb868b4cdac5047e40c5b0adf270104f362cdba13",
     "PUBLIC_REPOSITORY_PUBLIC_REF_BASELINE.json": "42e40934ac78e486998c48c97010e25a56910a6ca78248a8e0dad834e2b50280",
     "PUBLIC_REPOSITORY_HISTORY_AUDIT_LOCAL_SCOPE_LEGACY.json": "3af7e6be9ad2498bca234e469529098f871d795df9da972c2434ca5e308a3afb",
     "PUBLIC_HISTORY_BASELINE_SUPERSESSION.json": "37f5a13a444806753b4b06fd52eb3f27c52aed08afe8d137da7981b251582a2e",
     "GITHUB_GOVERNANCE_OBSERVATION.json": "edba812f53e289231e61047b6986b3461075474051c5329b69d1e3d0db8873cb",
-    "../../HOST_RESOURCE_QUALIFICATION.json": "4836e9fcf3c31992516ab7d9fc67c24193e1587e104e3732e59ef6dee1dcceb3",
+    "../../HOST_RESOURCE_QUALIFICATION.json": "69af270557d1547b3fccf0a05ab246e4307b921849db9d9935247e62a9466de6",
     "../../HOST_CGROUP_REMEDIATION_BASELINE.json": "64c32b5232888cd047a9a13347fc2b408a06401455f9e1ff64818b35ef192670"
   },
   "localQualification": {
     "result": "PASS",
-    "stepCount": 21,
-    "uniqueTestCount": 161,
-    "repeatedNegativeTestCount": 34,
-    "gateExecutionCount": 8
+    "stepCount": 22,
+    "uniqueTestCount": 192,
+    "repeatedNegativeTestCount": 49,
+    "gateExecutionCount": 8,
+    "credentialContractBehaviorTests": 22
   },
   "publicationEligibility": "ELIGIBLE_WITH_OWNER_ACCEPTED_HISTORICAL_FINDINGS",
   "controlledUseAllowed": false,

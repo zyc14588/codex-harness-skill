@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "version": "0.6.6",
-  "generatedAt": "2026-08-26T06:10:59.299Z",
+  "generatedAt": "2026-08-27T04:45:01.281Z",
   "result": "PASS",
   "findingsDisposition": "PASS_WITH_OWNER_ACCEPTED_HISTORICAL_FINDINGS",
   "historyRewriteRequired": false,
@@ -13,10 +13,16 @@
     "PUB-HIST-GITLINK-001"
   ],
   "acceptedCounts": {
-    "emailIdentifierCommitCount": 31,
-    "authorCommitterOccurrences": 62,
-    "authorCommitterOccurrenceMaximum": 64,
-    "pathIdentifierOccurrences": 91,
+    "emailIdentifierCommitCount": 33,
+    "authorCommitterOccurrences": 66,
+    "authorCommitterOccurrenceMaximum": 66,
+    "authorCommitterOccurrenceMaximumBinding": {
+      "task": "CRED_EPHEMERAL_001_B_MINIMAL_REPAIR",
+      "implementationCommit": "36e78afe5f3c450f7dbacbb2e1ace3fb90acfab9",
+      "additionalOccurrences": 2,
+      "newDistinctIdentifierSignatures": 0
+    },
+    "pathIdentifierOccurrences": 93,
     "pathIdentifierOccurrenceMaximum": 136,
     "historicalZipFiles": 6,
     "historicalGitlinks": 3,
@@ -24,8 +30,8 @@
     "zipMembersAfterZipBlobDeduplication": 1776
   },
   "occurrenceDeltas": {
-    "emailVersusOwnerApprovedMaximum": -2,
-    "pathVersusOwnerApprovedMaximum": -45,
+    "emailVersusOwnerApprovedMaximum": 0,
+    "pathVersusOwnerApprovedMaximum": -43,
     "interpretation": "NEGATIVE_IS_AN_ALLOWED_REDUCTION_NOT_A_HISTORY_REWRITE_CLAIM"
   },
   "rawAuditRecovery": {
@@ -39,14 +45,14 @@
   },
   "ownerAcceptance": {
     "path": "current/evidence/PUBLIC_HISTORY_OWNER_ACCEPTANCE.json",
-    "sha256": "b5f0ea734893cc881427761c9efbc7173b3b8ad50512e90e5df314e418dc490a",
+    "sha256": "9fd13b958c1935c1bbcbcd4023873332144ad10526d1f33370979e472f35997a",
     "decidedBy": "zyc14588",
     "decidedAt": "2026-08-26T08:51:40+10:00"
   },
   "currentAudit": {
     "path": "current/evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json",
-    "sha256": "9888108cb198132f8f41dffe07afad1779766a216eca8621f3e898440ff1463b",
-    "head": "3b061da84f3eb0c055c4766b3897dfdb61b07caa"
+    "sha256": "dbdabfffcc1ccd986d3449f877be3ee887c0539bfddc63f6a05a46360cdb47ed",
+    "head": "b29f9fdc299756101dde0342474842b257c23386"
   },
   "scopeAssertions": {
     "ownerAliasConfirmed": true,

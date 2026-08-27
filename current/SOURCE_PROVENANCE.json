@@ -3,7 +3,7 @@
   "version": "0.6.6",
   "repository": "git@github.com:zyc14588/codex-harness-skill.git",
   "canonicalSource": "current/",
-  "generatedAt": "2026-08-26T16:14:11+10:00",
+  "generatedAt": "2026-08-27T14:50:51+10:00",
   "auditedBaseline": {
     "branch": "repair/0.6.6-public-history-owner-acceptance-r2",
     "head": "d1b27f03e5ec577adab5c53126327d8c5f5f1ff3",
@@ -14,13 +14,13 @@
     "withdrawalCommit": "1c7dd48e2e39c642f8b8bf63d384166208004a5a"
   },
   "repairLine": {
-    "branch": "repair/0.6.6-public-ref-scope-fix-r1",
-    "implementationCommit": "3b061da84f3eb0c055c4766b3897dfdb61b07caa",
-    "implementationTree": "b1696662f3333b70211f61dd360c15ac41d91f68",
-    "implementationRepositoryTree": "6f5fd36af17cf965c86c547ce67f029b0eff7dbc",
-    "implementationCommittedAt": "2026-08-26T15:18:19+10:00",
-    "candidatePath": "0.6.6-candidate-3b061da84f3e",
-    "status": "LOCAL_QUALIFICATION_PASS_PUSH_APPROVAL_REQUIRED"
+    "branch": "repair/0.6.6-disposable-provider-key-r1",
+    "implementationCommit": "b29f9fdc299756101dde0342474842b257c23386",
+    "implementationTree": "5d65937459264db87214a20bb358023b22a2cafb",
+    "implementationRepositoryTree": "8ff791771d9088a923678409ef6fbec0019572a1",
+    "implementationCommittedAt": "2026-08-27T14:30:36+10:00",
+    "candidatePath": "0.6.6-candidate-b29f9fdc2997",
+    "status": "CRED_EPHEMERAL_B_LOCAL_QUALIFICATION_PASS_PUSH_APPROVAL_REQUIRED"
   },
   "sourceRecovery": {
     "selectedSource": "current/",
@@ -45,48 +45,48 @@
     "promotionAllowedBeforeExternalOwnerAndArchiveGatesPass": false
   },
   "qualification": {
-    "result": "LOCAL_QUALIFICATION_PASS_PUSH_APPROVAL_REQUIRED",
-    "sourceTreeSha256": "1fb10373485dc2175e70040cfa9d6b8067f67dd735f25c7bf5da31b783470e7b",
-    "sourceFileCount": 346,
-    "criticalSetSha256": "3f7e3e00dfd5cd0135e10062b6278b9d96a49c05210c53f6bb4d864eb2463821",
+    "result": "CRED_EPHEMERAL_B_LOCAL_QUALIFICATION_PASS_PUSH_APPROVAL_REQUIRED",
+    "sourceTreeSha256": "36b60250b27bb2ec3122eb036fc9a6767e317af65d2a0d3d9cd7b7694ef335b4",
+    "sourceFileCount": 359,
+    "criticalSetSha256": "812cc672f2254d0840020cd7ea6d164aaace6f1ada72b0e713e38f9b100d3709",
     "localQualification": {
       "result": "PASS",
-      "generatedAt": "2026-08-26T06:11:45.294Z",
-      "stepCount": 21,
-      "uniqueTestCount": 161,
+      "generatedAt": "2026-08-27T04:45:31.153Z",
+      "stepCount": 22,
+      "uniqueTestCount": 192,
       "gateExecutionCount": 8
     },
     "negativeSmoke": {
       "result": "PASS",
-      "generatedAt": "2026-08-26T06:12:45.879Z",
-      "repeatedTestCount": 34
+      "generatedAt": "2026-08-27T04:46:27.010Z",
+      "repeatedTestCount": 49
     },
     "currentRevisionEvidence": {
       "evidence/01_CURRENT_REVISION_LOCAL_QUALIFICATION.json": {
-        "sha256": "e1eec9f78568caff64f6405297b7fa3084c6382c386f23467a6203540d61fa68",
+        "sha256": "690b00ffcfb80291820b387c5e454e1abd40d4a7d379ec2878206cd02d5bed2a",
         "result": "PASS"
       },
       "evidence/02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json": {
-        "sha256": "22809e498fb3cb3b745f93513315e9363237f65fa435d1cfa8ad10ba7be8c601",
-        "result": "BLOCKED_PRE_PROVIDER_CURRENT_IMPLEMENTATION_HOST_CGROUP_RECONFIGURATION_REQUIRED",
+        "sha256": "ece852cddc16839fd287c379a2cce90887d8321c14fd7aa22883d33c07ef602f",
+        "result": "BLOCKED_PROVIDER_CREDENTIAL_REVOCATION_EVIDENCE",
         "providerRequestsSent": 0,
         "providerInputTokens": 0,
         "providerOutputTokens": 0
       },
       "evidence/03_CURRENT_REVISION_NEGATIVE_SMOKE.json": {
-        "sha256": "f89419f3dff500c058b0d7f6fdb80687d253ddb4ec223341e36b35136ac6cbfa",
+        "sha256": "c6d5c238359b2f6eb7c5b2c74710531a800f4d425e4edf2edd683f20937ec983",
         "result": "PASS"
       },
       "evidence/OWNER_DECISIONS_LOCAL_QUALIFICATION.json": {
-        "sha256": "ead23b69644558ad9931d6b8831c6af5670e2186bf834c8f659df1f5af162182",
-        "result": "LOCAL_QUALIFICATION_PASS_PUSH_APPROVAL_REQUIRED"
+        "sha256": "b5b97eebfdd93f923315183fb9bb0608f9020b35add39a5a07adcb144f9f57fc",
+        "result": "CRED_EPHEMERAL_B_LOCAL_QUALIFICATION_PASS_PUSH_APPROVAL_REQUIRED"
       }
     },
     "publicRepositoryHistoryAudit": {
       "path": "evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json",
-      "sha256": "9888108cb198132f8f41dffe07afad1779766a216eca8621f3e898440ff1463b",
+      "sha256": "dbdabfffcc1ccd986d3449f877be3ee887c0539bfddc63f6a05a46360cdb47ed",
       "riskAcceptancePath": "evidence/PUBLIC_HISTORY_RISK_ACCEPTANCE.json",
-      "riskAcceptanceSha256": "9c0a244f65630edca39ea334b869f3283b6312d73644ac002bbb72fe97ae3a61",
+      "riskAcceptanceSha256": "a0171419e188b506aa1a3e7cb868b4cdac5047e40c5b0adf270104f362cdba13",
       "result": "PASS",
       "findingsDisposition": "PASS_WITH_OWNER_ACCEPTED_HISTORICAL_FINDINGS",
       "historyRewriteRequired": false,
@@ -94,13 +94,13 @@
       "personalInformationCandidates": 0,
       "publicationEligibility": "ELIGIBLE_WITH_OWNER_ACCEPTED_HISTORICAL_FINDINGS",
       "scope": "proposed-public-ref",
-      "publicRefCount": 6,
-      "publicRefSetSha256": "d0b98bad4e009ad3b98ad85dea1be26b3b4d64f7022a679522d20b3877ca7946",
-      "reachableCommitCount": 33,
+      "publicRefCount": 7,
+      "publicRefSetSha256": "08d48e4e3e326f3576f1ee7b687f5f51d9fa39706a7945591746742e29ba008c",
+      "reachableCommitCount": 36,
       "privacySignatureSetSha256": "5638f4135999ce31b3cc4333fc2cf104f779169d249725efdf5659166a57f3c6",
-      "emailOccurrenceCount": 62,
-      "emailOccurrenceMaximum": 64,
-      "pathOccurrenceCount": 91,
+      "emailOccurrenceCount": 66,
+      "emailOccurrenceMaximum": 66,
+      "pathOccurrenceCount": 93,
       "pathOccurrenceMaximum": 136,
       "historicalGitlinkSetSha256": "1e4229357fb1f343f35fb718c3621700331c50c71ece743ccb70f405edc8d9c4",
       "publicRemoteBaselineSha256": "42e40934ac78e486998c48c97010e25a56910a6ca78248a8e0dad834e2b50280",
@@ -109,10 +109,10 @@
     },
     "currentHostResourceProbe": {
       "path": "../HOST_RESOURCE_QUALIFICATION.json",
-      "sha256": "4836e9fcf3c31992516ab7d9fc67c24193e1587e104e3732e59ef6dee1dcceb3",
-      "result": "BLOCKED_CONTROLLED_HOST_CGROUP_IO",
+      "sha256": "69af270557d1547b3fccf0a05ab246e4307b921849db9d9935247e62a9466de6",
+      "result": "PASS",
       "allFourOwnerProfilesProbed": true,
-      "onlyFailedRequiredControl": "IOWeight",
+      "failedRequiredControls": [],
       "providerRequestsSent": 0,
       "networkOperationsPerformed": false
     },
@@ -121,20 +121,22 @@
       "baselineSha256": "64c32b5232888cd047a9a13347fc2b408a06401455f9e1ff64818b35ef192670",
       "planPath": "docs/HOST_CGROUP_V2_REMEDIATION_PLAN_ZH.md",
       "planSha256": "0c2104fa1d70014a237d788e6371445319dffb00b8e68ac26fa9dc4ef878b6c9",
-      "result": "HOST_CGROUP_RECONFIGURATION_PLAN_READY",
+      "result": "HISTORICAL_PLAN_SUPERSEDED_BY_CURRENT_HOST_QUALIFICATION_PASS",
       "privilegedCommandsExecuted": 0,
       "systemFilesModified": 0
     },
     "ownerDecisionQualification": {
       "DEC-001": "PUBLIC_HISTORY_AND_ZERO_GITLINK_GATES_PASS_BRANCH_GOVERNANCE_BLOCKED",
       "DEC-002": "PASS_IMPLEMENTATION_VERIFIED",
-      "DEC-003": "PASS_IMPLEMENTATION_VERIFIED_HOST_GATE_BLOCKED",
-      "DEC-004": "PASS_IMPLEMENTATION_VERIFIED"
+      "DEC-003": "PASS_IMPLEMENTATION_AND_FOUR_PROFILE_HOST_VERIFIED",
+      "DEC-004": "PASS_IMPLEMENTATION_VERIFIED",
+      "CRED-EPHEMERAL-001": "PASS_LOCAL_CONTRACT_EXTERNAL_EVIDENCE_PENDING"
     },
     "remainingReleaseGates": [
-      "explicit host cgroup I/O delegation reconfiguration and protected-host requalification",
-      "current-revision real Minimal Flash and Pro Thinking smoke",
-      "protected Provider artifact upload and GitHub attestation",
+      "current-revision protected real Minimal Flash and Pro Thinking smoke with a dedicated disposable key",
+      "Provider-side key revocation proof returning HTTP 401 or 403",
+      "independent environment-secret removal and ephemeral-runner deregistration proof",
+      "protected Provider artifact upload and GitHub OIDC attestation verification",
       "current branch push and exact-tip root strict CI",
       "branch protection required checks or owner-approved replacement contract",
       "seal-ready verification and deterministic archive/unpacked revalidation"
