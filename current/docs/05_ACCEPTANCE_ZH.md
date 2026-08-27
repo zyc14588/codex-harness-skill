@@ -52,6 +52,8 @@
 - [ ] 根 workflow、full-SHA actions、build/test/direct/security/package/skill/drift/negative/poison 全通过。
 - [ ] 目标 commit 的实际 GitHub Actions run PASS，branch protection required checks 已配置。
 - [ ] protected Provider artifact digest 与 GitHub attestation、run ID/attempt、workflow path/hash、精确 qualification head/tree 一致。
-- [ ] DEC-001…DEC-004 均由可归属 owner 明确批准，选择值与实现/资源 profile 一致。
+- [ ] 专用 disposable key 的 smoke/revocation fingerprint 一致；官方 `/models` 端点在 900 秒内实际返回 401/403，response body 未捕获，最终 attested subject 同时包含 smoke、run binding 与 revocation proof。
+- [ ] Owner 已删除 `deepseek-provider-smoke` environment 中的 `DEEPSEEK_API_KEY`，独立只读治理证据证明名称不存在；ephemeral runner 也已注销并不再 online。
+- [ ] DEC-001…DEC-004 与 CRED-EPHEMERAL-001 均由可归属 owner 明确批准，选择值与实现/资源/credential policy 一致。
 - [ ] fresh install、migration、same/cross rollback、reinstall、uninstall 全通过。
 - [ ] ZIP 无 `.git`、node_modules、symlink、PID、临时状态或凭据；解包后全部重验。

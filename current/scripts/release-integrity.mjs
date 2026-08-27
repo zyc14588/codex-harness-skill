@@ -37,6 +37,8 @@ export const CRITICAL_PATHS = [
   "bridge/src/thinking-policy.ts",
   "bridge/src/minimal-request-state.ts",
   "bridge/src/provider-policy.ts",
+  "bridge/src/provider-credential.ts",
+  "bridge/src/credential-revocation.ts",
   "bridge/src/worker.ts",
   "bridge/src/service.ts",
   "harness/minimal/preset/agent.cordis.yml.in",

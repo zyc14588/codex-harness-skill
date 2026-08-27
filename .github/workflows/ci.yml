@@ -22,7 +22,7 @@ jobs:
   strict-local-gates:
     name: strict-local-gates
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 75
     defaults:
       run:
         working-directory: current
@@ -69,6 +69,7 @@ jobs:
           test "$(jq -r .version ../release-status.json)" = "$(jq -r .version release-status.json)"
           jq -e . ../AUDIT_FINDINGS.json ../SOURCE_PROVENANCE.json release-status.json SOURCE_PROVENANCE.json schemas/*.json config/*.json >/dev/null
           node scripts/release-gate.test.mjs
+          node scripts/credential-contract.test.mjs
           case "$(jq -r .releaseStatus release-status.json)" in
             candidate) node scripts/verify-release-gate.mjs --root . --audit-candidate ;;
             stable) node scripts/verify-release-gate.mjs --root . ;;
@@ -216,18 +217,9 @@ jobs:
         working-directory: .
         env:
           RUNNER_EPHEMERAL: ${{ vars.RUNNER_EPHEMERAL }}
-          DEEPSEEK_API_KEY_EXPIRES_AT: ${{ secrets.DEEPSEEK_API_KEY_EXPIRES_AT }}
         run: |
           test "$RUNNER_EPHEMERAL" = true
           test "$(findmnt -n -o FSTYPE /dev/shm)" = tmpfs
-          python3 - "$DEEPSEEK_API_KEY_EXPIRES_AT" <<'PY'
-          import datetime,sys
-          expiry=datetime.datetime.fromisoformat(sys.argv[1].replace('Z','+00:00'))
-          now=datetime.datetime.now(datetime.timezone.utc)
-          seconds=(expiry-now).total_seconds()
-          if not 120 < seconds <= 3600:
-              raise SystemExit('Provider credential expiry must be 2-60 minutes in the future')
-          PY
       - name: Checkout exact qualified commit
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
@@ -262,34 +254,55 @@ jobs:
           CODEX_REAL_SMOKE_HARNESS_ROOT: ${{ vars.HARNESS_ROOT }}
           CODEX_REAL_SMOKE_PROFILE_MODULES: ${{ vars.DSH_PROFILE_MODULES }}
           CODEX_REAL_SMOKE_EVIDENCE_PATH: ${{ github.workspace }}/current/evidence/02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json
+          CODEX_REAL_SMOKE_PROVIDER_BASE_URL: https://api.deepseek.com
+          DEEPSEEK_BASE_URL: https://api.deepseek.com
         run: |
           test -n "$CODEX_REAL_SMOKE_HARNESS_ROOT"
           test -n "$CODEX_REAL_SMOKE_PROFILE_MODULES"
           test "$(jq -r .version bridge/package.json)" = 0.6.6
           node bridge/dist/real-provider-smoke.js
-          jq -e '.result == "PASS" and .version == "0.6.6" and .currentRevision == true and (.hostResourceProfiles | length == 4) and ([.hostResourceProfiles[].controlledUseAllowed] | all)' evidence/02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json >/dev/null
+          jq -e '.result == "PASS" and .version == "0.6.6" and .currentRevision == true and .credentialPolicy == "DEDICATED_DISPOSABLE_MANUAL_REVOKE_VERIFIED" and (.credentialFingerprintSha256 | test("^[0-9a-f]{64}$")) and .providerEndpoint == "https://api.deepseek.com" and .runnerEphemeral == true and (.hostResourceProfiles | length == 4) and ([.hostResourceProfiles[].controlledUseAllowed] | all)' evidence/02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json >/dev/null
+      - name: Enter credential revocation pending state
+        run: |
+          echo "::notice::Real Provider smoke completed."
+          echo "::notice::Revoke the dedicated DeepSeek qualification key now."
+          echo "::notice::Waiting for provider-side revocation proof."
+      - name: Verify provider-side credential revocation
+        env:
+          CODEX_REAL_SMOKE_CREDENTIALS: /dev/shm/codex-harness-${{ github.run_id }}-${{ github.run_attempt }}.yaml
+          CODEX_REAL_SMOKE_EVIDENCE_PATH: ${{ github.workspace }}/current/evidence/02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json
+          CODEX_CREDENTIAL_REVOCATION_EVIDENCE_PATH: ${{ runner.temp }}/credential-revocation.json
+          DEEPSEEK_BASE_URL: https://api.deepseek.com
+        run: node bridge/dist/credential-revocation.js
       - name: Build deterministic redacted Provider evidence subject
         env:
           CREDENTIAL_FILE: /dev/shm/codex-harness-${{ github.run_id }}-${{ github.run_attempt }}.yaml
           EVIDENCE_FILE: ${{ github.workspace }}/current/evidence/02_CURRENT_REVISION_REAL_PROVIDER_REDACTED.json
+          REVOCATION_FILE: ${{ runner.temp }}/credential-revocation.json
           EVIDENCE_BUNDLE: ${{ runner.temp }}/codex-harness-provider-evidence
           EVIDENCE_SUBJECT: ${{ runner.temp }}/codex-harness-provider-evidence-${{ github.sha }}.tar
         run: |
           rm -rf "$EVIDENCE_BUNDLE"
           mkdir -p "$EVIDENCE_BUNDLE"
           HEAD_TREE="$(git -C .. rev-parse 'HEAD^{tree}')"
-          python3 - "$EVIDENCE_FILE" "$CREDENTIAL_FILE" "$EVIDENCE_BUNDLE/provider-smoke.json" "$EVIDENCE_BUNDLE/run-binding.json" "${{ github.repository }}" "${{ github.sha }}" "$HEAD_TREE" "${{ github.run_id }}" "${{ github.run_attempt }}" "${{ github.workflow_ref }}" <<'PY'
+          python3 - "$EVIDENCE_FILE" "$REVOCATION_FILE" "$CREDENTIAL_FILE" "$EVIDENCE_BUNDLE/provider-smoke.json" "$EVIDENCE_BUNDLE/credential-revocation.json" "$EVIDENCE_BUNDLE/run-binding.json" "${{ github.repository }}" "${{ github.sha }}" "$HEAD_TREE" "${{ github.run_id }}" "${{ github.run_attempt }}" "${{ github.workflow_ref }}" <<'PY'
           import hashlib,json,os,sys
-          evidence_path,credential_path,copy_path,binding_path,repository,head_sha,head_tree,run_id,run_attempt,workflow_ref=sys.argv[1:]
+          evidence_path,revocation_path,credential_path,copy_path,revocation_copy_path,binding_path,repository,head_sha,head_tree,run_id,run_attempt,workflow_ref=sys.argv[1:]
           raw=open(evidence_path,'rb').read()
+          revocation_raw=open(revocation_path,'rb').read()
           credential=open(credential_path,encoding='utf-8').read().partition(':')[2].strip().encode()
-          if len(credential)<24 or credential in raw:
+          credential_fingerprint=hashlib.sha256(credential).hexdigest()
+          if len(credential)<24 or credential in raw or credential in revocation_raw:
               raise SystemExit('Provider evidence redaction validation failed')
           evidence=json.loads(raw)
+          revocation=json.loads(revocation_raw)
           profiles=evidence.get('hostResourceProfiles',{})
-          if evidence.get('result')!='PASS' or evidence.get('sourceCommit')!=head_sha or len(profiles)!=4 or not all(v.get('controlledUseAllowed') is True for v in profiles.values()):
+          if evidence.get('result')!='PASS' or evidence.get('sourceCommit')!=head_sha or evidence.get('credentialPolicy')!='DEDICATED_DISPOSABLE_MANUAL_REVOKE_VERIFIED' or evidence.get('credentialFingerprintSha256')!=credential_fingerprint or evidence.get('providerEndpoint')!='https://api.deepseek.com' or evidence.get('runnerEphemeral') is not True or len(profiles)!=4 or not all(v.get('controlledUseAllowed') is True for v in profiles.values()):
               raise SystemExit('Provider evidence exact-revision/resource binding failed')
+          if revocation.get('result')!='PASS' or revocation.get('credentialPolicy')!='DEDICATED_DISPOSABLE_MANUAL_REVOKE_VERIFIED' or revocation.get('credentialFingerprintSha256')!=credential_fingerprint or revocation.get('repository')!=repository or revocation.get('headSha')!=head_sha or revocation.get('headTree')!=head_tree or revocation.get('runId')!=int(run_id) or revocation.get('runAttempt')!=int(run_attempt) or revocation.get('endpoint')!='https://api.deepseek.com/models' or revocation.get('revocationHttpStatus') not in [401,403] or revocation.get('acceptedStatuses')!=[401,403] or revocation.get('maxWaitSeconds')!=900 or revocation.get('pollIntervalSeconds')!=15 or revocation.get('responseBodyCaptured') is not False:
+              raise SystemExit('Provider credential revocation proof binding failed')
           open(copy_path,'wb').write(raw)
+          open(revocation_copy_path,'wb').write(revocation_raw)
           workflow_path=os.path.realpath('../.github/workflows/ci.yml')
           binding={
               'schemaVersion':1,'result':'PASS','repository':repository,'headSha':head_sha,'headTree':head_tree,
@@ -297,9 +310,16 @@ jobs:
               'workflowPath':'.github/workflows/ci.yml',
               'workflowSha256':hashlib.sha256(open(workflow_path,'rb').read()).hexdigest(),
               'environment':'deepseek-provider-smoke','job':'protected-real-provider-smoke',
+              'credentialPolicy':'DEDICATED_DISPOSABLE_MANUAL_REVOKE_VERIFIED',
+              'credentialFingerprintSha256':credential_fingerprint,
+              'providerEndpoint':'https://api.deepseek.com',
               'providerEvidenceSha256':hashlib.sha256(raw).hexdigest(),
+              'revocationEvidenceSha256':hashlib.sha256(revocation_raw).hexdigest(),
           }
-          open(binding_path,'w',encoding='utf-8').write(json.dumps(binding,indent=2,sort_keys=True)+'\n')
+          binding_raw=(json.dumps(binding,indent=2,sort_keys=True)+'\n').encode()
+          if credential in binding_raw:
+              raise SystemExit('Provider credential bytes entered the run binding')
+          open(binding_path,'wb').write(binding_raw)
           PY
           tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner -C "$EVIDENCE_BUNDLE" -cf "$EVIDENCE_SUBJECT" .
           sha256sum "$EVIDENCE_SUBJECT" > "$EVIDENCE_SUBJECT.sha256"

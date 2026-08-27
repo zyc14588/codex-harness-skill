@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import http from "node:http";
-import { chmod, cp, lstat, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { chmod, cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -24,6 +24,11 @@ import { runProcess, sha256PathTree, sleep } from "./util.js";
 import { sha256Executable } from "./process-identity.js";
 import { createPinnedHostResourceProfile, freezeHostResourceProfile, probeHostResourceProfile, RESOURCE_PROFILE_IDS } from "./resource-controls.js";
 import { usageForBudgetGroup } from "./telemetry.js";
+import {
+  CREDENTIAL_POLICY,
+  OFFICIAL_DEEPSEEK_BASE_URL,
+  readProtectedProviderCredential,
+} from "./provider-credential.js";
 
 type Payload = Record<string, unknown>;
 
@@ -49,21 +54,6 @@ async function reserveLoopbackPort(): Promise<number> {
   const port = address.port;
   await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
   return port;
-}
-
-async function readCredentialApiKey(source: string): Promise<string> {
-  const info = await lstat(source);
-  assert.ok(info.isFile() && !info.isSymbolicLink(), "real Provider credential source must be a regular non-symlink file");
-  if (typeof process.getuid === "function") assert.equal(info.uid, process.getuid(), "real Provider credential source must be operator-owned");
-  assert.equal(info.mode & 0o077, 0, "real Provider credential source must not be accessible by group or other users");
-  const document = await readFile(source, "utf8");
-  const line = document.split(/\r?\n/u).find((candidate) => /^\s*DEEPSEEK_API_KEY\s*:/u.test(candidate));
-  assert.ok(line, "real Provider credential source does not contain DEEPSEEK_API_KEY");
-  let value = line.replace(/^\s*DEEPSEEK_API_KEY\s*:\s*/u, "").trim();
-  if (value.startsWith('"') && value.endsWith('"')) value = JSON.parse(value) as string;
-  else if (value.startsWith("'") && value.endsWith("'")) value = value.slice(1, -1).replace(/''/gu, "'");
-  assert.ok(Buffer.byteLength(value, "utf8") >= 24 && !/[\0\r\n]/u.test(value), "real Provider API key is malformed");
-  return value;
 }
 
 async function waitTerminal(taskId: string, timeoutMs = 600_000): Promise<Payload> {
@@ -296,6 +286,7 @@ const configPath = path.join(temp, "config.json");
 const priorConfig = process.env.CODEX_HARNESS_CONFIG;
 const priorDshHome = process.env.DSH_HOME;
 const priorBaseUrl = process.env.DEEPSEEK_BASE_URL;
+const priorSmokeBaseUrl = process.env.CODEX_REAL_SMOKE_PROVIDER_BASE_URL;
 const priorProviderKey = process.env.DEEPSEEK_API_KEY;
 const priorGithubToken = process.env.GITHUB_TOKEN;
 let monitorStarted = false;
@@ -310,11 +301,17 @@ let report: Payload = {
   sourceFileCount: Array.isArray(sourceBinding.files) ? sourceBinding.files.length : undefined,
   criticalSetSha256: criticalBinding.setSha256,
   criticalPathSha256: criticalBinding.entries,
+  credentialPolicy: CREDENTIAL_POLICY,
+  providerEndpoint: OFFICIAL_DEEPSEEK_BASE_URL,
+  runnerEphemeral: true,
   tempRoot: temp,
 };
 
 try {
-  const providerKey = await readCredentialApiKey(credentialSource);
+  delete process.env.DEEPSEEK_BASE_URL;
+  delete process.env.CODEX_REAL_SMOKE_PROVIDER_BASE_URL;
+  const credential = await readProtectedProviderCredential(credentialSource);
+  const providerKey = credential.value;
   await mkdir(path.dirname(providerKeyPath), { recursive: true, mode: 0o700 });
   await chmod(path.dirname(providerKeyPath), 0o700);
   await writeFile(providerKeyPath, `${providerKey}\n`, { mode: 0o600 });
@@ -373,7 +370,7 @@ try {
       currency: { primary: "CNY", showUsd: false, usdToCnyRate: null, fxAsOf: "not-configured", fxSource: "manual" },
     },
     provider: {
-      baseUrl: process.env.CODEX_REAL_SMOKE_PROVIDER_BASE_URL ?? priorBaseUrl ?? "https://api.deepseek.com",
+      baseUrl: OFFICIAL_DEEPSEEK_BASE_URL,
       apiKeyFile: providerKeyPath,
     },
     harnessIsolation: {
@@ -400,9 +397,11 @@ try {
   process.env.CODEX_HARNESS_CONFIG = configPath;
   process.env.DSH_HOME = dshHome;
   delete process.env.DEEPSEEK_BASE_URL;
+  delete process.env.CODEX_REAL_SMOKE_PROVIDER_BASE_URL;
   process.env.DEEPSEEK_API_KEY = "parent-provider-secret-must-not-reach-harness";
   process.env.GITHUB_TOKEN = "parent-github-secret-must-not-reach-harness";
   const loadedConfig = await loadConfig();
+  assert.equal(loadedConfig.provider.baseUrl, OFFICIAL_DEEPSEEK_BASE_URL, "real Provider smoke must use the official DeepSeek endpoint");
   const resourceProbes: Record<string, Awaited<ReturnType<typeof probeHostResourceProfile>>> = {};
   for (const id of RESOURCE_PROFILE_IDS) {
     const resourceProbe = await probeHostResourceProfile(loadedConfig, freezeHostResourceProfile(loadedConfig, id));
@@ -448,6 +447,10 @@ try {
     criticalSetSha256: criticalBinding.setSha256,
     criticalPathSha256: criticalBinding.entries,
     provider: "DeepSeek real API via authenticated local credential broker",
+    credentialPolicy: CREDENTIAL_POLICY,
+    credentialFingerprintSha256: credential.fingerprintSha256,
+    providerEndpoint: OFFICIAL_DEEPSEEK_BASE_URL,
+    runnerEphemeral: true,
     credentialHandling: "parsed only in the parent trust domain and stored as a private 0600 broker key; Provider, Adapter-state, and tool broker use three distinct one-attempt capabilities delivered once over anonymous stdin",
     harnessNetworkBoundary: "Harness adapter has only its authenticated Unix-socket Provider route; model-visible Bash/Pwsh run in sibling private-PID/private-network Bubblewrap sandboxes without broker capabilities or sockets",
     bubblewrapSha256: bwrapIdentity.sha256,
@@ -484,6 +487,8 @@ try {
   else process.env.DSH_HOME = priorDshHome;
   if (priorBaseUrl === undefined) delete process.env.DEEPSEEK_BASE_URL;
   else process.env.DEEPSEEK_BASE_URL = priorBaseUrl;
+  if (priorSmokeBaseUrl === undefined) delete process.env.CODEX_REAL_SMOKE_PROVIDER_BASE_URL;
+  else process.env.CODEX_REAL_SMOKE_PROVIDER_BASE_URL = priorSmokeBaseUrl;
   if (priorProviderKey === undefined) delete process.env.DEEPSEEK_API_KEY;
   else process.env.DEEPSEEK_API_KEY = priorProviderKey;
   if (priorGithubToken === undefined) delete process.env.GITHUB_TOKEN;

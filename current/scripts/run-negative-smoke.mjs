@@ -61,6 +61,7 @@ const testFiles = [
   "dist/test/verification-isolation.test.js",
 ].map((relative) => ({ relative, cwd: path.join(options.root, "bridge"), evidencePath: `bridge/${relative}` }));
 testFiles.push({ relative: "scripts/release-structure.test.mjs", cwd: options.root, evidencePath: "scripts/release-structure.test.mjs" });
+testFiles.push({ relative: "scripts/credential-contract.test.mjs", cwd: options.root, evidencePath: "scripts/credential-contract.test.mjs" });
 const executions = [];
 let passed = true;
 for (const testFile of testFiles) {
@@ -124,6 +125,7 @@ const evidence = {
     operatorAuditFloodAggregationRotationAndRetention: passed,
     activePackageArchiveZeroGitlinkNegatives: executions.some((entry) => entry.testFile === "scripts/release-structure.test.mjs" && entry.result === "PASS"),
     controlledUseRequiresAllCgroupControllers: "PROTECTED_HOST_GATE_REQUIRED",
+    disposableCredentialRevocationFailClosed: executions.some((entry) => entry.testFile === "scripts/credential-contract.test.mjs" && entry.result === "PASS"),
   },
 };
 await mkdir(path.dirname(options.evidence), { recursive: true });

@@ -1,7 +1,7 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "version": "0.6.6",
-  "status": "OWNER_DECISIONS_IMPLEMENTED_PUBLIC_HISTORY_PASS_BRANCH_AND_HOST_BLOCKED",
+  "status": "OWNER_DECISIONS_IMPLEMENTED_CREDENTIAL_REVOCATION_AND_REMOTE_GOVERNANCE_PENDING",
   "policy": "Owner approval and implementation verification are independent. Any decision change is an implementation change and invalidates earlier qualification evidence.",
   "decidedBy": "zyc14588",
   "decidedAt": "2026-08-26T01:22:12+10:00",
@@ -150,6 +150,30 @@
         "runtime, config, MCP path, doctor, logs, and evidence bind the full implementation commit",
         "withdrawn candidate is not installable",
         "uninstall removes only the selected runtime and matching active integration"
+      ]
+    },
+    "CRED-EPHEMERAL-001": {
+      "title": "Protected Provider qualification credential lifecycle",
+      "status": "APPROVED",
+      "selected": "B_DEDICATED_DISPOSABLE_KEY_WITH_VERIFIED_REVOCATION",
+      "options": [
+        "B_DEDICATED_DISPOSABLE_KEY_WITH_VERIFIED_REVOCATION"
+      ],
+      "decidedBy": "zyc14588",
+      "implementationVerified": true,
+      "implementationStatus": "PASS_DEDICATED_DISPOSABLE_MANUAL_REVOKE_VERIFIED_CONTRACT",
+      "ownerMeaning": "DeepSeek API keys are not claimed to have a provider-enforced TTL. Protected real smoke uses one dedicated disposable key, and Provider qualification cannot pass until the Owner manually revokes that key at DeepSeek and an authenticated request to the official endpoint returns HTTP 401 or 403.",
+      "credentialPolicy": "DEDICATED_DISPOSABLE_MANUAL_REVOKE_VERIFIED",
+      "providerEndpoint": "https://api.deepseek.com",
+      "revocationEndpoint": "https://api.deepseek.com/models",
+      "requirements": [
+        "DEEPSEEK_API_KEY_EXPIRES_AT is not a truth or qualification gate",
+        "the smoke and revocation proof use the same lowercase SHA-256 fingerprint derived from the original credential bytes without storing those bytes in evidence",
+        "HTTP 200, 429, 5xx, other statuses, and network errors are not revocation proof",
+        "HTTP 401 or 403 from the authenticated official Provider endpoint is required within 900 seconds at a 15-second polling interval",
+        "Provider smoke is not release-qualified evidence before credential-revocation.json is PASS and cross-bound into the deterministic attested subject",
+        "the Owner deletes DEEPSEEK_API_KEY from the deepseek-provider-smoke GitHub environment before seal, and an independent read-only governance check proves the secret name is absent",
+        "the ephemeral self-hosted runner is independently proven deregistered and offline after the protected job"
       ]
     }
   }

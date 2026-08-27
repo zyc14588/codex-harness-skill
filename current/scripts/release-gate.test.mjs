@@ -110,7 +110,7 @@ async function writeSourceFixture(root, version) {
   config.harnessIsolation.resourceProfiles = profiles;
   await writeFile(configPath, json(config));
   await writeRelative(root, "docs/OWNER_DECISIONS.json", json({
-    schemaVersion: 3,
+    schemaVersion: 4,
     version: STABLE_VERSION,
     ...owner,
     decisions: {
@@ -118,6 +118,16 @@ async function writeSourceFixture(root, version) {
       "DEC-002": { status: "APPROVED", selected: decisions["DEC-002"], options: [decisions["DEC-002"]], ...owner },
       "DEC-003": { status: "APPROVED", selected: decisions["DEC-003"], options: [decisions["DEC-003"]], profiles, ...owner },
       "DEC-004": { status: "APPROVED", selected: decisions["DEC-004"], options: [decisions["DEC-004"]], pathPattern: "0.6.6-candidate-<implementationCommit12>", ...owner },
+      "CRED-EPHEMERAL-001": {
+        status: "APPROVED",
+        selected: "B_DEDICATED_DISPOSABLE_KEY_WITH_VERIFIED_REVOCATION",
+        options: ["B_DEDICATED_DISPOSABLE_KEY_WITH_VERIFIED_REVOCATION"],
+        decidedBy: "zyc14588",
+        implementationVerified: true,
+        credentialPolicy: "DEDICATED_DISPOSABLE_MANUAL_REVOKE_VERIFIED",
+        providerEndpoint: "https://api.deepseek.com",
+        revocationEndpoint: "https://api.deepseek.com/models",
+      },
     },
   }));
   await writeRelative(root, "docs/REPOSITORY_HISTORY_DISCLOSURE_BOUNDARY_ZH.md", "accepted disclosure boundary for configured remote model\n");
@@ -206,6 +216,10 @@ function smokeEvidence(integrity) {
     result: "PASS",
     version: STABLE_VERSION,
     currentRevision: true,
+    credentialPolicy: "DEDICATED_DISPOSABLE_MANUAL_REVOKE_VERIFIED",
+    credentialFingerprintSha256: "c".repeat(64),
+    providerEndpoint: "https://api.deepseek.com",
+    runnerEphemeral: true,
     flash: {
       ...qualifiedLeaf("deepseek-v4-flash", "real-flash-multiturn.txt"),
       requestCount: 4,
@@ -231,9 +245,50 @@ function smokeEvidence(integrity) {
   };
 }
 
-function externalEvidence(releaseTarget) {
+function externalEvidence(releaseTarget, providerEvidenceSha256, credentialFingerprintSha256) {
+  const revocationDocument = {
+    schemaVersion: 1,
+    result: "PASS",
+    provider: "deepseek",
+    credentialPolicy: "DEDICATED_DISPOSABLE_MANUAL_REVOKE_VERIFIED",
+    credentialFingerprintSha256,
+    repository: releaseTarget.repository,
+    headSha: releaseTarget.qualificationCommit,
+    headTree: releaseTarget.qualificationTree,
+    runId: 12345,
+    runAttempt: 1,
+    endpoint: "https://api.deepseek.com/models",
+    revocationObservedAt: "2026-08-24T00:01:30.000Z",
+    revocationHttpStatus: 401,
+    acceptedStatuses: [401, 403],
+    probeAttempts: 2,
+    maxWaitSeconds: 900,
+    pollIntervalSeconds: 15,
+    responseBodyCaptured: false,
+  };
+  const revocationEvidenceSha256 = digest(`${JSON.stringify(revocationDocument, null, 2)}\n`);
+  const runBinding = {
+    schemaVersion: 1,
+    result: "PASS",
+    repository: releaseTarget.repository,
+    headSha: releaseTarget.qualificationCommit,
+    headTree: releaseTarget.qualificationTree,
+    runId: 12345,
+    runAttempt: 1,
+    workflowRef: `${releaseTarget.repository}/.github/workflows/ci.yml@refs/heads/${releaseTarget.branch}`,
+    workflowPath: ".github/workflows/ci.yml",
+    workflowSha256: releaseTarget.workflow.sha256,
+    environment: "deepseek-provider-smoke",
+    job: "protected-real-provider-smoke",
+    credentialPolicy: "DEDICATED_DISPOSABLE_MANUAL_REVOKE_VERIFIED",
+    credentialFingerprintSha256,
+    providerEndpoint: "https://api.deepseek.com",
+    providerEvidenceSha256,
+    revocationEvidenceSha256,
+  };
+  const runBindingSha256 = digest(`${JSON.stringify(runBinding, null, 2)}\n`);
   return {
-    schemaVersion: 3,
+    schemaVersion: 4,
     result: "PASS",
     generatedAt: "2026-08-24T00:02:00.000Z",
     repository: releaseTarget.repository,
@@ -253,6 +308,34 @@ function externalEvidence(releaseTarget) {
         jobId: 12347,
         conclusion: "success",
         environment: "deepseek-provider-smoke",
+        runnerEphemeral: true,
+        credentialPolicy: "DEDICATED_DISPOSABLE_MANUAL_REVOKE_VERIFIED",
+        credentialFingerprintSha256,
+        providerEndpoint: "https://api.deepseek.com",
+        credentialRevocation: {
+          ...revocationDocument,
+          evidenceSha256: revocationEvidenceSha256,
+        },
+        evidenceBundle: {
+          schemaVersion: 1,
+          result: "PASS",
+          deterministic: true,
+          members: {
+            "provider-smoke.json": providerEvidenceSha256,
+            "run-binding.json": runBindingSha256,
+            "credential-revocation.json": revocationEvidenceSha256,
+          },
+          runBinding,
+        },
+        runnerLifecycle: {
+          result: "PASS",
+          registrationMode: "EPHEMERAL",
+          runnerEphemeral: true,
+          deregistered: true,
+          online: false,
+          verificationMode: "INDEPENDENT_READ_ONLY_GITHUB_GOVERNANCE",
+          verifiedAt: "2026-08-24T00:03:00.000Z",
+        },
         artifact: {
           id: 12348,
           name: `codex-harness-provider-evidence-${releaseTarget.qualificationCommit}.tar`,
@@ -269,6 +352,14 @@ function externalEvidence(releaseTarget) {
           },
         },
       },
+    },
+    providerEnvironmentSecretRemoval: {
+      result: "PASS",
+      environment: "deepseek-provider-smoke",
+      secretName: "DEEPSEEK_API_KEY",
+      secretNamePresent: false,
+      verificationMode: "INDEPENDENT_READ_ONLY_GITHUB_GOVERNANCE",
+      verifiedAt: "2026-08-24T00:04:00.000Z",
     },
     branchProtection: {
       status: "PASS",
@@ -319,11 +410,13 @@ async function stableFixture() {
       sha256: "9".repeat(64),
     },
   };
+  const smoke = smokeEvidence(integrity);
+  const smokeContent = `${JSON.stringify(smoke, null, 2)}\n`;
   const evidence = {
     [evidencePaths.local]: { ...evidenceBase(integrity), result: "PASS", qualification: "local" },
-    [evidencePaths.real]: smokeEvidence(integrity),
+    [evidencePaths.real]: smoke,
     [evidencePaths.negative]: { ...evidenceBase(integrity), result: "PASS", qualification: "negative-smoke" },
-    [evidencePaths.external]: externalEvidence(releaseTarget),
+    [evidencePaths.external]: externalEvidence(releaseTarget, digest(smokeContent), smoke.credentialFingerprintSha256),
   };
   const requiredEvidenceSha256 = {};
   for (const [relative, value] of Object.entries(evidence)) {
@@ -519,6 +612,74 @@ test("GitHub evidence is required, exact-tip bound, protected, and non-observati
   await assert.rejects(
     verifyReleaseGate({ root: skipped.root, auditPackageStaging: true, skipSelfTests: false, requireArchive: false }),
     /was skipped/u,
+  );
+});
+
+test("missing credential revocation proof fails closed", async () => {
+  const missing = await stableFixture();
+  await rewriteBoundEvidence(missing.root, evidencePaths.external, (evidence) => {
+    delete evidence.actionsRun.protectedRealProviderSmoke.credentialRevocation;
+  });
+  await assert.rejects(
+    verifyReleaseGate({ root: missing.root, auditPackageStaging: true, skipSelfTests: false, requireArchive: false }),
+    /BLOCKED_PROVIDER_CREDENTIAL_REVOCATION_EVIDENCE/u,
+  );
+});
+
+test("mismatched credential fingerprint fails closed", async () => {
+  const mismatch = await stableFixture();
+  await rewriteBoundEvidence(mismatch.root, evidencePaths.external, (evidence) => {
+    evidence.actionsRun.protectedRealProviderSmoke.credentialRevocation.credentialFingerprintSha256 = "f".repeat(64);
+  });
+  await assert.rejects(
+    verifyReleaseGate({ root: mismatch.root, auditPackageStaging: true, skipSelfTests: false, requireArchive: false }),
+    /BLOCKED_PROVIDER_CREDENTIAL_REVOCATION_EVIDENCE/u,
+  );
+});
+
+test("missing credential-revocation.json artifact member fails closed", async () => {
+  const missingMember = await stableFixture();
+  await rewriteBoundEvidence(missingMember.root, evidencePaths.external, (evidence) => {
+    delete evidence.actionsRun.protectedRealProviderSmoke.evidenceBundle.members["credential-revocation.json"];
+  });
+  await assert.rejects(
+    verifyReleaseGate({ root: missingMember.root, auditPackageStaging: true, skipSelfTests: false, requireArchive: false }),
+    /bundle members keys must exactly equal/u,
+  );
+});
+
+test("legacy TTL-shaped Provider evidence is never accepted by the new gate", async () => {
+  const legacy = await stableFixture();
+  await rewriteBoundEvidence(legacy.root, evidencePaths.real, (evidence) => {
+    delete evidence.credentialPolicy;
+    delete evidence.credentialFingerprintSha256;
+    evidence.credentialExpiresAt = "2026-08-24T00:30:00.000Z";
+  });
+  await assert.rejects(
+    verifyReleaseGate({ root: legacy.root, auditPackageStaging: true, skipSelfTests: false, requireArchive: false }),
+    /BLOCKED_PROVIDER_CREDENTIAL_REVOCATION_EVIDENCE/u,
+  );
+});
+
+test("seal qualification requires independent environment secret removal", async () => {
+  const secretPresent = await stableFixture();
+  await rewriteBoundEvidence(secretPresent.root, evidencePaths.external, (evidence) => {
+    evidence.providerEnvironmentSecretRemoval.secretNamePresent = true;
+  });
+  await assert.rejects(
+    verifyReleaseGate({ root: secretPresent.root, auditPackageStaging: true, skipSelfTests: false, requireArchive: false }),
+    /PROVIDER_ENVIRONMENT_SECRET_REMOVAL_REQUIRED/u,
+  );
+});
+
+test("seal qualification requires ephemeral runner deregistration", async () => {
+  const runnerOnline = await stableFixture();
+  await rewriteBoundEvidence(runnerOnline.root, evidencePaths.external, (evidence) => {
+    evidence.actionsRun.protectedRealProviderSmoke.runnerLifecycle.online = true;
+  });
+  await assert.rejects(
+    verifyReleaseGate({ root: runnerOnline.root, auditPackageStaging: true, skipSelfTests: false, requireArchive: false }),
+    /PROVIDER_EPHEMERAL_RUNNER_DEREGISTRATION_REQUIRED/u,
   );
 });
 

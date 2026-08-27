@@ -32,7 +32,10 @@ export const REQUIRED_STABLE_SOURCE_GATES = Object.freeze([
   "operatorAuthenticationHardening",
   "processE2E",
   "protectedProviderEvidenceAttestation",
+  "providerCredentialRevocation",
   "providerCapabilityIsolation",
+  "providerEnvironmentSecretRemoval",
+  "providerEphemeralRunnerDeregistration",
   "reasoningReplayFailureInjection",
   "repositoryHistoryReadBoundaryDecision",
   "resourceControlEnforcement",
@@ -58,6 +61,12 @@ export const REQUIRED_ARCHIVE_CHECKS = Object.freeze([
 
 const EXPECTED_ARCHIVE_NAME = "CODEX_HARNESS_BRIDGE_0_6_6_STABLE.zip";
 const EXPECTED_PACKAGE_ORIGIN_KIND = "codex-harness-stable-package-origin";
+const CREDENTIAL_POLICY = "DEDICATED_DISPOSABLE_MANUAL_REVOKE_VERIFIED";
+const PROVIDER_ENDPOINT = "https://api.deepseek.com";
+const REVOCATION_ENDPOINT = `${PROVIDER_ENDPOINT}/models`;
+const REVOCATION_BLOCKER = "BLOCKED_PROVIDER_CREDENTIAL_REVOCATION_EVIDENCE";
+const SECRET_REMOVAL_BLOCKER = "PROVIDER_ENVIRONMENT_SECRET_REMOVAL_REQUIRED";
+const RUNNER_DEREGISTRATION_BLOCKER = "PROVIDER_EPHEMERAL_RUNNER_DEREGISTRATION_REQUIRED";
 
 function usage() {
   process.stderr.write("Usage: verify-release-gate.mjs --root PATH [--audit-candidate|--seal-ready --external-evidence FILE --external-subject FILE|--audit-package-staging] [--skip-self-tests] [--require-archive --archive ZIP --sidecar FILE --validation FILE]\n");
@@ -92,6 +101,10 @@ function object(value, label) {
 }
 
 function sha256Text(value) {
+  return createHash("sha256").update(value).digest("hex");
+}
+
+function sha256Bytes(value) {
   return createHash("sha256").update(value).digest("hex");
 }
 
@@ -198,6 +211,11 @@ function assertSmokeQualification(smoke, status, integrity) {
     || smoke.sourceTreeSha256 !== integrity.source.sha256 || smoke.criticalSetSha256 !== integrity.critical.setSha256) {
     throw new Error("real Provider smoke was generated from a different commit/tree/critical path set");
   }
+  if (smoke.credentialPolicy !== CREDENTIAL_POLICY
+    || !/^[0-9a-f]{64}$/u.test(String(smoke.credentialFingerprintSha256 ?? ""))
+    || smoke.providerEndpoint !== PROVIDER_ENDPOINT || smoke.runnerEphemeral !== true) {
+    throw new Error(`${REVOCATION_BLOCKER}: real Provider smoke lacks the disposable credential fingerprint/policy/endpoint/ephemeral-runner binding`);
+  }
   const flash = object(smoke.flash, "Flash smoke");
   const pro = object(smoke.pro, "Pro smoke");
   if (Number(flash.requestCount) < 4 || Number(flash.toolProtocolNativeCallCount) < 2
@@ -244,12 +262,13 @@ function assertStableSourceGates(status) {
 
 async function assertOwnerDecisions(root, config) {
   const document = await jsonFile(path.join(root, "docs/OWNER_DECISIONS.json"), "owner decisions");
-  if (document.schemaVersion !== 3 || document.version !== STABLE_VERSION
+  if (document.schemaVersion !== 4 || document.version !== STABLE_VERSION
     || document.decidedBy !== "zyc14588" || document.decidedAt !== "2026-08-26T01:22:12+10:00") {
     throw new Error("owner decisions schema/version/attribution is invalid");
   }
   const decisions = object(document.decisions, "owner decisions map");
-  const required = ["DEC-001", "DEC-002", "DEC-003", "DEC-004"].sort();
+  const legacyRequired = ["DEC-001", "DEC-002", "DEC-003", "DEC-004"].sort();
+  const required = [...legacyRequired, "CRED-EPHEMERAL-001"].sort();
   const expectedSelections = {
     "DEC-001": "B_PUBLIC_AFTER_FULL_REPOSITORY_AND_HISTORY_AUDIT",
     "DEC-002": "A_ACCEPT_REPOSITORY_AND_HISTORY_READ_BOUNDARY",
@@ -257,7 +276,7 @@ async function assertOwnerDecisions(root, config) {
     "DEC-004": "A_USE_COMMIT_SUFFIXED_CANDIDATE_PATH",
   };
   exactKeys(decisions, required, "owner decisions map");
-  for (const id of required) {
+  for (const id of legacyRequired) {
     const decision = object(decisions[id], `owner decision ${id}`);
     if (decision.status !== "APPROVED" || decision.selected !== expectedSelections[id]
       || !Array.isArray(decision.options) || !decision.options.includes(decision.selected)
@@ -265,6 +284,16 @@ async function assertOwnerDecisions(root, config) {
       || decision.implementationVerified !== true) {
       throw new Error(`owner decision ${id} is not approved, exact, attributable, and implementation-verified`);
     }
+  }
+  const credentialDecision = object(decisions["CRED-EPHEMERAL-001"], "owner decision CRED-EPHEMERAL-001");
+  if (credentialDecision.status !== "APPROVED"
+    || credentialDecision.selected !== "B_DEDICATED_DISPOSABLE_KEY_WITH_VERIFIED_REVOCATION"
+    || !Array.isArray(credentialDecision.options) || !credentialDecision.options.includes(credentialDecision.selected)
+    || credentialDecision.decidedBy !== "zyc14588" || credentialDecision.implementationVerified !== true
+    || credentialDecision.credentialPolicy !== CREDENTIAL_POLICY
+    || credentialDecision.providerEndpoint !== PROVIDER_ENDPOINT
+    || credentialDecision.revocationEndpoint !== REVOCATION_ENDPOINT) {
+    throw new Error("owner decision CRED-EPHEMERAL-001 is not approved, exact, attributable, and implementation-verified");
   }
   const publicAudit = await jsonFile(path.join(root, "evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json"), "public repository/history audit");
   if (publicAudit.result !== "PASS"
@@ -334,9 +363,9 @@ async function assertOwnerDecisions(root, config) {
   }
 }
 
-async function assertExternalEvidence(evidence, status, integrity) {
-  if (Number(evidence.schemaVersion) < 3 || evidence.result !== "PASS") {
-    throw new Error("GitHub external evidence must be a schema-v3 PASS attestation");
+async function assertExternalEvidence(evidence, status, integrity, smoke, subjectBundle) {
+  if (Number(evidence.schemaVersion) < 4 || evidence.result !== "PASS") {
+    throw new Error("GitHub external evidence must be a schema-v4 PASS attestation with credential revocation governance");
   }
   const target = object(status.releaseTarget, "release target binding");
   const repository = String(target.repository ?? "");
@@ -383,6 +412,102 @@ async function assertExternalEvidence(evidence, status, integrity) {
     || protectedSmoke.conclusion !== "success" || protectedSmoke.environment !== "deepseek-provider-smoke") {
     throw new Error("protected Provider smoke was skipped or did not conclude success in the protected environment");
   }
+  if (protectedSmoke.runnerEphemeral !== true
+    || protectedSmoke.credentialPolicy !== CREDENTIAL_POLICY
+    || protectedSmoke.credentialFingerprintSha256 !== smoke.credentialFingerprintSha256
+    || protectedSmoke.providerEndpoint !== PROVIDER_ENDPOINT) {
+    throw new Error(`${REVOCATION_BLOCKER}: protected smoke credential binding is incomplete or mismatched`);
+  }
+  if (!protectedSmoke.credentialRevocation) {
+    throw new Error(`${REVOCATION_BLOCKER}: credential-revocation.json proof is missing`);
+  }
+  const revocation = object(protectedSmoke.credentialRevocation, "protected Provider credential revocation evidence");
+  if (revocation.schemaVersion !== 1 || revocation.result !== "PASS" || revocation.provider !== "deepseek"
+    || revocation.credentialPolicy !== CREDENTIAL_POLICY
+    || revocation.credentialFingerprintSha256 !== smoke.credentialFingerprintSha256
+    || revocation.repository !== repository || revocation.headSha !== qualificationCommit
+    || revocation.headTree !== qualificationTree || revocation.runId !== run.runId
+    || revocation.runAttempt !== run.runAttempt || revocation.endpoint !== REVOCATION_ENDPOINT
+    || ![401, 403].includes(revocation.revocationHttpStatus)
+    || JSON.stringify(revocation.acceptedStatuses) !== JSON.stringify([401, 403])
+    || !Number.isSafeInteger(revocation.probeAttempts) || revocation.probeAttempts <= 0
+    || revocation.maxWaitSeconds !== 900 || revocation.pollIntervalSeconds !== 15
+    || revocation.responseBodyCaptured !== false
+    || !Number.isFinite(Date.parse(String(revocation.revocationObservedAt ?? "")))) {
+    throw new Error(`${REVOCATION_BLOCKER}: missing, stale, or invalid credential-revocation.json proof`);
+  }
+  if (!protectedSmoke.evidenceBundle) {
+    throw new Error(`${REVOCATION_BLOCKER}: deterministic attested evidence bundle is missing`);
+  }
+  const bundle = object(protectedSmoke.evidenceBundle, "protected Provider deterministic evidence bundle");
+  const members = object(bundle.members, "protected Provider evidence bundle members");
+  exactKeys(members, ["credential-revocation.json", "provider-smoke.json", "run-binding.json"], "protected Provider evidence bundle members");
+  const runBinding = object(bundle.runBinding, "protected Provider run binding");
+  const realEvidenceDigest = object(status.artifactBindings, "artifact bindings").requiredEvidenceSha256?.[status.realProviderEvidencePath];
+  const revocationEvidenceSha256 = sha256(members["credential-revocation.json"], "credential revocation evidence SHA-256");
+  if (bundle.schemaVersion !== 1 || bundle.result !== "PASS" || bundle.deterministic !== true
+    || sha256(members["provider-smoke.json"], "Provider smoke bundle member SHA-256") !== realEvidenceDigest
+    || !/^[0-9a-f]{64}$/u.test(String(members["run-binding.json"] ?? ""))
+    || runBinding.schemaVersion !== 1 || runBinding.result !== "PASS"
+    || runBinding.repository !== repository || runBinding.headSha !== qualificationCommit
+    || runBinding.headTree !== qualificationTree || runBinding.runId !== run.runId
+    || runBinding.runAttempt !== run.runAttempt || runBinding.workflowRef !== expectedWorkflowRef
+    || runBinding.workflowPath !== workflow.path || runBinding.workflowSha256 !== workflowSha256
+    || runBinding.environment !== "deepseek-provider-smoke" || runBinding.job !== "protected-real-provider-smoke"
+    || runBinding.credentialPolicy !== CREDENTIAL_POLICY
+    || runBinding.credentialFingerprintSha256 !== smoke.credentialFingerprintSha256
+    || runBinding.providerEndpoint !== PROVIDER_ENDPOINT
+    || runBinding.providerEvidenceSha256 !== members["provider-smoke.json"]
+    || runBinding.revocationEvidenceSha256 !== revocationEvidenceSha256
+    || revocation.evidenceSha256 !== revocationEvidenceSha256) {
+    throw new Error(`${REVOCATION_BLOCKER}: deterministic artifact members or fingerprint/digest cross-binding failed`);
+  }
+  if (subjectBundle) {
+    const subjectSmoke = object(subjectBundle.documents["provider-smoke.json"], "attested provider-smoke.json");
+    const subjectRevocation = object(subjectBundle.documents["credential-revocation.json"], "attested credential-revocation.json");
+    const subjectRunBinding = object(subjectBundle.documents["run-binding.json"], "attested run-binding.json");
+    if (["credential-revocation.json", "provider-smoke.json", "run-binding.json"]
+      .some((member) => subjectBundle.memberSha256[member] !== members[member])
+      || subjectSmoke.result !== "PASS"
+      || subjectSmoke.credentialPolicy !== CREDENTIAL_POLICY
+      || subjectSmoke.credentialFingerprintSha256 !== smoke.credentialFingerprintSha256
+      || subjectSmoke.providerEndpoint !== PROVIDER_ENDPOINT || subjectSmoke.runnerEphemeral !== true
+      || subjectRevocation.result !== "PASS"
+      || subjectRevocation.schemaVersion !== 1 || subjectRevocation.provider !== "deepseek"
+      || subjectRevocation.credentialPolicy !== CREDENTIAL_POLICY
+      || subjectRevocation.credentialFingerprintSha256 !== smoke.credentialFingerprintSha256
+      || subjectRevocation.repository !== repository || subjectRevocation.headSha !== qualificationCommit
+      || subjectRevocation.headTree !== qualificationTree || subjectRevocation.runId !== run.runId
+      || subjectRevocation.runAttempt !== run.runAttempt || subjectRevocation.endpoint !== REVOCATION_ENDPOINT
+      || ![401, 403].includes(subjectRevocation.revocationHttpStatus)
+      || JSON.stringify(subjectRevocation.acceptedStatuses) !== JSON.stringify([401, 403])
+      || !Number.isSafeInteger(subjectRevocation.probeAttempts) || subjectRevocation.probeAttempts <= 0
+      || subjectRevocation.maxWaitSeconds !== 900 || subjectRevocation.pollIntervalSeconds !== 15
+      || subjectRevocation.responseBodyCaptured !== false
+      || subjectRunBinding.schemaVersion !== 1 || subjectRunBinding.result !== "PASS"
+      || subjectRunBinding.repository !== repository || subjectRunBinding.headSha !== qualificationCommit
+      || subjectRunBinding.headTree !== qualificationTree || subjectRunBinding.runId !== run.runId
+      || subjectRunBinding.runAttempt !== run.runAttempt || subjectRunBinding.workflowRef !== expectedWorkflowRef
+      || subjectRunBinding.workflowPath !== workflow.path || subjectRunBinding.workflowSha256 !== workflowSha256
+      || subjectRunBinding.environment !== "deepseek-provider-smoke" || subjectRunBinding.job !== "protected-real-provider-smoke"
+      || subjectRunBinding.credentialPolicy !== CREDENTIAL_POLICY
+      || subjectRunBinding.credentialFingerprintSha256 !== smoke.credentialFingerprintSha256
+      || subjectRunBinding.providerEndpoint !== PROVIDER_ENDPOINT
+      || subjectRunBinding.providerEvidenceSha256 !== members["provider-smoke.json"]
+      || subjectRunBinding.revocationEvidenceSha256 !== members["credential-revocation.json"]) {
+      throw new Error(`${REVOCATION_BLOCKER}: cryptographically attested subject content does not match its external bundle bindings`);
+    }
+  }
+  if (!protectedSmoke.runnerLifecycle) {
+    throw new Error(`${RUNNER_DEREGISTRATION_BLOCKER}: lifecycle evidence is missing`);
+  }
+  const runnerLifecycle = object(protectedSmoke.runnerLifecycle, "ephemeral Provider runner lifecycle evidence");
+  if (runnerLifecycle.result !== "PASS" || runnerLifecycle.registrationMode !== "EPHEMERAL"
+    || runnerLifecycle.runnerEphemeral !== true || runnerLifecycle.deregistered !== true
+    || runnerLifecycle.online !== false || runnerLifecycle.verificationMode !== "INDEPENDENT_READ_ONLY_GITHUB_GOVERNANCE"
+    || !Number.isFinite(Date.parse(String(runnerLifecycle.verifiedAt ?? "")))) {
+    throw new Error(`${RUNNER_DEREGISTRATION_BLOCKER}: protected Provider runner is not independently proven deregistered and offline`);
+  }
   const artifact = object(protectedSmoke.artifact, "protected Provider evidence artifact");
   const expectedArtifactName = `codex-harness-provider-evidence-${qualificationCommit}.tar`;
   const expectedArtifactUrl = `https://github.com/${repository}/actions/runs/${String(run.runId)}/artifacts/${String(artifact.id)}`;
@@ -398,6 +523,16 @@ async function assertExternalEvidence(evidence, status, integrity) {
     || attestation.url !== expectedAttestationUrl || attestation.repository !== repository
     || attestation.workflowRef !== expectedWorkflowRef || attestation.subjectSha256 !== artifactSha256) {
     throw new Error("protected Provider evidence artifact lacks a verified digest attestation");
+  }
+  if (!evidence.providerEnvironmentSecretRemoval) {
+    throw new Error(`${SECRET_REMOVAL_BLOCKER}: independent secret removal evidence is missing`);
+  }
+  const secretRemoval = object(evidence.providerEnvironmentSecretRemoval, "Provider environment secret removal evidence");
+  if (secretRemoval.result !== "PASS" || secretRemoval.environment !== "deepseek-provider-smoke"
+    || secretRemoval.secretName !== "DEEPSEEK_API_KEY" || secretRemoval.secretNamePresent !== false
+    || secretRemoval.verificationMode !== "INDEPENDENT_READ_ONLY_GITHUB_GOVERNANCE"
+    || !Number.isFinite(Date.parse(String(secretRemoval.verifiedAt ?? "")))) {
+    throw new Error(`${SECRET_REMOVAL_BLOCKER}: GitHub environment secret name is not independently proven absent`);
   }
   const protection = object(evidence.branchProtection, "branch protection/ruleset evidence");
   if (protection.status !== "PASS" || protection.httpStatus !== 200
@@ -435,7 +570,40 @@ async function cryptographicallyVerifyExternalSubject(evidence, status, subjectP
   if ((Array.isArray(proof) && proof.length === 0) || (!Array.isArray(proof) && (!proof || typeof proof !== "object"))) {
     throw new Error("gh attestation verify returned an empty proof set");
   }
-  return { subjectSha256: expectedSha256, verifierOutputSha256: sha256Text(verified.stdout) };
+  const listed = spawnSync("tar", ["-tf", canonical], {
+    encoding: "utf8",
+    timeout: 30_000,
+    maxBuffer: 1_000_000,
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  if (listed.status !== 0) throw new Error(`attested Provider subject is not a readable tar: ${String(listed.stderr).trim()}`);
+  const entries = listed.stdout.split("\n").map((entry) => entry.replace(/^\.\//u, "").replace(/\/$/u, "")).filter(Boolean).sort();
+  const expectedMembers = ["credential-revocation.json", "provider-smoke.json", "run-binding.json"];
+  if (JSON.stringify(entries) !== JSON.stringify(expectedMembers)) {
+    throw new Error(`${REVOCATION_BLOCKER}: attested Provider subject members are not the exact required set`);
+  }
+  const documents = {};
+  const memberSha256 = {};
+  for (const member of expectedMembers) {
+    const extracted = spawnSync("tar", ["-xOf", canonical, `./${member}`], {
+      encoding: null,
+      timeout: 30_000,
+      maxBuffer: 10_000_000,
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    if (extracted.status !== 0 || !Buffer.isBuffer(extracted.stdout)) {
+      throw new Error(`${REVOCATION_BLOCKER}: unable to read attested subject member ${member}`);
+    }
+    memberSha256[member] = sha256Bytes(extracted.stdout);
+    try { documents[member] = JSON.parse(extracted.stdout.toString("utf8")); }
+    catch { throw new Error(`${REVOCATION_BLOCKER}: attested subject member ${member} is not JSON`); }
+  }
+  return {
+    subjectSha256: expectedSha256,
+    verifierOutputSha256: sha256Text(verified.stdout),
+    memberSha256,
+    documents,
+  };
 }
 
 async function assertSourceAndEvidence(root, status, { requireGit, externalEvidence: externalEvidencePath, externalSubject }) {
@@ -510,6 +678,7 @@ async function assertSourceAndEvidence(root, status, { requireGit, externalEvide
   const implementationTime = Date.parse(implementation.committedAt);
   let smoke;
   let external;
+  let externalSubjectBundle;
   for (const relative of (requireGit ? localEvidence : requiredEvidence)) {
     const target = await boundFile(root, relative, String(evidenceBindings[relative]), `release evidence ${relative}`);
     const evidence = await jsonFile(target, `release evidence ${relative}`);
@@ -537,10 +706,10 @@ async function assertSourceAndEvidence(root, status, { requireGit, externalEvide
     if (!Number.isFinite(Date.parse(String(external.generatedAt ?? ""))) || Date.parse(external.generatedAt) <= implementationTime) {
       throw new Error("repository-external GitHub evidence predates or lacks the implementation timestamp");
     }
-    await cryptographicallyVerifyExternalSubject(external, status, externalSubject);
+    externalSubjectBundle = await cryptographicallyVerifyExternalSubject(external, status, externalSubject);
   }
   assertSmokeQualification(smoke, status, integrity);
-  await assertExternalEvidence(external, status, integrity);
+  await assertExternalEvidence(external, status, integrity, smoke, externalSubjectBundle);
   return { integrity, requiredEvidenceCount: requiredEvidence.length };
 }
 

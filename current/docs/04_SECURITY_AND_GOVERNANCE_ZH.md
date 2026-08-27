@@ -4,6 +4,8 @@
 
 Provider key 永远只在 Monitor 中读取。Harness 只接收一次性的 Adapter Provider bearer；URL 仅含非秘密 task/attempt ID。Provider、request-state 与 tool bearer 长度/用途各异，任何交叉使用返回 403。Relay 与 Monitor 都拒绝 query、fragment、额外 suffix、非 POST、非 JSON 和不受支持的顶层 schema；失败请求不会触达上游。
 
+受保护的真实 Provider 资格化只允许使用专用 disposable DeepSeek key，不声称该 key 具有服务端 TTL，也不使用本地 expiry 声明作为真实性门禁。Smoke 固定到 `https://api.deepseek.com`，证据只记录原始 key bytes 的 lowercase SHA-256 fingerprint。Flash/Pro smoke 结束后状态进入 `CREDENTIAL_REVOCATION_PENDING`；Owner 必须从 Provider 端人工撤销 key，并由同一 `/dev/shm` 凭据对 `GET https://api.deepseek.com/models` 轮询。仅 401/403 是撤销证明；200、429、5xx、其它状态或 network error 均不通过，900 秒超时 fail closed，且不捕获 response body。
+
 模型可调用工具不拥有任何 bearer。Bash/Pwsh 由 Host Monitor 在独立 Bubblewrap sibling 中执行，clearenv、private PID/network namespace，不挂载 socket/state/secret。`/proc/*/environ`、argv、文件、Unix socket、loopback relay 与 direct Provider 均不能恢复 capability。
 
 任务 worktree 的读取不是 confidentiality boundary：Bash/editor/repository tools 可读取 worktree 内文件，并可能把工具输出交给远程模型；`contextFiles` 和渐进披露只控制提示与工具可见性，不保证其它仓库文件保密。操作员只能对允许远程 Provider 处理其内容的仓库启用 Harness。未来需要机密分区时应采用 filtered workspace，而不能依赖 prompt。
@@ -30,6 +32,6 @@ task/attempt registry 是 broker 执行的终止权威：取消、attempt rollov
 
 ## 发布
 
-稳定状态不能靠文档声明。release gate 必须从当前树重算 source/lock/critical/evidence/archive bindings，确认 evidence 晚于 implementation commit 且 smoke generation commit/tree 正是当前 critical path。根 workflow 以 full SHA pin actions，并把受保护 Provider evidence 的 artifact digest、run identity、workflow hash 和 GitHub attestation 绑定到精确 qualification commit/tree；之后只允许白名单元数据形成 seal，seal 身份从当前干净 Git checkout 推导而不写回自身，消除 strict-ci/self-hash 循环。先完成干净 canonical `seal-ready`，再在隔离 staging 构建归档；canonical checkout 不写打包来源文件。
+稳定状态不能靠文档声明。release gate 必须从当前树重算 source/lock/critical/evidence/archive bindings，确认 evidence 晚于 implementation commit 且 smoke generation commit/tree 正是当前 critical path。根 workflow 以 full SHA pin actions，并把受保护 Provider evidence 的 artifact digest、run identity、workflow hash、credential fingerprint、Provider revocation proof 和 GitHub attestation 绑定到精确 qualification commit/tree；deterministic subject 至少包含 `provider-smoke.json`、`run-binding.json`、`credential-revocation.json`。之后只允许白名单元数据形成 seal，seal 身份从当前干净 Git checkout 推导而不写回自身，消除 strict-ci/self-hash 循环。先完成干净 canonical `seal-ready`，再在隔离 staging 构建归档；canonical checkout 不写打包来源文件。
 
-DEC-001 至 DEC-004 是不可代签的 owner 决策；未批准或批准后未重新纳入实现提交并资格化时，stable gate 必须失败。未取得实际 CI run、protected Provider attestation、branch protection required checks、全 controller 资源证据和最终 archive 证据时保持 candidate；禁止自动 push、merge、tag 或 GitHub Release。
+DEC-001 至 DEC-004 与 CRED-EPHEMERAL-001 是不可代签的 owner 决策；未批准或批准后未重新纳入实现提交并资格化时，stable gate 必须失败。撤销证明完成后，Owner 仍须人工删除 GitHub environment `deepseek-provider-smoke` 中的 `DEEPSEEK_API_KEY`，由独立只读治理检查证明该 secret 名称不存在，并证明 `--ephemeral` runner 已注销且不再 online；这些后置门禁不能由 Provider workflow 自行声明。未取得实际 CI run、protected Provider attestation、branch protection required checks、全 controller 资源证据和最终 archive 证据时保持 candidate；禁止自动 push、merge、tag 或 GitHub Release。
