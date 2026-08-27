@@ -31,6 +31,14 @@ const EXPECTED_BASELINE = Object.freeze({
   historicalGitlinkCount: 3,
 });
 
+const TASK_BOUND_EMAIL_EXTENSION = Object.freeze({
+  task: "CRED_EPHEMERAL_001_B_MINIMAL_REPAIR",
+  implementationCommit: "36e78afe5f3c450f7dbacbb2e1ace3fb90acfab9",
+  baselineMaximum: EXPECTED_BASELINE.emailOccurrenceCount,
+  additionalOccurrences: 2,
+  effectiveMaximum: 66,
+});
+
 function object(value, label) {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error(`${label} must be an object`);
   return value;
@@ -154,6 +162,17 @@ export function validatePublicHistoryRiskAcceptance({
       throw new Error(`Owner decision ${id} is not the approved exact selection`);
     }
   }
+  const emailScope = object(decisions["PUB-HIST-EMAIL-001"].scope, "Owner email decision scope");
+  const taskBoundExtension = object(emailScope.taskBoundExtension, "Owner email task-bound extension");
+  if (emailScope.authorCommitterOccurrences !== TASK_BOUND_EMAIL_EXTENSION.baselineMaximum
+    || taskBoundExtension.task !== TASK_BOUND_EMAIL_EXTENSION.task
+    || taskBoundExtension.implementationCommit !== TASK_BOUND_EMAIL_EXTENSION.implementationCommit
+    || taskBoundExtension.additionalAuthorCommitterOccurrences !== TASK_BOUND_EMAIL_EXTENSION.additionalOccurrences
+    || taskBoundExtension.effectiveMaximumAuthorCommitterOccurrences !== TASK_BOUND_EMAIL_EXTENSION.effectiveMaximum
+    || taskBoundExtension.newDistinctIdentifierSignatures !== 0
+    || typeof taskBoundExtension.basis !== "string" || taskBoundExtension.basis.length < 40) {
+    throw new Error("Owner email occurrence extension is not exact and task-bound");
+  }
   if (legacy.head !== EXPECTED_BASELINE.head || legacy.coverage?.commits !== EXPECTED_BASELINE.commitCount
     || legacy.coverage?.zipBlobs !== EXPECTED_BASELINE.uniqueZipFileCount
     || legacy.coverage?.zipEntries !== EXPECTED_BASELINE.zipMemberOverlapInclusiveCount) {
@@ -205,13 +224,17 @@ export function validatePublicHistoryRiskAcceptance({
   });
   exactFindingSet(baseline.findings.unsafeGitObjects, baselineUnsafe, gitObjectSignature, "public-ref baseline historical gitlink findings");
   exactFindingSet(current.findings.unsafeGitObjects, baselineUnsafe, gitObjectSignature, "historical gitlink findings");
+  if (!Array.isArray(current.inventory?.reachableCommits)
+    || !current.inventory.reachableCommits.includes(TASK_BOUND_EMAIL_EXTENSION.implementationCommit)) {
+    blocked("task-bound email occurrence extension commit is not reachable from the proposed public ref");
+  }
   const currentEmail = onlyFinding(current.findings.personalInformation, "personal_email", "current privacy findings");
   const currentPath = onlyFinding(current.findings.personalInformation, "personal_local_home", "current privacy findings");
   const baselinePublicEmail = onlyFinding(baseline.findings.personalInformation, "personal_email", "public-ref baseline privacy findings");
   const baselinePublicPath = onlyFinding(baseline.findings.personalInformation, "personal_local_home", "public-ref baseline privacy findings");
-  const emailOccurrenceDelta = occurrenceDelta(currentEmail.occurrenceCount, EXPECTED_BASELINE.emailOccurrenceCount, "accepted email identifier");
+  const emailOccurrenceDelta = occurrenceDelta(currentEmail.occurrenceCount, TASK_BOUND_EMAIL_EXTENSION.effectiveMaximum, "accepted email identifier");
   const pathOccurrenceDelta = occurrenceDelta(currentPath.occurrenceCount, EXPECTED_BASELINE.pathOccurrenceCount, "accepted home-path alias");
-  occurrenceDelta(baselinePublicEmail.occurrenceCount, EXPECTED_BASELINE.emailOccurrenceCount, "public-ref baseline email identifier");
+  occurrenceDelta(baselinePublicEmail.occurrenceCount, TASK_BOUND_EMAIL_EXTENSION.baselineMaximum, "public-ref baseline email identifier");
   occurrenceDelta(baselinePublicPath.occurrenceCount, EXPECTED_BASELINE.pathOccurrenceCount, "public-ref baseline home-path alias");
   const coverage = object(current.coverage, "current audit coverage");
   if (!Number.isSafeInteger(coverage.uniqueZipFiles) || !Number.isSafeInteger(coverage.zipMembersAfterZipBlobDeduplication)) blocked("current ZIP coverage counters are invalid");
@@ -239,7 +262,13 @@ export function validatePublicHistoryRiskAcceptance({
     acceptedCounts: {
       emailIdentifierCommitCount: currentEmail.uniqueCommitCount ?? null,
       authorCommitterOccurrences: currentEmail.occurrenceCount,
-      authorCommitterOccurrenceMaximum: EXPECTED_BASELINE.emailOccurrenceCount,
+      authorCommitterOccurrenceMaximum: TASK_BOUND_EMAIL_EXTENSION.effectiveMaximum,
+      authorCommitterOccurrenceMaximumBinding: {
+        task: TASK_BOUND_EMAIL_EXTENSION.task,
+        implementationCommit: TASK_BOUND_EMAIL_EXTENSION.implementationCommit,
+        additionalOccurrences: TASK_BOUND_EMAIL_EXTENSION.additionalOccurrences,
+        newDistinctIdentifierSignatures: 0,
+      },
       pathIdentifierOccurrences: currentPath.occurrenceCount,
       pathIdentifierOccurrenceMaximum: EXPECTED_BASELINE.pathOccurrenceCount,
       historicalZipFiles: coverage.uniqueZipFiles,

@@ -46,7 +46,7 @@
 
 ## CI、安装与供应链
 
-- [x] 隔离的 origin public heads/tags 审计保留两组 Owner-accepted 标识与三个 opaque gitlink findings；email/home occurrences 为 60/91，分别不超过批准上限 64/136；confirmed secrets/新增个人信息/ZIP traversal/LFS/分发许可证未闭合项为 0，六个唯一 ZIP 共 1,776 个去重成员。
+- [x] 隔离的 origin public heads/tags 审计保留两组 Owner-accepted 标识与三个 opaque gitlink findings；proposed public ref 的 email/home occurrences 为 66/91，分别不超过绑定 credential-repair implementation commit 的 task-bound 上限 66 与 home 上限 136；confirmed secrets/新增个人信息/ZIP traversal/LFS/分发许可证未闭合项为 0，六个唯一 ZIP 共 1,776 个去重成员。
 - [x] active source、package staging、archive manifest/final ZIP 零 gitlink/`.gitmodules` 门禁及负向测试通过；历史 accepted gitlink 不误伤当前门禁。
 - [x] DEC-002 完整仓库/history 读取披露、仓库边界、credential/state/socket 隔离与输出分页已实现验证。
 - [ ] 根 workflow、full-SHA actions、build/test/direct/security/package/skill/drift/negative/poison 全通过。

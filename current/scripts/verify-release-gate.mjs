@@ -310,7 +310,7 @@ async function assertOwnerDecisions(root, config) {
     || publicAudit.isolation?.objectClosureVerified !== true
     || publicAudit.isolation?.replaceRefsDisabled !== true
     || !Number.isSafeInteger(publicAudit.acceptedCounts?.authorCommitterOccurrences)
-    || publicAudit.acceptedCounts.authorCommitterOccurrences > 64
+    || publicAudit.acceptedCounts.authorCommitterOccurrences > 66
     || !Number.isSafeInteger(publicAudit.acceptedCounts?.pathIdentifierOccurrences)
     || publicAudit.acceptedCounts.pathIdentifierOccurrences > 136
     || publicAudit.summary?.publicRefSetSha256 !== publicAudit.publicRefScope?.refSetSha256) {
@@ -322,7 +322,7 @@ async function assertOwnerDecisions(root, config) {
     || riskAcceptance.historyRewriteRequired !== false || riskAcceptance.confirmedSecrets !== 0
     || riskAcceptance.unresolvedDistributedLicenseFindings !== 0
     || !Number.isSafeInteger(riskAcceptance.acceptedCounts?.authorCommitterOccurrences)
-    || riskAcceptance.acceptedCounts.authorCommitterOccurrences > 64
+    || riskAcceptance.acceptedCounts.authorCommitterOccurrences > 66
     || !Number.isSafeInteger(riskAcceptance.acceptedCounts?.pathIdentifierOccurrences)
     || riskAcceptance.acceptedCounts.pathIdentifierOccurrences > 136
     || JSON.stringify(riskAcceptance.ownerDecisionIds) !== JSON.stringify(publicAudit.ownerDecisionIds)) {

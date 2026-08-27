@@ -74,4 +74,4 @@ origin public heads/tags
 
 `public-remote` 只包含当前 origin heads/tags；`proposed-public-ref` 只在其上增加明确给出的 proposed ref name 与 exact local commit。global/system Git config、replace refs、grafts、alternate object databases、source shallow 边界、local heads、remote-tracking refs 和 stash 均不能扩张审计范围。
 
-Owner 比较仍保留原始批准上限：email author/committer occurrences 不超过 64，home-path alias occurrences 不超过 136；减少会记录负 delta，并明确解释为 ref-scope 去重，而不是 history rewrite。任何新 distinct identifier、新 secret、新 Gitlink object/path、archive integrity finding 或 distributed-license blocker 都以 `BLOCKED_NEW_PUBLIC_HISTORY_FINDING` 终止。
+Owner 比较仍保留原始批准上限：email author/committer occurrences 为 64，home-path alias occurrences 不超过 136。`CRED_EPHEMERAL_001_B_MINIMAL_REPAIR` 明确要求的新 implementation commit `36e78afe5f3c450f7dbacbb2e1ace3fb90acfab9` 且禁止 history rewrite，因此同一已接受 email identifier 的 author/committer 两次记录只形成绑定该 commit 的 task-bound 有效上限 66；不得推广到其他 commit 或 identifier。减少会记录负 delta，并明确解释为 ref-scope 去重，而不是 history rewrite。任何新 distinct identifier、超过 66、新 secret、新 Gitlink object/path、archive integrity finding 或 distributed-license blocker 都以 `BLOCKED_NEW_PUBLIC_HISTORY_FINDING` 终止。

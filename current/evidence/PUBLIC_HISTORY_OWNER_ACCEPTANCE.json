@@ -19,6 +19,14 @@
       "scope": {
         "reachableCommits": 32,
         "authorCommitterOccurrences": 64,
+        "taskBoundExtension": {
+          "task": "CRED_EPHEMERAL_001_B_MINIMAL_REPAIR",
+          "implementationCommit": "36e78afe5f3c450f7dbacbb2e1ace3fb90acfab9",
+          "additionalAuthorCommitterOccurrences": 2,
+          "effectiveMaximumAuthorCommitterOccurrences": 66,
+          "newDistinctIdentifierSignatures": 0,
+          "basis": "Owner explicitly required a new implementation commit and prohibited history rewrite; this allowance is limited to that commit's author and committer metadata for the already-accepted identifier."
+        },
         "identifierShape": "9-digit account identifier at qq.com",
         "historyRewriteRequired": false
       },

@@ -7,6 +7,7 @@
 - `public-remote` baseline 来自 origin 公告的 5 个公开 heads/tags，覆盖 32 个 reachable commits；邮箱账户标识出现在其中 30 个提交的 author/committer metadata 中，共 60 次，低于 Owner 批准上限 64。
 - 发现 6 个唯一历史 ZIP，共 `1,776` 个去重后成员。legacy local-scope 值 `3,288` 曾把同一 ZIP blob 的历史对象与当前 worktree 重叠检查相加，现仅保留在迁移 delta 中，不再作为公开 ref 审计口径。
 - Owner 自有 home-path/account alias 在公开 ref 闭包中出现 91 次，低于批准上限 136，并存在于六个 ZIP 中。审计未发现额外真实姓名、第三方个人信息、凭据或项目秘密。减少量明确记录为 scope 去重，不声称 history rewrite。
+- 本次 proposed-public-ref 还包含 Owner 要求且不得改写的 credential-repair implementation commit `36e78afe5f3c450f7dbacbb2e1ace3fb90acfab9`。它只为同一已接受 email identifier 增加 author/committer 两次记录；机器门禁把 66 作为绑定该 commit 的精确 task-bound 上限，67 或任何新 distinct signature 仍 fail closed。
 - confirmed secrets、额外 personal-information candidates、LFS pointers、ZIP path traversal、archive integrity、当前声明依赖许可证未闭合项均为 0。
 
 ## Owner 接受的标识

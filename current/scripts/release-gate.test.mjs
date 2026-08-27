@@ -575,6 +575,20 @@ test("stable source gates are an exact fail-closed set", async () => {
   );
 });
 
+test("public-history occurrence allowance rejects values above the task-bound maximum", async () => {
+  const fixture = await stableFixture();
+  for (const relative of ["evidence/PUBLIC_REPOSITORY_HISTORY_AUDIT.json", "evidence/PUBLIC_HISTORY_RISK_ACCEPTANCE.json"]) {
+    const target = path.join(fixture.root, relative);
+    const evidence = JSON.parse(await readFile(target, "utf8"));
+    evidence.acceptedCounts.authorCommitterOccurrences = 67;
+    await writeFile(target, `${JSON.stringify(evidence, null, 2)}\n`);
+  }
+  await assert.rejects(
+    verifyReleaseGate({ root: fixture.root, auditPackageStaging: true, skipSelfTests: false, requireArchive: false }),
+    /complete PASS public repository\/history audit/u,
+  );
+});
+
 test("GitHub evidence is required, exact-tip bound, protected, and non-observational", async () => {
   const missingProtection = await stableFixture();
   await rewriteBoundEvidence(missingProtection.root, evidencePaths.external, (evidence) => { delete evidence.branchProtection; });

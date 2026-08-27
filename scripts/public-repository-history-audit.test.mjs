@@ -238,6 +238,9 @@ function acceptanceFixture() {
   }
   baselineAudit.licensing.thirdPartyDependencyReview.unresolved = [];
   const currentAudit = structuredClone(baselineAudit);
+  currentAudit.inventory = {
+    reachableCommits: ["36e78afe5f3c450f7dbacbb2e1ace3fb90acfab9"],
+  };
   currentAudit.activeSource = { gitlinkCount: 0, gitmodulesCount: 0 };
   const details = [
     ["bd707c75e7c730773fec3f7716847942f9bf27a5", "repair-worktree/rc1-real-smoke-repo", "05773fb6bee92b6f58f0aae6556b014103eebd24"],
@@ -279,14 +282,31 @@ test("accepted identifier occurrence reduction passes and records a negative del
   input.currentAudit.findings.personalInformation.find((item) => item.rule === "personal_local_home").occurrenceCount = 91;
   const result = validatePublicHistoryRiskAcceptance(input);
   assert.equal(result.result, "PASS");
-  assert.equal(result.occurrenceDeltas.emailVersusOwnerApprovedMaximum, -4);
+  assert.equal(result.occurrenceDeltas.emailVersusOwnerApprovedMaximum, -6);
   assert.equal(result.occurrenceDeltas.pathVersusOwnerApprovedMaximum, -45);
+});
+
+test("task-bound implementation occurrence pair passes at the exact effective maximum", () => {
+  const input = acceptanceFixture();
+  input.currentAudit.findings.personalInformation.find((item) => item.rule === "personal_email").occurrenceCount = 66;
+  const result = validatePublicHistoryRiskAcceptance(input);
+  assert.equal(result.result, "PASS");
+  assert.equal(result.acceptedCounts.authorCommitterOccurrenceMaximum, 66);
+  assert.equal(result.occurrenceDeltas.emailVersusOwnerApprovedMaximum, 0);
+  assert.equal(result.acceptedCounts.authorCommitterOccurrenceMaximumBinding.newDistinctIdentifierSignatures, 0);
 });
 
 test("accepted identifier occurrence increase above the Owner maximum fails", () => {
   const input = acceptanceFixture();
-  input.currentAudit.findings.personalInformation.find((item) => item.rule === "personal_email").occurrenceCount = 65;
+  input.currentAudit.findings.personalInformation.find((item) => item.rule === "personal_email").occurrenceCount = 67;
   assert.throws(() => validatePublicHistoryRiskAcceptance(input), /BLOCKED_NEW_PUBLIC_HISTORY_FINDING.*exceeds/u);
+});
+
+test("task-bound occurrence extension fails when its exact implementation commit is absent", () => {
+  const input = acceptanceFixture();
+  input.currentAudit.inventory.reachableCommits = input.currentAudit.inventory.reachableCommits
+    .filter((commit) => commit !== "36e78afe5f3c450f7dbacbb2e1ace3fb90acfab9");
+  assert.throws(() => validatePublicHistoryRiskAcceptance(input), /BLOCKED_NEW_PUBLIC_HISTORY_FINDING.*not reachable/u);
 });
 
 test("new distinct email or home alias fails", () => {
